@@ -1,0 +1,87 @@
+[project]
+name = "folio"
+version = "0.1.0"
+requires-python = ">=3.14"
+license = "MIT"
+license-files = ["LICENSE"]
+dependencies = [
+    "django>=6.1.1",
+    "django-environ>=0.14.0",
+    "django-simple-history>=3.13.0",
+    "psycopg[binary]>=3.3.6",
+]
+
+[dependency-groups]
+dev = [
+    "prek>=0.5.4",
+    "ruff>=0.16.9",
+]
+
+[tool.ruff]
+target-version = "py314"
+line-length = 88
+extend-exclude = ["**/migrations/*"]
+
+[tool.ruff.format]
+quote-style = "double"
+docstring-code-format = true
+
+[tool.ruff.lint]
+select = ["ALL"]
+# Preview is on only so DOC (pydoclint) rules can be opted into by exact code;
+# explicit-preview-rules keeps every other unstable rule out.
+preview = true
+explicit-preview-rules = true
+extend-select = [
+    "DOC102",
+    "DOC201",
+    "DOC202",
+    "DOC402",
+    "DOC403",
+    "DOC501",
+    "DOC502",
+]
+ignore = [
+    # Conflict with the formatter.
+    "COM812",
+    "ISC001",
+    # Django's Meta/admin/form options are idiomatic mutable class attributes.
+    "RUF012",
+    # Nested classes are almost always Django `Meta`; __init__ args go in the class docstring.
+    "D105",
+    "D106",
+    "D107",
+    # TODOs are fine; don't require author/issue link or fail on their mere presence.
+    "TD002",
+    "TD003",
+    "FIX002",
+    "CPY001",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"**/tests/**" = ["S101", "PLR2004", "ANN", "D", "DOC", "ARG", "SLF001"]
+"**/test_*.py" = ["S101", "PLR2004", "ANN", "D", "DOC", "ARG", "SLF001"]
+"**/settings*.py" = ["ERA001", "E501"]
+"manage.py" = ["PLC0415"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.isort]
+known-first-party = ["config"]
+combine-as-imports = true
+
+[tool.ruff.lint.flake8-tidy-imports]
+ban-relative-imports = "all"
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.ruff.lint.pylint]
+max-args = 6
+max-branches = 12
+max-returns = 6
+max-statements = 50
+
+[tool.ruff.lint.flake8-type-checking]
+runtime-evaluated-base-classes = ["django.db.models.Model"]
