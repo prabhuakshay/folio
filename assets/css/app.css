@@ -1,0 +1,5 @@
+@import "tailwindcss";
+
+/* Tailwind emits only the utilities it finds referenced. Sources are detected
+   automatically from the project root (skipping anything gitignored), so new
+   apps and templates are picked up without listing them here. */

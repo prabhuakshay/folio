@@ -79,6 +79,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -93,7 +94,7 @@ ROOT_URLCONF = "config.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -147,6 +148,8 @@ AUTH_PASSWORD_VALIDATORS = [
 # https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
 SECURE_SSL_REDIRECT = env.bool("SECURE_SSL_REDIRECT", default=False)
+# The container healthcheck probes over plain HTTP from inside the container.
+SECURE_REDIRECT_EXEMPT = [r"^healthz$"]
 if env.bool("USE_X_FORWARDED_PROTO", default=False):
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
@@ -177,9 +180,17 @@ USE_TZ = True
 
 STATIC_URL = env.str("STATIC_URL", default="static/")
 STATIC_ROOT = env.path("STATIC_ROOT", default=BASE_DIR / "staticfiles")
+STATICFILES_DIRS = [BASE_DIR / "static"]
 
 MEDIA_URL = env.str("MEDIA_URL", default="media/")
 MEDIA_ROOT = env.path("MEDIA_ROOT", default=BASE_DIR / "media")
+
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
 
 # Email

@@ -1,0 +1,96 @@
+# Local development stack:
+#
+#   web          autoreloading runserver with the working tree bind-mounted
+#   tailwind     Tailwind CLI in watch mode, rebuilding static/css/app.css
+#   mountpoints  one-shot ahead of tailwind that keeps root out of your tree
+#
+#   cp .env.example .env      # then set SECRET_KEY
+#   docker compose up --build
+#
+# There is no database container. SQLite (the default) lives in the working
+# tree; for Postgres, point DATABASE_URL at your own server. Inside a container
+# `localhost` is the container, so a server on your machine is
+# host.docker.internal.
+#
+# Every Django setting comes from .env; this file sets no `environment:` of its
+# own, so what you read in .env is exactly what the app sees.
+
+name: folio
+
+services:
+  web:
+    build:
+      context: .
+      target: dev
+    env_file: .env
+    # Run as you: anything the server writes into the tree (migrations, the
+    # SQLite file) must stay editable without sudo.
+    user: "${DOCKER_UID:-1000}:${DOCKER_GID:-1000}"
+    command: >
+      sh -c "python manage.py migrate --noinput
+      && python manage.py createcachetable
+      && python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - .:/app
+    ports:
+      - "${WEB_PORT:-8000}:8000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    # Keeps stdin open so `breakpoint()` works: `docker attach folio-web-1`.
+    stdin_open: true
+    tty: true
+    depends_on:
+      # Waits for the stylesheet to exist, not just for the container to start.
+      # On a fresh clone the first npm install takes long enough that Django
+      # would otherwise serve the first pages unstyled.
+      tailwind:
+        condition: service_healthy
+
+  tailwind:
+    build: &tailwind-build
+      context: .
+      target: tailwind
+      args:
+        # Must match `user:` below; the stage creates node_modules owned by it.
+        DOCKER_UID: ${DOCKER_UID:-1000}
+        DOCKER_GID: ${DOCKER_GID:-1000}
+    user: "${DOCKER_UID:-1000}:${DOCKER_GID:-1000}"
+    # Required: without a TTY stdin closes immediately, and the watcher reads
+    # that as its parent going away and stops rebuilding while the container
+    # still looks alive. `--watch=always` in package.json guards the same thing,
+    # and `--poll` guards against filesystem events silently dropping a subtree
+    # on long runs.
+    tty: true
+    volumes:
+      - .:/app
+      - /app/node_modules
+    # `install`, not `ci`: node_modules is a volume that outlives a run, and
+    # install skips the work when it is already correct.
+    command: sh -c "npm install --no-audit --no-fund && npm run watch"
+    depends_on:
+      mountpoints:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "test -s /app/static/css/app.css"]
+      interval: 2s
+      timeout: 3s
+      retries: 5
+      # Covers the first npm install on a cold cache.
+      start_period: 180s
+    restart: unless-stopped
+    # A watcher over a bind mount can spin when something goes wrong; this caps
+    # the damage.
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+
+  # Docker creates a missing mountpoint as root, and tailwind's node_modules
+  # mask needs one inside your tree. This makes it first, as you.
+  mountpoints:
+    build: *tailwind-build
+    user: "${DOCKER_UID:-1000}:${DOCKER_GID:-1000}"
+    volumes:
+      - .:/app
+    command: mkdir -p node_modules

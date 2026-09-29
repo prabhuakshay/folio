@@ -6,3 +6,6 @@ db.sqlite3
 .ruff_cache/
 staticfiles/
 media/
+node_modules/
+# Built by the tailwind container / `npm run build` from assets/css/app.css.
+static/css/app.css

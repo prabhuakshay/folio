@@ -7,6 +7,10 @@ from django.conf import settings
 from django.contrib import admin
 from django.urls import path
 
+from config.health import healthz
+
 urlpatterns = [
     path(settings.ADMIN_URL, admin.site.urls),
+    # No trailing slash: probes hit the exact path by convention.
+    path("healthz", healthz, name="healthz"),
 ]
