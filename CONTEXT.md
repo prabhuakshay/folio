@@ -18,7 +18,7 @@ _Avoid_: rainy-day fund, buffer
 Trailing-12-month Income less tax and employee EPF; excludes Realised and Unrealised Gains. The base for the EMI cap, life-cover need and savings rate. Declared by hand until the ledger holds enough history.
 
 **Dependent**:
-A person who relies on your income or is under your health cover. Recorded in your profile; never logs in and owns nothing.
+A person who relies on your income or is under your health cover. Recorded in your profile; never logs in and owns nothing. Every Dependent needs health cover; only one flagged as **relying on your income** creates a need for term life cover.
 
 **Account**:
 A node in the Chart of Accounts that Postings hit. Every Account has one Account Type. A bank account, cash, a wallet, a loan, a credit card, a Holding, Groceries, Salary — all are Accounts.
@@ -108,6 +108,13 @@ The portion of any Holding not Earmarked to a Goal. Allowed and visible, never f
 **Statement Importer**:
 A pluggable reader that turns one institution's statement format into Transactions. Each bank or card issuer is added as its own Importer.
 
+**Policy**:
+An insurance contract you record: its type, insurer, persons covered (you and/or Dependents), sum assured, cover dates, nominees and riders. Not an Account — cover is a promise, not money you own; a pure-protection premium posts to an Expense Account, while a value-bearing Policy (ULIP, endowment) links to the Holdings that carry its value and its whole premium goes to them at cost. It counts only from its cover start to its **cover until** date — its own, not derived from any premium Schedule, and rolled forward by its **renewal term** when a linked premium Occurrence is fulfilled near it. **Employer-provided** cover is shown but never counted by the Doctrine.
+_Avoid_: insurance account, plan (the insurer's product name only)
+
+**Policy Type**:
+One of a fixed set, each with a fixed meaning for the Doctrine: term life and endowment/ULIP (life cover, counted only when you are the life assured), health base and health super top-up (health cover, a floater counting its full sum insured for each person covered; a top-up counts only where a person's counted base cover reaches its deductible); personal accident, critical illness, motor, home, travel and other are recorded but never counted.
+
 **Retirement**:
 A Goal like any other, with a projection calculator attached — not a separate subsystem.
 
@@ -127,6 +134,7 @@ A Goal like any other, with a projection calculator attached — not a separate 
 - A **Holding** is in exactly one **Instrument** at one place held; an **Instrument** may have several **Holdings**
 - A **Holding**'s units are split between zero or more **Earmarks** and the **Unallocated** remainder
 - An **Earmark** ties one **Holding** to one **Goal**
+- A **Policy** has exactly one **Policy Type**, covers you and/or one or more **Dependents**, and links to zero or one premium **Schedule** and zero or more **Holdings**
 
 ## Flagged ambiguities
 
