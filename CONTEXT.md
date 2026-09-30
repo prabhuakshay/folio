@@ -15,7 +15,7 @@ A system Goal, fixed at 100% cash and liquid debt, that must cover the trailing 
 _Avoid_: rainy-day fund, buffer
 
 **Take-home**:
-Trailing-12-month Income less tax and employee EPF; excludes Realised and Unrealised Gains. The base for the EMI cap, life-cover need and savings rate. Declared by hand until the ledger holds enough history.
+Trailing-12-month Income less Taxes and less whatever an Income Transaction puts straight into a retirement Account (employee and employer EPF/NPS, VPF, EPF and PPF interest credited); excludes Realised and Unrealised Gains. The base for the EMI cap, life-cover need and savings rate. Declared by hand until the ledger holds enough history.
 
 **Dependent**:
 A person who relies on your income or is under your health cover. Recorded in your profile; never logs in and owns nothing. Every Dependent needs health cover; only one flagged as **relying on your income** creates a need for term life cover.
@@ -26,7 +26,7 @@ An Account can be **closed** (zero balance required; hidden from pickers, histor
 _Avoid_: ledger, category, head
 
 **Account Role**:
-A system purpose an Account serves so Folio can find it — Opening Balances, Realised Gains, Interest paid, Bank charges & fees, Rewards & cashback, Insurance premiums. A role-bearing Account can be deleted; Folio recreates it when the role is next needed, or the role is pointed at another Account.
+A system purpose an Account serves so Folio can find it — Opening Balances, Realised Gains, Interest, Dividends, Interest paid, Bank charges & fees, Rewards & cashback, Insurance premiums, Taxes, Uncategorised. A role may sit on a group Account, meaning every Account under it (Taxes does). **Uncategorised** is where importers and quick-add put what they can't place, for review. A role-bearing Account can be deleted; Folio recreates it when the role is next needed, or the role is pointed at another Account.
 
 **Account Type**:
 One of Asset, Liability, Equity, Income, Expense. Fixes which side of the balance sheet or income statement an Account reports on.
@@ -68,6 +68,20 @@ _Avoid_: recurring payment, standing instruction, mandate
 
 **Occurrence**:
 One dated instance a Schedule, Loan or Card expects. It is **due** until **fulfilled** — by confirming it (with the date and amount edited if needed) or by linking a Transaction already recorded — or **skipped**; past its date it is **overdue**, and it never expires on its own.
+
+**Budget**:
+A monthly pay-yourself-first plan: expected income, less the **savings** reserved (the savings-rate target or the scheduled savings, whichever is larger), less **committed** spend (Occurrences that hit Expense Accounts, and Loan EMIs), leaves **spendable**. Spend not from a fulfilled Occurrence is **discretionary** and draws spendable down. Optional **limits** on any Expense Account, monthly or yearly, apply from the month they are set and never roll over. A Budget month begins on a chosen month-start day.
+_Avoid_: envelope, sinking fund (a planned big spend is a Goal)
+
+**Saved**:
+Take-home less outflow (as the Emergency Fund counts it), plus what Income Transactions put straight into retirement Accounts. The **savings rate** is saved ÷ Take-home; loan principal repaid is outflow, not saving.
+
+**Surplus to direct**:
+Money Folio won't count as spendable — income that arrived without a Schedule (a bonus, a refund) and spendable left at month end — shown with advice pointing at the current Stage. Never moved automatically.
+_Avoid_: windfall (as a term), rollover
+
+**Tag**:
+A free, flat label on a Transaction for spending that cuts across Accounts — a trip, a wedding. Used to filter and report; never drives the Budget.
 
 **Financial Year**:
 April to March — the default reporting period. Periods are never closed or locked; this is a personal finance app, not an accounting package.
@@ -127,6 +141,7 @@ A Goal like any other, with a projection calculator attached — not a separate 
 - A **Liability** Account is a **Loan**, a **Card**, or neither (a bill owed)
 - A **Loan** may be owed to a **Card** (a purchase converted to EMI), whose instalments are billed onto that Card
 - A **Schedule**, **Loan** or **Card** expects zero or more **Occurrences**; a fulfilled **Occurrence** is linked to exactly one **Transaction**
+- A **Budget** limit sits on one Expense **Account**, leaf or group
 - A **Goal** has exactly one **Target Allocation**
 - A **Target Allocation** is expressed over **Asset Classes**
 - An **Instrument** is split across one or more **Asset Classes**, the split summing to 100%
