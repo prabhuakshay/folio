@@ -5,7 +5,20 @@ A single-person finance ledger for Indian markets: what I own, what I owe, what 
 ## Language
 
 **Doctrine**:
-The ordered set of financial-health rules Folio holds you to (emergency fund, insurance cover, debt limits, allocation by horizon). Folio is opinionated: it advises and enforces against the Doctrine, not just records.
+The ordered ladder of financial-health Stages Folio holds you to. Folio records everything but endorses only what follows the Doctrine: it flags actions that skip a Stage rather than refusing them. Every threshold has a default and a recommended band; you may set any value, and Folio warns when it sits outside the band.
+
+**Stage**:
+One rung of the Doctrine, met or not met, in fixed order: no revolving credit → starter emergency fund → protection (health and term life cover) → high-interest debt cleared → full Emergency Fund → Goals and Retirement. The **current Stage** is the lowest one not met; surplus advice always points there. A Stage judged on declared rather than measured figures is **provisional**.
+
+**Emergency Fund**:
+A system Goal, fixed at 100% cash and liquid debt, that must cover the trailing 6 months of outflow: Expense Postings (less tax and employee EPF) plus loan principal repaid. Cannot be deleted.
+_Avoid_: rainy-day fund, buffer
+
+**Take-home**:
+Trailing-12-month Income less tax and employee EPF; excludes Realised and Unrealised Gains. The base for the EMI cap, life-cover need and savings rate. Declared by hand until the ledger holds enough history.
+
+**Dependent**:
+A person who relies on your income or is under your health cover. Recorded in your profile; never logs in and owns nothing.
 
 **Account**:
 A node in the Chart of Accounts that Postings hit. Every Account has one Account Type. A bank account, cash, a wallet, a loan, a credit card, a Holding, Groceries, Salary — all are Accounts.
@@ -53,6 +66,9 @@ The risk category an Instrument belongs to — equity, debt, gold, real estate, 
 
 **Target Allocation**:
 The desired split of a Goal's money across Asset Classes (e.g. 20:80 equity:debt for a one-year Goal). Drift from it is what rebalancing corrects.
+
+**Glide Path**:
+How a Goal's default Target Allocation de-risks as its date nears, following SEBI's Life Cycle Fund equity bands by years-to-goal. Retirement switches to a fixed decumulation mix once its date passes.
 _Avoid_: ratio, mix
 
 **Instrument**:
