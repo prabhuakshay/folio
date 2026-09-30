@@ -16,6 +16,8 @@ body { font-family: "Archivo", ui-sans-serif, system-ui, sans-serif; font-variat
 .wordmark { font-variation-settings: "wdth" 125; font-weight: 800; letter-spacing: -0.02em; }
 .pager, .page { scrollbar-width: none; }
 .pager { overscroll-behavior-x: contain; }
+/* A fast fling on phones otherwise carries the pager past several pages. */
+.pager > .page { scroll-snap-stop: always; }
 .pager::-webkit-scrollbar, .page::-webkit-scrollbar { display: none; }
 .figure { font-size: clamp(72px, 24vw, 104px); line-height: .9; font-weight: 700; font-variation-settings: "wdth" 62; letter-spacing: -0.01em; }
 .figure .cur { font-size: .36em; vertical-align: 1.2em; margin-right: .12em; opacity: 1; font-weight: 600; font-variation-settings: "wdth" 100; }
