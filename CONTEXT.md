@@ -8,7 +8,7 @@ A single-person finance ledger for Indian markets: what I own, what I owe, what 
 The ordered ladder of financial-health Stages Folio holds you to. Folio records everything but endorses only what follows the Doctrine: it flags actions that skip a Stage rather than refusing them. Every threshold has a default and a recommended band; you may set any value, and Folio warns when it sits outside the band.
 
 **Stage**:
-One rung of the Doctrine, met or not met, in fixed order: no revolving credit → starter emergency fund → protection (health and term life cover) → high-interest debt cleared → full Emergency Fund → Goals and Retirement. The **current Stage** is the lowest one not met; surplus advice always points there. A Stage judged on declared rather than measured figures is **provisional**.
+One rung of the Doctrine, met or not met, in fixed order: no revolving credit → starter emergency fund → protection (health and term life cover) → high-interest debt cleared → full Emergency Fund → Goals and Retirement. The **current Stage** is the lowest one not met; surplus advice always points there. Protection is met by buying cover, not by money, so while it is current the advice is to buy the missing cover with surplus paying its first premiums, and the rest goes to the next Stage money can fill. A Stage judged on declared rather than measured figures is **provisional**.
 
 **Emergency Fund**:
 A system Goal, fixed at 100% cash and liquid debt, that must cover the trailing 6 months of outflow: Expense Postings (less tax and employee EPF) plus loan principal repaid. Counts only what is Earmarked to it, and only Emergency-Fund-eligible Accounts and Instruments can be. Cannot be deleted.
