@@ -64,6 +64,10 @@ The gap between Holdings' market value and their cost. Computed and shown under 
 **Net Worth**:
 Assets at market value minus Liabilities.
 
+**Cash on hand**:
+The sum of bank, cash and wallet Account balances — money spendable today without redeeming anything. Card balances are not netted off; Term Deposits and liquid funds are not included, even when Emergency-Fund eligible.
+_Avoid_: liquidity, liquid assets
+
 **Loan**:
 A Liability Account with an interest rate and optionally EMI terms (EMI amount and EMI day) — a bank loan, a purchase converted to EMI on a Card, money borrowed from family. Each EMI is split into principal (to the Loan) and interest; its end date follows from balance, rate and EMI. An EMI is **overdue** once its EMI day plus a grace period passes with no payment into the Loan since the previous EMI day. A joint Loan is recorded at your share only. A Loan closes itself when its balance reaches zero and reopens on its next Posting.
 _Avoid_: debt (means all Liabilities)
