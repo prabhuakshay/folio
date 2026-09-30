@@ -95,6 +95,10 @@ _Avoid_: recurring payment, standing instruction, mandate
 **Occurrence**:
 One dated instance a Schedule, Loan, Card, Term Deposit or Provident Account expects. It is **due** until **fulfilled** — by confirming it (with the date and amount edited if needed) or by linking a Transaction already recorded — or **skipped**; past its date it is **overdue**, and it never expires on its own. It returns to due if its Transaction is unlinked, deleted or undone with its Import; only deleting an auto-posted one skips it. Auto-post holds back, leaving it due, when a Match already exists.
 
+**Reminder**:
+A line in the **Digest**, the one email Folio sends each day at a set time when it has something to say, for events where money or cover is at risk by a date and only acting outside Folio prevents it: a Card bill not paid in full, a Loan EMI ahead, a Policy's cover until nearing with nothing renewing it, a Term Deposit maturing, PPF short of its yearly minimum, an Occurrence just gone overdue, a scheduled job failing three days running, and any Schedule set to remind ahead. Each fires once, on the first Digest on or after its date, and only while its event is still live; overdue Occurrences ride along in later Digests, and alone are sent on Mondays. It names what and when, never amounts. What the app already shows — drift, stale Prices, Import mismatches — is never a Reminder.
+_Avoid_: notification, alert (the login alert is a security email, not a Reminder)
+
 **Budget**:
 A monthly pay-yourself-first plan: expected income, less the **savings** reserved (the savings-rate target or the scheduled savings, whichever is larger), less **committed** spend (Occurrences that hit Expense Accounts, and Loan EMIs), leaves **spendable**. Spend not from a fulfilled Occurrence is **discretionary** and draws spendable down. Optional **limits** on any Expense Account, monthly or yearly, apply from the month they are set and never roll over. A Budget month begins on a chosen month-start day.
 _Avoid_: envelope, sinking fund (a planned big spend is a Goal)
