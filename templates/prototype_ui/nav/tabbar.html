@@ -1,0 +1,19 @@
+{# PROTOTYPE L — persistent tab bar; tab switches replace history so Back stays inside a tab. #}
+<nav class="fixed inset-x-0 bottom-0 z-40 border-t border-(--line) bg-white/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl lg:hidden">
+    <div class="grid h-[64px] grid-cols-5 items-center px-2">
+        {% for key, label, icon in tabs_left %}
+            {% include "prototype_ui/nav/tab.html" %}
+        {% endfor %}
+        <div class="flex justify-center">
+            <button type="button"
+                    data-compose
+                    class="grid size-[54px] place-items-center rounded-full bg-(--accent) text-white shadow-[0_10px_24px_-10px_rgb(47_91_255/.9)] transition-transform active:scale-95"
+                    aria-label="New expense">
+                <i data-lucide="plus" class="size-6"></i>
+            </button>
+        </div>
+        {% for key, label, icon in tabs_right %}
+            {% include "prototype_ui/nav/tab.html" %}
+        {% endfor %}
+    </div>
+</nav>

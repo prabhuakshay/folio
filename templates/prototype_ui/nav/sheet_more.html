@@ -1,0 +1,17 @@
+{# PROTOTYPE K — the More sheet: every destination a home page doesn't own. #}
+<div id="sheet-more" class="fixed inset-0 z-50" hidden>
+    <div class="absolute inset-0 bg-black/30" data-sheet-close></div>
+    <div class="absolute inset-x-0 bottom-0 max-h-[88dvh] overflow-y-auto rounded-t-[28px] bg-white px-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-3 lg:inset-x-auto lg:right-6 lg:bottom-auto lg:top-16 lg:w-[380px] lg:rounded-[28px] lg:shadow-2xl">
+        <div class="mx-auto h-1 w-10 rounded-full bg-(--line) lg:hidden"></div>
+        <div class="mt-4 flex items-center justify-between">
+            <p class="display text-[30px]">More</p>
+            <button type="button"
+                    data-sheet-close
+                    class="grid size-9 place-items-center rounded-full bg-(--well)"
+                    aria-label="Close">
+                <i data-lucide="x" class="size-4"></i>
+            </button>
+        </div>
+        <div class="mt-4">{% include "prototype_ui/nav/places.html" %}</div>
+    </div>
+</div>

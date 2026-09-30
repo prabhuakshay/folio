@@ -1,0 +1,46 @@
+<script>
+(() => {
+    const sheets = { more: document.getElementById("sheet-more"), find: document.getElementById("sheet-find") };
+    const open = (name) => {
+        const s = sheets[name];
+        if (!s) return;
+        s.hidden = false;
+        document.body.dataset.sheet = name;
+        if (name === "find") { const i = document.getElementById("find-input"); i.value = ""; filter(""); i.focus(); }
+    };
+    const close = () => { Object.values(sheets).forEach((s) => s && (s.hidden = true)); delete document.body.dataset.sheet; };
+    document.addEventListener("click", (e) => {
+        const o = e.target.closest("[data-sheet-open]");
+        if (o) { e.preventDefault(); open(o.dataset.sheetOpen); }
+        if (e.target.closest("[data-sheet-close]")) close();
+    });
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") close();
+        if (e.key === "/" && sheets.find && !e.target.closest("input, textarea, [contenteditable]")) { e.preventDefault(); open("find"); }
+    });
+
+    const filter = (q) => {
+        const empty = document.getElementById("find-empty");
+        if (!empty) return;
+        const results = document.getElementById("find-results");
+        q = q.trim().toLowerCase();
+        empty.hidden = !!q;
+        results.hidden = !q;
+        let any = false;
+        results.querySelectorAll("[data-find-group]").forEach((g) => {
+            let shown = 0;
+            g.querySelectorAll("[data-find]").forEach((li) => { li.hidden = !li.dataset.find.includes(q); shown += !li.hidden; });
+            g.hidden = !shown;
+            any ||= !!shown;
+        });
+        document.getElementById("find-none").hidden = any;
+    };
+    document.getElementById("find-input")?.addEventListener("input", (e) => filter(e.target.value));
+
+    // Back returns to wherever you came from inside the prototype, else to the screen's parent.
+    document.querySelectorAll("[data-back]").forEach((a) => a.addEventListener("click", (e) => {
+        if (document.referrer && new URL(document.referrer).origin === location.origin && history.length > 1) { e.preventDefault(); history.back(); }
+    }));
+    document.querySelectorAll("[data-tab-link]").forEach((a) => a.addEventListener("click", (e) => { e.preventDefault(); location.replace(a.href); }));
+})();
+</script>

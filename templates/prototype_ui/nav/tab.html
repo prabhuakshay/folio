@@ -1,0 +1,8 @@
+<a href="{% if key == 'home' %}{{ tab_urls.home }}{% elif key == 'activity' %}{{ tab_urls.activity }}{% elif key == 'accounts' %}{{ tab_urls.accounts }}{% else %}{{ tab_urls.plan }}{% endif %}"
+   data-tab-link
+   class="relative flex flex-col items-center gap-1 text-[11px] font-medium {% if tab == key %}text-(--ink){% else %}text-(--ink-3){% endif %}"
+   {% if tab == key %}aria-current="page"{% endif %}>
+    {% if tab == key %}<span class="absolute -top-2 size-1 rounded-full bg-(--accent)"></span>{% endif %}
+    <i data-lucide="{{ icon }}" class="size-[22px]"></i>
+    {{ label }}
+</a>

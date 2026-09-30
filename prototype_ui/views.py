@@ -37,6 +37,10 @@ TEMPLATE_OF = {
     "H": "h",
     "I": "i",
     "J": "j",
+    # Navigation variants (nav.py) reuse J's rows for quick-add.
+    "K": "j",
+    "L": "j",
+    "M": "j",
 }
 
 

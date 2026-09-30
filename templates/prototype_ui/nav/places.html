@@ -1,0 +1,18 @@
+{% for group, rows in places %}
+    <h2 class="kicker {% if not forloop.first %}mt-8{% endif %}">{{ group }}</h2>
+    <ul class="mt-1 divide-y divide-(--line)">
+        {% for key, title, icon, hint, url in rows %}
+            <li>
+                <a href="{{ url }}" class="flex items-center gap-3.5 py-3.5">
+                    <span class="grid size-9 shrink-0 place-items-center rounded-full bg-(--well)"><i data-lucide="{{ icon }}"
+   class="size-[18px]"></i></span>
+                    <span class="min-w-0 flex-1">
+                        <span class="block text-[16px] leading-5">{{ title }}</span>
+                        <span class="block truncate text-[13px] leading-5 text-(--ink-3)">{{ hint }}</span>
+                    </span>
+                    <i data-lucide="chevron-right" class="size-4 text-(--ink-3)"></i>
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
+{% endfor %}

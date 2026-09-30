@@ -1,0 +1,43 @@
+{# PROTOTYPE M — Find: one field that reaches every place and every named thing. #}
+<div id="sheet-find" class="fixed inset-0 z-50 bg-white" hidden>
+    <div class="mx-auto flex h-full max-w-xl flex-col">
+        <div class="flex items-center gap-3 px-6 pt-[max(1rem,env(safe-area-inset-top))]">
+            <label class="flex h-12 flex-1 items-center gap-2.5 rounded-full bg-(--well) px-4 focus-within:bg-white focus-within:shadow-[0_0_0_1px_#D4D4D8,0_0_0_4px_rgb(0_0_0/.04)]">
+                <i data-lucide="search" class="size-[18px] text-(--ink-3)"></i>
+                <input id="find-input"
+                       type="search"
+                       autocomplete="off"
+                       placeholder="Accounts, Goals, payees, settings…"
+                       class="min-w-0 flex-1 bg-transparent text-[16px] outline-none placeholder:text-(--ink-3)">
+            </label>
+            <button type="button" data-sheet-close class="text-[15px] font-medium">Cancel</button>
+        </div>
+        <div class="flex-1 overflow-y-auto px-6 pb-10 pt-6">
+            <div id="find-empty">{% include "prototype_ui/nav/places.html" %}</div>
+            <div id="find-results" hidden>
+                {% regroup find by group as groups %}
+                {% for g in groups %}
+                    <section data-find-group>
+                        <h2 class="kicker mt-6 first:mt-0">{{ g.grouper }}</h2>
+                        <ul class="mt-1 divide-y divide-(--line)">
+                            {% for f in g.list %}
+                                <li data-find="{{ f.title|lower }} {{ f.hint|lower }}">
+                                    <a href="{{ f.url }}" class="flex items-center gap-3.5 py-3">
+                                        <span class="grid size-9 shrink-0 place-items-center rounded-full bg-(--well)"><i data-lucide="{{ f.icon }}" class="size-[18px]"></i></span>
+                                        <span class="min-w-0 flex-1">
+                                            <span class="block truncate text-[16px] leading-5">{{ f.title }}</span>
+                                            <span class="block truncate text-[13px] leading-5 text-(--ink-3)">{{ f.hint }}</span>
+                                        </span>
+                                    </a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </section>
+                {% endfor %}
+                <p id="find-none"
+                   class="py-16 text-center text-[15px] text-(--ink-3)"
+                   hidden>Nothing matches.</p>
+            </div>
+        </div>
+    </div>
+</div>

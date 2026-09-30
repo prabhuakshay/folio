@@ -1,0 +1,41 @@
+:root {
+--canvas: #FFFFFF;
+--surface: #FFFFFF;
+--well: #F4F4F6;
+--line: #EAEAED;
+--ink: #000000;
+--ink-2: #55555E;
+--ink-3: #8D8D97;
+--accent: #2F5BFF;
+--accent-soft: #EEF2FF;
+--on-accent: #FFFFFF;
+--pos: #0A8754;
+--neg: #D63A2F;
+}
+body { font-family: "Archivo", ui-sans-serif, system-ui, sans-serif; font-variation-settings: "wdth" 100; letter-spacing: 0; }
+.wordmark { font-variation-settings: "wdth" 125; font-weight: 800; letter-spacing: -0.02em; }
+.pager, .page { scrollbar-width: none; }
+.pager { overscroll-behavior-x: contain; }
+.pager::-webkit-scrollbar, .page::-webkit-scrollbar { display: none; }
+.figure { font-size: clamp(72px, 24vw, 104px); line-height: .9; font-weight: 700; font-variation-settings: "wdth" 62; letter-spacing: -0.01em; }
+.figure .cur { font-size: .36em; vertical-align: 1.2em; margin-right: .12em; opacity: 1; font-weight: 600; font-variation-settings: "wdth" 100; }
+.stat { font-weight: 700; font-variation-settings: "wdth" 62; line-height: 1; letter-spacing: -0.005em; }
+.stat .cur { font-size: .5em; vertical-align: .55em; margin-right: .08em; opacity: 1; font-weight: 600; font-variation-settings: "wdth" 100; }
+.display { font-weight: 700; font-variation-settings: "wdth" 62; letter-spacing: -0.005em; }
+@media (min-width: 1024px) { .figure { font-size: 76px; } }
+.kicker { font-size: 13px; font-weight: 500; color: var(--ink-2); }
+.tab[aria-selected="true"] { color: var(--ink); }
+.dot { transition: width .3s var(--ease-sheet), background-color .3s; }
+.dot[aria-current="true"] { width: 18px; background: var(--ink); }
+#composer .tok { color: color-mix(in srgb, var(--c) 72%, black); }
+.cal { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.day { aspect-ratio: 1; border-radius: 10px; display: flex; flex-direction: column; justify-content: space-between; padding: 5px 6px; text-align: left; transition: background-color .15s, color .15s; }
+.l0 { background: var(--well); }
+.l1 { background: rgb(0 0 0 / .08); }
+.l2 { background: rgb(0 0 0 / .17); }
+.l3 { background: rgb(0 0 0 / .32); }
+.l4 { background: rgb(0 0 0 / .72); color: #fff; }
+.day[aria-pressed="true"] { background: var(--accent); color: #fff; }
+.day-n { font-size: 13px; font-weight: 600; line-height: 1; }
+.day-amt { font-size: 10px; font-weight: 500; line-height: 1; opacity: .6; }
+.mark { width: 4px; height: 4px; border-radius: 99px; background: currentColor; }

@@ -75,24 +75,26 @@
                hidden
                class="fixed left-1/2 -translate-x-1/2 bottom-[calc(8.5rem+env(safe-area-inset-bottom))] lg:bottom-16 z-[100] w-72 max-h-[70dvh] overflow-auto rounded-xl bg-black/90 text-white text-xs p-3 shadow-2xl ring-1 ring-yellow-300/80"
                style="font-family: ui-sans-serif, system-ui">
-            <p class="font-semibold mb-2">Tokens · {{ variant_name }}</p>
-            <ul class="space-y-1">
-                {% for key, value in tokens.items %}
-                    {% if key != "shadow" %}
-                        <li class="flex items-center gap-2">
-                            {% if value|first == "#" %}
-                                <span class="size-3.5 rounded-sm ring-1 ring-white/40"
-                                      style="background: {{ value }}"></span>
-                            {% else %}
-                                <span class="size-3.5"></span>
-                            {% endif %}
-                            <span class="text-white/55 w-20">{{ key }}</span><span>{{ value }}</span>
-                        </li>
-                    {% endif %}
-                {% endfor %}
-            </ul>
-            <p class="font-semibold mt-3 mb-1">Last Transaction</p>
-            <div id="proto-last" class="text-white/60">None yet. Tap + to add one.</div>
+            {% block proto_state %}
+                <p class="font-semibold mb-2">Tokens · {{ variant_name }}</p>
+                <ul class="space-y-1">
+                    {% for key, value in tokens.items %}
+                        {% if key != "shadow" %}
+                            <li class="flex items-center gap-2">
+                                {% if value|first == "#" %}
+                                    <span class="size-3.5 rounded-sm ring-1 ring-white/40"
+                                          style="background: {{ value }}"></span>
+                                {% else %}
+                                    <span class="size-3.5"></span>
+                                {% endif %}
+                                <span class="text-white/55 w-20">{{ key }}</span><span>{{ value }}</span>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+                <p class="font-semibold mt-3 mb-1">Last Transaction</p>
+                <div id="proto-last" class="text-white/60">None yet. Tap + to add one.</div>
+            {% endblock %}
         </aside>
         <script>
             (() => {

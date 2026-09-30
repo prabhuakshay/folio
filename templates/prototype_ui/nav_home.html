@@ -1,0 +1,164 @@
+{% extends "prototype_ui/base.html" %}
+{# PROTOTYPE K/L/M — J's home with three ways to reach everything beyond it. Pages come from partials/j_pages.html; only the chrome changes. #}
+{% block theme_color %}#FFFFFF{% endblock %}
+{% block style %}
+    {% include "prototype_ui/partials/j_style.html" %}
+{% endblock %}
+{% block body %}
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..800&display=swap"
+          rel="stylesheet">
+    <div class="flex h-dvh flex-col overflow-hidden">
+        <header class="shrink-0 px-6 pt-[max(1rem,env(safe-area-inset-top))] lg:px-10 lg:pt-6">
+            <div class="flex items-center gap-3">
+                <p class="wordmark text-[18px]">FOLIO</p>
+                <p class="text-[13px] text-(--ink-3)">{{ today|date:"D, j M" }}</p>
+                <div class="ml-auto hidden items-center gap-5 text-[14px] font-medium lg:flex">
+                    {% if variant == "K" %}
+                        <button type="button"
+                                data-sheet-open="more"
+                                class="inline-flex items-center gap-1.5"><i data-lucide="layout-grid" class="size-4"></i>More</button>
+                    {% elif variant == "L" %}
+                        <a href="{{ tab_urls.activity }}">Activity</a>
+                        <a href="{{ tab_urls.accounts }}">Accounts</a>
+                        <a href="{{ tab_urls.plan }}">Plan</a>
+                    {% else %}
+                        <button type="button"
+                                data-sheet-open="find"
+                                class="inline-flex h-9 w-56 items-center gap-2 rounded-full bg-(--well) px-4 text-(--ink-3)">
+                            <i data-lucide="search" class="size-4"></i>Find<kbd class="ml-auto text-[12px]">/</kbd>
+                        </button>
+                    {% endif %}
+                    <button type="button"
+                            data-compose
+                            class="inline-flex h-9 items-center gap-2 rounded-full bg-(--ink) px-4 text-white"><i data-lucide="plus" class="size-4"></i>New expense</button>
+                </div>
+                <a href="{{ settings_url }}"
+                   class="ml-auto grid size-9 place-items-center rounded-full bg-(--ink) text-[12px] font-semibold text-white lg:ml-0"
+                   aria-label="Settings">AP</a>
+            </div>
+            <div class="relative mt-6 flex gap-7 text-[15px] font-medium text-(--ink-3) xl:hidden"
+                 role="tablist"
+                 aria-label="Pages">
+                <button type="button"
+                        role="tab"
+                        class="tab pb-3 transition-colors"
+                        aria-selected="true"
+                        data-tab="0">Overview</button>
+                <button type="button"
+                        role="tab"
+                        class="tab pb-3 transition-colors"
+                        aria-selected="false"
+                        data-tab="1">Spend</button>
+                <button type="button"
+                        role="tab"
+                        class="tab pb-3 transition-colors"
+                        aria-selected="false"
+                        data-tab="2">Invest</button>
+                <button type="button"
+                        role="tab"
+                        class="tab pb-3 transition-colors"
+                        aria-selected="false"
+                        data-tab="3">Goals</button>
+                <span class="absolute inset-x-0 bottom-0 h-px bg-(--line)"></span>
+                <span id="tab-bar"
+                      class="absolute bottom-0 left-0 h-[2px] rounded-full bg-(--ink)"
+                      style="width: 64px"></span>
+            </div>
+            <div class="mt-5 hidden h-px bg-(--line) xl:block"></div>
+        </header>
+        <div id="pager"
+             class="pager flex min-h-0 flex-1 snap-x snap-mandatory overflow-x-auto">
+            {% include "prototype_ui/partials/j_pages.html" %}
+        </div>
+    </div>
+    {% if variant == "L" %}
+        {% include "prototype_ui/nav/tabbar.html" %}
+    {% else %}
+        <nav class="fixed inset-x-0 bottom-0 z-40 border-t border-(--line) bg-white/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl lg:hidden">
+            <div class="grid h-[64px] grid-cols-3 items-center px-6">
+                <div class="flex items-center gap-1.5" aria-hidden="true">
+                    {% for i in "0123" %}
+                        <span class="dot h-1.5 w-1.5 rounded-full bg-(--ink-3)/40"
+                              data-dot="{{ i }}"
+                              {% if forloop.first %}aria-current="true"{% endif %}></span>
+                    {% endfor %}
+                </div>
+                <div class="flex justify-center">
+                    <button type="button"
+                            data-compose
+                            class="grid size-[54px] place-items-center rounded-full bg-(--accent) text-white shadow-[0_10px_24px_-10px_rgb(47_91_255/.9)] transition-transform active:scale-95"
+                            aria-label="New expense">
+                        <i data-lucide="plus" class="size-6"></i>
+                    </button>
+                </div>
+                <div class="flex justify-end">
+                    {% if variant == "K" %}
+                        <button type="button"
+                                data-sheet-open="more"
+                                class="flex h-10 items-center gap-1.5 rounded-full px-2 text-[13px] font-medium text-(--ink-2)">
+                            <i data-lucide="layout-grid" class="size-5"></i>More
+                        </button>
+                    {% else %}
+                        <button type="button"
+                                data-sheet-open="find"
+                                class="flex h-10 items-center gap-1.5 rounded-full px-2 text-[13px] font-medium text-(--ink-2)">
+                            <i data-lucide="search" class="size-5"></i>Find
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+        </nav>
+    {% endif %}
+    {% if variant == "K" %}
+        {% include "prototype_ui/nav/sheet_more.html" %}
+    {% elif variant == "M" %}
+        {% include "prototype_ui/nav/sheet_find.html" %}
+    {% endif %}
+{% endblock %}
+{% block proto_state %}
+    {% include "prototype_ui/nav/state.html" %}
+{% endblock %}
+{% block script %}
+    {% include "prototype_ui/nav/script.html" %}
+    <script>
+    (() => {
+        const pager = document.getElementById("pager");
+        const tabs = [...document.querySelectorAll("[data-tab]")];
+        const dots = [...document.querySelectorAll("[data-dot]")];
+        const bar = document.getElementById("tab-bar");
+        const pageWidth = () => pager.querySelector(".page").getBoundingClientRect().width;
+        const measure = (el) => { const r = document.createRange(); r.selectNodeContents(el); return r.getBoundingClientRect().width; };
+        const remember = (i) => { try { sessionStorage.setItem("nav-page", i); } catch {} };
+        const sync = () => {
+            const progress = Math.min(pager.scrollLeft / pageWidth(), tabs.length - 1);
+            const index = Math.round(progress);
+            const a = tabs[Math.floor(progress)], b = tabs[Math.ceil(progress)], f = progress - Math.floor(progress);
+            bar.style.transform = `translateX(${a.offsetLeft + (b.offsetLeft - a.offsetLeft) * f}px)`;
+            bar.style.width = `${measure(a) + (measure(b) - measure(a)) * f}px`;
+            tabs.forEach((t, i) => t.setAttribute("aria-selected", i === index));
+            dots.forEach((d, i) => d.setAttribute("aria-current", i === index));
+            remember(index);
+        };
+        const go = (i) => pager.scrollTo({ left: i * pageWidth(), behavior: "smooth" });
+        pager.addEventListener("scroll", () => requestAnimationFrame(sync), { passive: true });
+        addEventListener("resize", sync);
+        tabs.forEach((t) => t.addEventListener("click", () => go(+t.dataset.tab)));
+
+        // Coming back to home lands on the page you left, so a drill-down round trip feels like one place.
+        const params = new URLSearchParams(location.search);
+        let start = 0;
+        try { start = +(sessionStorage.getItem("nav-page") || 0); } catch {}
+        if (params.has("page") && !document.referrer.includes("/prototype/ui/nav/")) start = +params.get("page");
+        pager.scrollLeft = start * pageWidth();
+
+        const select = (n) => {
+            document.querySelectorAll("[data-day]").forEach((b) => b.setAttribute("aria-pressed", b.dataset.day == n));
+            document.querySelectorAll("[data-day-list]").forEach((l) => (l.hidden = l.dataset.dayList != n));
+        };
+        document.querySelectorAll("[data-day]").forEach((b) => b.addEventListener("click", () => select(b.dataset.day)));
+        document.body.addEventListener("txnAdded", () => { select(30); go(1); });
+        document.body.addEventListener("htmx:afterSettle", () => document.getElementById("feed-today")?.scrollIntoView({ behavior: "smooth", block: "center" }));
+        sync();
+    })();
+    </script>
+{% endblock %}
