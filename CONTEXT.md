@@ -22,7 +22,7 @@ A person who relies on your income or is under your health cover. Recorded in yo
 
 **Account**:
 A node in the Chart of Accounts that Postings hit. Every Account has one Account Type. A bank account, cash, a wallet, a loan, a credit card, a Holding, Groceries, Salary — all are Accounts.
-An Account can be **closed** (zero balance required; hidden from pickers, history kept, reopenable) or **deleted** (its Postings and sub-accounts moved to another Account first).
+An Account can be **closed** (zero balance required; hidden from pickers, history kept, reopenable; a Holding closes itself when its units reach zero and reopens on its next buy) or **deleted** (its Postings and sub-accounts moved to another Account first).
 _Avoid_: ledger, category, head
 
 **Account Role**:
@@ -62,7 +62,7 @@ A named future need with a target amount and a target date (e.g. "Vacation 2027"
 _Avoid_: bucket, compartment, envelope
 
 **Asset Class**:
-The risk category an Instrument belongs to — equity, debt, gold, real estate, cash. The unit in which a Target Allocation is expressed.
+A risk category money sits in — equity, debt, gold & silver, real estate, cash. The unit in which a Target Allocation is expressed; cash counts toward its debt side. Instruments carry a split across Asset Classes; an Asset Account that isn't a Holding carries at most one (none for things like money lent or a car, which count in Net Worth but in no allocation).
 
 **Target Allocation**:
 The desired split of a Goal's money across Asset Classes (e.g. 20:80 equity:debt for a one-year Goal). Drift from it is what rebalancing corrects.
@@ -72,10 +72,16 @@ How a Goal's default Target Allocation de-risks as its date nears, following SEB
 _Avoid_: ratio, mix
 
 **Instrument**:
-Something you can hold value in — a mutual fund scheme, a listed stock/ETF/SGB, an FD, PPF, EPF, NPS tier, gold, a property. Belongs to one Asset Class. Priced from a feed where a free one exists, otherwise revalued by hand. INR only; foreign assets are entered as INR-valued Instruments.
+One price series you can hold units of — a mutual fund plan and option, a listed stock/ETF/SGB/bond, one NPS scheme in one variant, physical gold, a ULIP fund, a property. Has an **Asset Class split**, usually 100% one class (a hybrid fund spans several). Priced from a feed where a free one exists, otherwise revalued by hand. INR only; foreign assets are entered as INR-valued Instruments.
 
 **Holding**:
-An Asset Account holding your position in one Instrument, built from its Postings (buys, sells, SIP instalments, dividends, interest credits); each Posting to a Holding carries units as well as an INR amount at cost. Value is units × latest price — computed, never posted, so price moves create no Transactions. Return is XIRR.
+An Asset Account whose value can differ from its INR balance because it is revalued, by feed or by hand; every other Asset Account (bank, cash, wallet, FD, RD, EPF, PPF, chit fund, money lent) is valued at its balance. A Holding is your position in one Instrument at one place held (an MF folio, a demat account, an NPS PRAN tier), built from its Postings (buys, sells, SIP instalments, dividends, interest credits); each Posting to a Holding carries units as well as an INR amount at cost. Value is units × latest Price — computed, never posted, so price moves create no Transactions. Return is XIRR.
+
+**Emergency-Fund eligible**:
+Whether an Account or Instrument may count toward the Emergency Fund: savings, cash, wallets, liquid and overnight funds, and FDs you mark as breakable. Nothing else can be made eligible.
+
+**Price**:
+The value of one unit of an Instrument on a date, from a feed or entered by hand. A Holding is valued at its Instrument's latest Price, carried forward; a Price older than the Instrument's staleness window is **stale** — flagged, never blanked.
 
 **Earmark**:
 Assignment of some units of a Holding to a Goal. A Holding may be split across several Goals by units, so each Goal's share moves with price.
@@ -98,8 +104,9 @@ A Goal like any other, with a projection calculator attached — not a separate 
 - An **Account** carries zero or more **Account Roles**; each role is held by at most one Account
 - A **Goal** has exactly one **Target Allocation**
 - A **Target Allocation** is expressed over **Asset Classes**
-- An **Instrument** belongs to exactly one **Asset Class**
-- A **Holding** is in exactly one **Instrument**
+- An **Instrument** is split across one or more **Asset Classes**, the split summing to 100%
+- An Asset **Account** that isn't a **Holding** carries zero or one **Asset Class**
+- A **Holding** is in exactly one **Instrument** at one place held; an **Instrument** may have several **Holdings**
 - A **Holding**'s units are split between zero or more **Earmarks** and the **Unallocated** remainder
 - An **Earmark** ties one **Holding** to one **Goal**
 
