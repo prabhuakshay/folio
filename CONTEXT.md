@@ -35,7 +35,7 @@ One of Asset, Liability, Equity, Income, Expense. Fixes which side of the balanc
 The hierarchy of Accounts, grouped (e.g. Expenses › Food › Groceries, Assets › Bank › HDFC Savings). Postings hit only leaf Accounts; group Accounts only roll up. Folio seeds a default Indian personal Chart of Accounts, which you then edit freely.
 
 **Transaction**:
-Something that happened to your money on one day, recorded as two or more Postings that sum to zero — a card bill payment, an EMI split into principal and interest, an MF purchase, a payslip split into gross salary, TDS, EPF and net pay. Dated by when it happened, not when it cleared.
+Something that happened to your money on one day, recorded as two or more Postings that sum to zero — a card bill payment, an EMI split into principal and interest, an MF purchase, a payslip split into gross salary, TDS, EPF and net pay. Dated by when it happened, not when it cleared. A Corporate Action within one Holding is the one Transaction with a single Posting: units at ₹0.
 _Avoid_: entry, journal, voucher
 
 **Posting**:
@@ -50,6 +50,13 @@ Part of a Holding's opening position: units and cost with the date they were ori
 
 **Realised Gain**:
 The difference between a sale's proceeds, net of sell charges, and the FIFO cost of the units sold, posted to an Income Account. A buy's charges are part of its cost.
+
+**Corporate Action**:
+An event an issuer or AMC applies on a date to every Holding of one Instrument — split, consolidation, bonus, merger, demerger, segregated portfolio — changing units, cost or Instrument without money moving, so it never creates a Realised Gain. Recorded once per Instrument, it reaches only Holdings with Postings before its date, and lots keep their original dates: a split re-points the Holding to its new ISIN, a bonus adds a ₹0-cost lot on its allotment date, a merger carries every lot into a new Holding, a demerger moves a share of each lot's cost to one. Earmarks follow the units.
+_Avoid_: scheme event, adjustment
+
+**Units correction**:
+Bringing a ULIP or NPS Holding's units to what its statement shows: units missing were cancelled for charges and post as an expense at the current Price, units extra (loyalty additions) are a ₹0-cost lot. No other Holding can be corrected this way.
 
 **Unrealised Gain**:
 The gap between Holdings' market value and their cost. Computed and shown under Equity on the balance sheet; never posted.
@@ -115,7 +122,7 @@ How a Goal's default Target Allocation de-risks as its date nears, stepping down
 _Avoid_: ratio, mix
 
 **Instrument**:
-One price series you can hold units of — a mutual fund plan and option, a listed stock/ETF/SGB/bond, one NPS scheme in one variant, physical gold, a ULIP fund, a property. Has an **Asset Class split**, usually 100% one class (a hybrid fund spans several). Priced from a Feed where a free one exists, otherwise revalued by hand. INR only; foreign assets are entered as INR-valued Instruments. The searchable catalogue is made of Instruments; one its Feed has stopped listing is **inactive** — hidden from search unless held, never deleted.
+One price series you can hold units of — a mutual fund plan and option, a listed stock/ETF/SGB/bond, one NPS scheme in one variant, physical gold, a ULIP fund, a property. Has an **Asset Class split**, usually 100% one class (a hybrid fund spans several). Priced from a Feed where a free one exists, otherwise revalued by hand. An SGB or listed bond carries a **coupon** (rate on its issue price or face value, and frequency). INR only; foreign assets are entered as INR-valued Instruments. The searchable catalogue is made of Instruments; one its Feed has stopped listing is **inactive** — hidden from search unless held, never deleted.
 
 **Holding**:
 An Asset Account whose value can differ from its INR balance because it is revalued, by Feed or by hand; every other Asset Account (bank, cash, wallet, FD, RD, EPF, PPF, chit fund, money lent) is valued at its balance. A Holding is your position in one Instrument at one place held (an MF folio, a demat account, an NPS PRAN tier), built from its Postings (buys, sells, SIP instalments, dividends, interest credits); each Posting to a Holding carries units as well as an INR amount at cost. Value is units × latest Price — computed, never posted, so price moves create no Transactions. Return is XIRR.
@@ -190,7 +197,7 @@ The assumed nominal pre-tax yearly return of an Asset Class, used to project Goa
 - An **Account** carries zero or more **Account Roles**; each role is held by at most one Account
 - A **Liability** Account is a **Loan**, a **Card**, or neither (a bill owed)
 - A **Loan** may be owed to a **Card** (a purchase converted to EMI), whose instalments are billed onto that Card
-- A **Schedule**, **Loan**, **Card**, **Term Deposit** or **Provident Account** expects zero or more **Occurrences**; a fulfilled **Occurrence** is linked to exactly one **Transaction**
+- A **Schedule**, **Loan**, **Card**, **Term Deposit**, **Provident Account** or Holding in a coupon-bearing **Instrument** expects zero or more **Occurrences**; a fulfilled **Occurrence** is linked to exactly one **Transaction**
 - A **Budget** limit sits on one Expense **Account**, leaf or group
 - A **Goal** has exactly one **Target Allocation**
 - A **Target Allocation** is expressed over **Asset Classes**
@@ -198,6 +205,7 @@ The assumed nominal pre-tax yearly return of an Asset Class, used to project Goa
 - An Asset **Account** that isn't a **Holding** carries zero or one **Asset Class**
 - A **Holding** is in exactly one **Instrument** at one place held; an **Instrument** may have several **Holdings**
 - A **Holding**'s **Opening Balance** is made of one or more **Opening Lots**
+- A **Corporate Action** belongs to one **Instrument** and posts one **Transaction** per **Holding** it reaches
 - An Asset **Account** is split between zero or more **Earmarks** and the **Unallocated** remainder
 - An **Earmark** ties one Asset **Account** to one **Goal**
 - A **Goal** names zero or one **Preferred Instrument** per **Asset Class**
