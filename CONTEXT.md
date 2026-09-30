@@ -168,6 +168,10 @@ The Account a unit source's cash comes from and returns to when the statement do
 A Transaction Folio proposes as the same money as an import line or a due Occurrence: it hits the other record's **anchor Account** on the same side (the Loan or Card paid into; a Schedule's Expense, Income, Holding or other non-cash Account; an import source's mapped Account), within ±5 days (at most half the recurrence period), at the exact amount — any amount for estimated Schedules and Card bills; amount or units for unit lines. A unique best Match is pre-selected; none is ever accepted without a tap. Each Transaction answers at most one line and fulfils at most one Occurrence.
 _Avoid_: reconcile, dedupe (as terms)
 
+**Export**:
+Your data taken out of Folio for leaving it: the **full export** of every current domain record (no history), or a CSV of Transactions or Holdings. It is never loaded back in — moving to another install is a copy of the database, not an Export.
+_Avoid_: backup, dump
+
 **Policy**:
 An insurance contract you record: its type, insurer, persons covered (you and/or Dependents), sum assured, cover dates, nominees and riders. Not an Account — cover is a promise, not money you own; a pure-protection premium posts to an Expense Account, while a value-bearing Policy (ULIP, endowment) links to the Holdings that carry its value and its whole premium goes to them at cost. It counts only from its cover start to its **cover until** date — its own, not derived from any premium Schedule, and rolled forward by its **renewal term** when a linked premium Occurrence is fulfilled near it. **Employer-provided** cover is shown but never counted by the Doctrine.
 _Avoid_: insurance account, plan (the insurer's product name only)
