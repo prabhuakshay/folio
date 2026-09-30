@@ -70,7 +70,7 @@ A rule that expects a Transaction to repeat — a template Transaction plus a re
 _Avoid_: recurring payment, standing instruction, mandate
 
 **Occurrence**:
-One dated instance a Schedule, Loan or Card expects. It is **due** until **fulfilled** — by confirming it (with the date and amount edited if needed) or by linking a Transaction already recorded — or **skipped**; past its date it is **overdue**, and it never expires on its own.
+One dated instance a Schedule, Loan or Card expects. It is **due** until **fulfilled** — by confirming it (with the date and amount edited if needed) or by linking a Transaction already recorded — or **skipped**; past its date it is **overdue**, and it never expires on its own. It returns to due if its Transaction is unlinked, deleted or undone with its Import; only deleting an auto-posted one skips it. Auto-post holds back, leaving it due, when a Match already exists.
 
 **Budget**:
 A monthly pay-yourself-first plan: expected income, less the **savings** reserved (the savings-rate target or the scheduled savings, whichever is larger), less **committed** spend (Occurrences that hit Expense Accounts, and Loan EMIs), leaves **spendable**. Spend not from a fulfilled Occurrence is **discretionary** and draws spendable down. Optional **limits** on any Expense Account, monthly or yearly, apply from the month they are set and never roll over. A Budget month begins on a chosen month-start day.
@@ -132,6 +132,10 @@ _Avoid_: sync, upload (as the term)
 
 **Funding Account**:
 The Account a unit source's cash comes from and returns to when the statement doesn't say — the bank Account behind an MF folio. A line dated before the funding Account's start date is funded from Opening Balances instead, since that money predates Folio.
+
+**Match**:
+A Transaction Folio proposes as the same money as an import line or a due Occurrence: it hits the other record's **anchor Account** on the same side (the Loan or Card paid into; a Schedule's Expense, Income, Holding or other non-cash Account; an import source's mapped Account), within ±5 days (at most half the recurrence period), at the exact amount — any amount for estimated Schedules and Card bills; amount or units for unit lines. A unique best Match is pre-selected; none is ever accepted without a tap. Each Transaction answers at most one line and fulfils at most one Occurrence.
+_Avoid_: reconcile, dedupe (as terms)
 
 **Policy**:
 An insurance contract you record: its type, insurer, persons covered (you and/or Dependents), sum assured, cover dates, nominees and riders. Not an Account — cover is a promise, not money you own; a pure-protection premium posts to an Expense Account, while a value-bearing Policy (ULIP, endowment) links to the Holdings that carry its value and its whole premium goes to them at cost. It counts only from its cover start to its **cover until** date — its own, not derived from any premium Schedule, and rolled forward by its **renewal term** when a linked premium Occurrence is fulfilled near it. **Employer-provided** cover is shown but never counted by the Doctrine.
