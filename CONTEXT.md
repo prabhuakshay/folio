@@ -130,7 +130,14 @@ _Avoid_: insurance account, plan (the insurer's product name only)
 One of a fixed set, each with a fixed meaning for the Doctrine: term life and endowment/ULIP (life cover, counted only when you are the life assured), health base and health super top-up (health cover, a floater counting its full sum insured for each person covered; a top-up counts only where a person's counted base cover reaches its deductible); personal accident, critical illness, motor, home, travel and other are recorded but never counted.
 
 **Retirement**:
-A system Goal like any other, with a projection calculator attached that sets its target — not a separate subsystem. Cannot be deleted.
+A system Goal like any other whose target is set live by a calculator: Retirement expense ÷ Safe Withdrawal Rate, in today's rupees. Its date is your date of birth plus your **retirement age**; it counts only what is Earmarked to it. Past that date it is in **drawdown**: judged by its **withdrawal rate** (trailing-12-month outflow ÷ Earmarked value) against the Safe Withdrawal Rate instead of on track or behind. Never marked reached; cannot be deleted.
+
+**Retirement expense**:
+The yearly spending the Retirement corpus must replace: trailing outflow (as the Emergency Fund counts it) less payments on Loans that end before retirement, unless you declare a monthly figure in today's rupees. Pensions, rent and other retirement income never reduce it.
+
+**Safe Withdrawal Rate**:
+The share of the Retirement corpus you can draw in the first year of retirement, then raise with inflation, without running out. A Doctrine threshold.
+_Avoid_: SWR (in the UI), 4% rule
 
 **Surplus**:
 Trailing monthly Take-home less trailing monthly outflow — the money Doctrine advice directs, to the current Stage and then down the Goal rank.
