@@ -62,6 +62,13 @@ _Avoid_: debt (means all Liabilities)
 A revolving Liability Account with a billing cycle — a statement day, a due day and a credit limit. Credit cards and BNPL accounts are Cards. Its **statement amount due** is computed from the cycle's Postings, overridable per cycle; the Card is **paid in full** when payments into it between the statement day and the due day reach that amount. Closed only by hand.
 _Avoid_: credit card (as the term), revolving account
 
+**Schedule**:
+A rule that expects a Transaction to repeat — a template Transaction plus a recurrence (every N days, weeks, months or years, ending never, on a date or after N times). It may step up by a percentage or amount at intervals, its amount can be changed from an effective date, and it can be **paused** between two dates. Salary, rent, SIPs, subscriptions and premiums are Schedules. Loan EMIs and Card bills are not: their Occurrences come from the Loan's or Card's own terms. A Schedule is **fixed** (its Occurrences may post themselves on their date) or **estimated** (always confirmed, pre-filled with the last actual amount).
+_Avoid_: recurring payment, standing instruction, mandate
+
+**Occurrence**:
+One dated instance a Schedule, Loan or Card expects. It is **due** until **fulfilled** — by confirming it (with the date and amount edited if needed) or by linking a Transaction already recorded — or **skipped**; past its date it is **overdue**, and it never expires on its own.
+
 **Financial Year**:
 April to March — the default reporting period. Periods are never closed or locked; this is a personal finance app, not an accounting package.
 
@@ -112,6 +119,7 @@ A Goal like any other, with a projection calculator attached — not a separate 
 - An **Account** carries zero or more **Account Roles**; each role is held by at most one Account
 - A **Liability** Account is a **Loan**, a **Card**, or neither (a bill owed)
 - A **Loan** may be owed to a **Card** (a purchase converted to EMI), whose instalments are billed onto that Card
+- A **Schedule**, **Loan** or **Card** expects zero or more **Occurrences**; a fulfilled **Occurrence** is linked to exactly one **Transaction**
 - A **Goal** has exactly one **Target Allocation**
 - A **Target Allocation** is expressed over **Asset Classes**
 - An **Instrument** is split across one or more **Asset Classes**, the split summing to 100%
