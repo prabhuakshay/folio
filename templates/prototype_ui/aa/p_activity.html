@@ -1,0 +1,99 @@
+{% extends "prototype_ui/aa/shell.html" %}
+{# P · Kind-first — a review queue on top, then lenses: by day, by Payee, by Tag. #}
+{% block page %}
+    <h1 class="display mt-2 text-[40px] leading-none">Activity</h1>
+    <div class="tnum mt-4 grid grid-cols-3 border-y border-(--line) py-3 text-[12px] text-(--ink-2)">
+        <div>
+            Spent in Sep
+            <p class="stat mt-1 text-[22px] text-(--ink)"><span class="cur">₹</span>{{ month_summary.spent.whole }}</p>
+        </div>
+        <div>
+            Earned
+            <p class="stat mt-1 text-[22px] text-(--pos)"><span class="cur">₹</span>{{ month_summary.earned.whole }}</p>
+        </div>
+        <div>
+            Invested
+            <p class="stat mt-1 text-[22px] text-(--ink)"><span class="cur">₹</span>{{ month_summary.saved.whole }}</p>
+        </div>
+    </div>
+    {% if review and not filtered %}
+        <section class="mt-6 rounded-[20px] bg-(--well) p-4">
+            <p class="text-[15px] font-semibold">To review · {{ review|length }}</p>
+            <p class="mt-0.5 text-[13px] text-(--ink-2)">Quick-add couldn't place these. Tap one to choose its Account.</p>
+            <ul class="mt-2">
+                {% for t in review %}
+                    <li><a href="{{ t.url }}"
+   class="flex items-center justify-between py-2 text-[15px]"><span>{{ t.payee }} <span class="text-(--ink-3)">· {{ t.day }}</span></span><span class="num">{{ t.amount.text }}</span></a></li>
+                {% endfor %}
+            </ul>
+        </section>
+    {% endif %}
+    <form class="mt-6" method="get">
+        <input type="hidden" name="variant" value="{{ variant }}"><input type="hidden" name="lens" value="{{ lens }}">
+        <label class="flex h-11 items-center gap-2.5 rounded-full bg-(--well) px-4">
+            <i data-lucide="search" class="size-[18px] text-(--ink-3)"></i>
+            <input type="search"
+                   name="q"
+                   value="{{ f.q }}"
+                   placeholder="Search Activity"
+                   class="min-w-0 flex-1 bg-transparent text-[16px] outline-none placeholder:text-(--ink-3)">
+        </label>
+    </form>
+    <div class="mt-4 flex gap-6 border-b border-(--line) text-[15px] font-medium text-(--ink-3)">
+        {% for label, url, on in lenses %}
+            <a href="{{ url }}"
+               class="pb-3 {% if on %}border-b-2 border-(--ink) text-(--ink){% endif %}">{{ label }}</a>
+        {% endfor %}
+    </div>
+    {% if filtered %}
+        <div class="mt-4 flex flex-wrap items-center gap-2 text-[13px]">
+            {% if f.account %}<span class="pill">Account: {{ account_label }}</span>{% endif %}
+            {% if f.tag %}<span class="pill">#{{ f.tag }}</span>{% endif %}
+            {% if f.payee %}<span class="pill">Payee: {{ f.payee }}</span>{% endif %}
+            {% if f.type %}<span class="pill">{{ f.type|capfirst }}</span>{% endif %}
+            {% if f.q %}<span class="pill">“{{ f.q }}”</span>{% endif %}
+            <a href="{{ clear_url }}" class="font-medium text-(--accent)">Clear</a>
+        </div>
+    {% endif %}
+    {% if lens == "payees" %}
+        <ul class="divide-y divide-(--line)">
+            {% for p in payee_rows %}
+                <li>
+                    <a href="{{ p.url }}" class="flex items-center gap-3.5 py-3.5">
+                        <span class="tile size-9 rounded-full"
+                              style="--c: {{ p.color }}"><i data-lucide="{{ p.icon }}"
+   class="size-4"></i></span>
+                        <span class="min-w-0 flex-1"><span class="block truncate text-[15px]">{{ p.name }}</span><span class="block text-[13px] text-(--ink-3)">{{ p.count }} × · last {{ p.last }}</span></span>
+                        <span class="num text-[15px] font-medium {% if p.total.pos %}text-(--pos){% endif %}">{{ p.total.text }}</span>
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% elif lens == "tags" %}
+        <ul class="divide-y divide-(--line)">
+            {% for tg in tag_rows %}
+                <li>
+                    <a href="{{ tg.url }}" class="flex items-center gap-3.5 py-4">
+                        <span class="stat text-[22px] text-(--ink-3)">#</span>
+                        <span class="min-w-0 flex-1"><span class="block text-[16px] font-medium">{{ tg.name }}</span><span class="block text-[13px] text-(--ink-3)">{{ tg.count }} Transactions · {{ tg.span }}</span></span>
+                        <span class="stat text-[24px]"><span class="cur">₹</span>{{ tg.total.whole }}</span>
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+        <p class="mt-4 text-[13px] text-(--ink-3)">Tags cut across Accounts and never touch the Budget. Add one from any Transaction.</p>
+    {% else %}
+        {% regroup txns by day as days %}
+        {% for d in days %}
+            <h2 class="mt-6 text-[13px] font-semibold text-(--ink-2)">{{ d.grouper }}</h2>
+            <ul {% if forloop.first %}id="feed-today"{% endif %}
+                class="divide-y divide-(--line)">
+                {% for t in d.list %}
+                    {% include "prototype_ui/aa/row.html" %}
+                {% endfor %}
+            </ul>
+        {% empty %}
+            <p class="py-16 text-center text-[15px] text-(--ink-3)">Nothing matches.</p>
+        {% endfor %}
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends "prototype_ui/aa/shell.html" %}
+{# O · Ledger — a Transaction is its Postings; the header holds date, Payee and Tags. #}
+{% block header_title %}Transaction{% endblock %}
+{% block header_actions %}<span class="px-3 text-[15px] font-medium text-(--accent)">Save</span>{% endblock %}
+{% block page %}
+    <div class="mt-4 grid grid-cols-[1fr_auto] gap-2">
+        <input class="field text-[17px]! font-semibold"
+               value="{{ t.payee }}"
+               aria-label="Payee">
+        <input class="field w-36!"
+               value="{{ t.date|date:'j M Y' }}"
+               aria-label="Date">
+    </div>
+    <div class="mt-2 flex flex-wrap items-center gap-1.5">
+        {% for tag in t.tags %}<span class="pill">#{{ tag }}</span>{% endfor %}
+        <span class="pill"><i data-lucide="plus" class="size-3"></i>Tag</span>
+        <span class="pill"><i data-lucide="plus" class="size-3"></i>Note</span>
+    </div>
+    {% if t.note %}<p class="mt-2 text-[14px] text-(--ink-2)">{{ t.note }}</p>{% endif %}
+    <h2 class="kicker mt-8">Postings</h2>
+    <div class="mt-2 grid grid-cols-[1fr_auto] items-center gap-x-2 gap-y-1.5 text-[14px]">
+        <span class="px-1 text-[12px] text-(--ink-3)">Account</span>
+        <span class="w-32 px-1 text-right text-[12px] text-(--ink-3)">Amount · Dr + / Cr −</span>
+        {% for p in t.postings %}
+            <div class="field flex min-w-0 items-center gap-2 py-2.5! {% if p.name == 'Uncategorised' %}shadow-[inset_0_0_0_1px_var(--neg)]{% endif %}">
+                <i data-lucide="{{ p.icon }}"
+                   class="size-4 shrink-0"
+                   style="color: {{ p.color }}"></i>
+                <span class="min-w-0 truncate">{{ p.name }}<span class="block truncate text-[11px] text-(--ink-3)">{{ p.path }}</span></span>
+            </div>
+            <div class="field tnum w-32 py-2.5! text-right">{{ p.amount.text }}{% if p.units %}<span class="block text-[11px] text-(--ink-3)">{{ p.units }} u</span>{% endif %}</div>
+        {% endfor %}
+    </div>
+    <div class="mt-3 flex items-center justify-between text-[13px]">
+        <span class="font-medium text-(--accent)">+ Add Posting</span>
+        <span class="tnum flex items-center gap-1.5 {% if balanced %}text-(--pos){% else %}text-(--neg){% endif %}"><i data-lucide="{% if balanced %}check{% else %}x{% endif %}"
+   class="size-4"></i>{% if balanced %}Balanced · {{ dr.text }} each side{% else %}Doesn't balance{% endif %}</span>
+    </div>
+    <dl class="mt-8 divide-y divide-(--line) border-y border-(--line) text-[13px]">
+        <div class="flex justify-between gap-4 py-3">
+            <dt class="text-(--ink-2)">Recorded</dt>
+            <dd class="text-right">
+                {{ t.source }}
+            </dd>
+        </div>
+        <div class="flex justify-between gap-4 py-3">
+            <dt class="text-(--ink-2)">Fulfils</dt>
+            <dd class="text-right">
+                {{ t.fulfils|default:"—" }}
+            </dd>
+        </div>
+        <div class="flex justify-between gap-4 py-3">
+            <dt class="text-(--ink-2)">Time</dt>
+            <dd>
+                {{ t.time }}
+            </dd>
+        </div>
+    </dl>
+    <div class="mt-8 grid grid-cols-3 gap-2 text-[14px] font-medium">
+        <span class="flex h-11 items-center justify-center rounded-full bg-(--well)">Duplicate</span>
+        <span class="flex h-11 items-center justify-center rounded-full bg-(--well)">Make recurring</span>
+        <span class="flex h-11 items-center justify-center rounded-full bg-(--well) text-(--neg)">Delete</span>
+    </div>
+{% endblock %}

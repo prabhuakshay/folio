@@ -1,0 +1,301 @@
+"""PROTOTYPE — sample ledger for the "Activity and Accounts screens" ticket.
+
+Balance-sheet Accounts of every kind, and Transactions with real Postings, so
+each variant can render lists, registers and detail from the same facts.
+Today is Wed 30 Sep 2026. Never merge to main.
+"""
+
+from datetime import date
+
+from prototype_ui.aa_invest import GROW
+
+TODAY = date(2026, 9, 30)
+
+# Accounts not in ACCTS are Income/Expense/Equity paths, named by their leaf.
+ACCTS = {
+    "hdfc": {
+        "name": "HDFC Savings",
+        "kind": "bank",
+        "group": "Bank & Cash",
+        "mark": "HDFC",
+        "color": "#004C8F",
+        "balance": 184320.45,
+        "aliases": "hdfc, upi",
+        "start": "1 Apr 2025",
+        "ef": True,
+        "earmarks": [("Emergency Fund", "₹1,20,000 fixed", 65)],
+        "upcoming": [
+            ("Thu 1 Oct", "Rent to Mr. Rao", -32000, "Schedule · fixed"),
+            ("Fri 2 Oct", "Airtel broadband", -1179, "Schedule · estimated"),
+            ("Mon 5 Oct", "PPF deposit", -10000, "Schedule · to PPF"),
+            ("Mon 12 Oct", "ICICI card bill", -23410, "Card bill · pay in full"),
+        ],
+        "line": "Spendable · ₹1.20 L of it Emergency Fund",
+        "sentence": "Spendable today. ₹1,20,000 of it is your Emergency Fund; ₹66,589 goes out in the next two weeks.",
+        "tiles": [
+            ("Out in 14 days", "₹66,589", "Rent, Airtel, PPF, card bill"),
+            ("Emergency Fund", "₹1,20,000", "Earmarked, fixed"),
+            ("In this month", "₹0", "Salary lands in SBI Salary"),
+            ("Last import", "—", "No bank Importer in v1"),
+        ],
+        "terms": [
+            ("Kind", "Savings account"),
+            ("Group", "Assets › Bank & Cash"),
+            ("Emergency-Fund eligible", "Yes"),
+            ("Counts in Cash on hand", "Yes"),
+            ("Aliases", "hdfc, upi"),
+            ("Start date", "1 Apr 2025 · opening ₹96,410.20"),
+        ],
+        "strip": "Savings · Cash on hand · EF eligible · aliases hdfc, upi",
+    },
+    "sbi": {
+        "name": "SBI Salary",
+        "kind": "bank",
+        "group": "Bank & Cash",
+        "mark": "SBI",
+        "color": "#2A6FDB",
+        "balance": 42110.00,
+        "start": "1 Apr 2025",
+        "ef": True,
+        "earmarks": [],
+        "upcoming": [
+            ("Mon 5 Oct", "Parag Parikh SIP", -10000, "Schedule · Retirement"),
+            ("Wed 28 Oct", "SBI Home loan EMI", -38500, "Loan EMI"),
+            ("Wed 28 Oct", "Salary · Acme", 155400, "Schedule · estimated"),
+        ],
+        "line": "Salary lands here · EMI and SIP leave",
+        "sentence": "Your salary lands here on the 28th; the EMI and SIP leave from it.",
+        "tiles": [
+            ("In this month", "₹1,55,400", "Salary · Acme"),
+            ("Out this month", "₹48,500", "EMI and SIP"),
+            ("Next in", "28 Oct", "Salary, estimated"),
+            ("Unallocated", "₹42,110", "Not earmarked"),
+        ],
+        "terms": [
+            ("Kind", "Savings account"),
+            ("Group", "Assets › Bank & Cash"),
+            ("Emergency-Fund eligible", "Yes"),
+            ("Counts in Cash on hand", "Yes"),
+            ("Start date", "1 Apr 2025 · opening ₹61,880.00"),
+        ],
+        "strip": "Savings · Cash on hand · EF eligible",
+    },
+    "cash": {
+        "name": "Cash",
+        "kind": "bank",
+        "group": "Bank & Cash",
+        "mark": "₹",
+        "color": "#0B9B6A",
+        "balance": 3200.00,
+        "start": "1 Apr 2025",
+        "ef": True,
+        "earmarks": [],
+        "upcoming": [],
+        "line": "Cash in hand",
+        "sentence": "Cash in your wallet, as last counted.",
+        "tiles": [
+            ("Spent this month", "₹1,850", "4 Transactions"),
+            ("Last withdrawal", "12 Sep", "₹3,000 from HDFC"),
+            ("Aliases", "cash", "Typed in quick-add"),
+            ("Unallocated", "₹3,200", "Not earmarked"),
+        ],
+        "terms": [
+            ("Kind", "Cash in hand"),
+            ("Group", "Assets › Bank & Cash"),
+            ("Emergency-Fund eligible", "Yes"),
+            ("Aliases", "cash"),
+        ],
+        "strip": "Cash in hand · alias cash",
+    },
+    "icici": {
+        "name": "ICICI Amazon Pay",
+        "kind": "card",
+        "group": "Credit Cards",
+        "mark": "ICICI",
+        "color": "#B02A30",
+        "balance": -25708.00,
+        "start": "1 Apr 2025",
+        "card": {
+            "due": 23410.00,
+            "due_date": "Mon 12 Oct",
+            "days": 12,
+            "statement": "22 Sep",
+            "unbilled": 2298.00,
+            "limit": 300000,
+            "used_pct": 8.6,
+            "streak": 14,
+            "emis": [("iPhone 16 · no-cost", "₹5,217 a month · 8 left")],
+        },
+        "earmarks": [],
+        "upcoming": [
+            ("Mon 12 Oct", "Card bill · 22 Sep statement", -23410, "Pay in full"),
+            ("Thu 22 Oct", "Next statement", None, "₹2,298 unbilled so far"),
+        ],
+        "line": "₹23,410 due Mon 12 Oct",
+        "sentence": "Pay ₹23,410 by Mon 12 Oct to keep paying in full. ₹2,298 is on the next statement so far.",
+        "tiles": [
+            ("Statement due", "₹23,410", "By Mon 12 Oct · 12 days"),
+            ("Unbilled", "₹2,298", "Next statement 22 Oct"),
+            ("Limit used", "8.6%", "of ₹3,00,000"),
+            ("Paid in full", "14 months", "No revolving credit"),
+        ],
+        "terms": [
+            ("Kind", "Credit card"),
+            ("Group", "Liabilities › Credit Cards"),
+            ("Statement day", "22nd"),
+            ("Due day", "12th"),
+            ("Credit limit", "₹3,00,000"),
+            ("Aliases", "card, icici"),
+            ("Card EMIs", "iPhone 16 · no-cost"),
+        ],
+        "strip": "Card · statement 22nd · due 12th · limit ₹3,00,000",
+    },
+    "homeloan": {
+        "name": "SBI Home loan",
+        "kind": "loan",
+        "group": "Loans",
+        "mark": "SBI",
+        "color": "#2A6FDB",
+        "balance": -3842000.00,
+        "start": "1 Apr 2025",
+        "loan": {
+            "sanctioned": 4500000,
+            "rate": "8.50%",
+            "emi": 38500,
+            "emi_day": "28th",
+            "ends": "Mar 2041",
+            "left": 174,
+            "paid_pct": 14.6,
+            "next": "Wed 28 Oct",
+            "split": ("₹11,285", "₹27,215"),
+            "interest_fy": "₹1,64,120",
+            "interest_left": "₹28.57 L",
+        },
+        "earmarks": [],
+        "upcoming": [
+            ("Wed 28 Oct", "EMI", -38500, "₹11,370 principal · ₹27,130 interest"),
+            ("Sat 28 Nov", "EMI", -38500, "₹11,451 principal · ₹27,049 interest"),
+        ],
+        "line": "EMI ₹38,500 on the 28th · ends Mar 2041",
+        "sentence": "₹38,42,000 left at 8.50%. At ₹38,500 a month it's paid off in Mar 2041, 174 EMIs from now.",
+        "tiles": [
+            ("EMI", "₹38,500", "28th · next Wed 28 Oct"),
+            ("Ends", "Mar 2041", "174 EMIs left"),
+            ("Rate", "8.50%", "Floating · not high-interest"),
+            ("Interest this FY", "₹1,64,120", "to Home loan interest"),
+        ],
+        "terms": [
+            ("Loan type", "Home loan"),
+            ("Lender", "State Bank of India"),
+            ("Group", "Liabilities › Loans"),
+            ("Sanctioned", "₹45,00,000"),
+            ("Rate", "8.50% (current only)"),
+            ("EMI", "₹38,500 on the 28th"),
+            ("End date", "Mar 2041 (derived)"),
+            ("Interest to", "Expenses › Home loan interest"),
+            ("Start date", "1 Apr 2025 · opening ₹39,06,200"),
+        ],
+        "strip": "Home loan · 8.50% · EMI ₹38,500 on 28th · ends Mar 2041",
+    },
+    "iphone": {
+        "name": "iPhone 16 on ICICI",
+        "kind": "loan",
+        "group": "Card EMIs",
+        "mark": "EMI",
+        "color": "#B02A30",
+        "balance": -41736.00,
+        "start": "22 May 2026",
+        "loan": {
+            "sanctioned": 62604,
+            "rate": "0% · no-cost",
+            "emi": 5217,
+            "emi_day": "22nd",
+            "ends": "May 2027",
+            "left": 8,
+            "paid_pct": 33.3,
+            "next": "Thu 22 Oct",
+            "split": ("₹5,217", "₹0"),
+            "interest_fy": "₹0",
+            "interest_left": "₹0",
+        },
+        "earmarks": [],
+        "upcoming": [
+            ("Thu 22 Oct", "Instalment on ICICI", -5217, "Billed onto the Card"),
+        ],
+        "line": "₹5,217 a month on ICICI · 8 left",
+        "sentence": "A no-cost EMI billed onto ICICI Amazon Pay: ₹41,736 left over 8 instalments.",
+        "tiles": [
+            ("Instalment", "₹5,217", "Billed 22nd onto ICICI"),
+            ("Ends", "May 2027", "8 left"),
+            ("Rate", "0%", "No-cost EMI"),
+            ("Owed to", "ICICI", "Amazon Pay card"),
+        ],
+        "terms": [
+            ("Loan type", "Card EMI"),
+            ("Owed to", "ICICI Amazon Pay"),
+            ("Group", "Liabilities › Card EMIs"),
+            ("Converted", "₹62,604 on 22 May 2026"),
+            ("Rate", "0% (no-cost)"),
+            ("Instalment", "₹5,217 on the 22nd"),
+        ],
+        "strip": "Card EMI · 0% · ₹5,217 on 22nd · owed to ICICI",
+    },
+    **GROW,
+}
+
+GROUPS = [
+    "Bank & Cash",
+    "Credit Cards",
+    "Card EMIs",
+    "Loans",
+    "Deposits",
+    "Retirement",
+    "Mutual Funds",
+    "Bonds & SGBs",
+    "Property",
+]
+ASSET_GROUPS = [
+    "Bank & Cash",
+    "Deposits",
+    "Retirement",
+    "Mutual Funds",
+    "Bonds & SGBs",
+    "Property",
+]
+LIABILITY_GROUPS = ["Credit Cards", "Loans", "Card EMIs"]
+
+PURPOSES = [
+    ("Spend from", "Cash on hand and cards", ["hdfc", "sbi", "cash", "icici"]),
+    ("Owe", "Loans and Card EMIs", ["homeloan", "iphone"]),
+    (
+        "Grow",
+        "Holdings, deposits and provident",
+        ["ppfas", "uti", "sgb", "fd", "ppf", "epf"],
+    ),
+    ("Own", "Property", ["flat"]),
+]
+
+# Expense/Income leaves as they appear in the Chart of Accounts: (path, icon, colour).
+LEAVES = {
+    "Dining out": ("Expenses › Food › Dining out", "utensils", "#F76B15"),
+    "Groceries": ("Expenses › Food › Groceries", "shopping-basket", "#12A150"),
+    "Transport": ("Expenses › Transport › Cabs", "car-taxi-front", "#0090FF"),
+    "Fuel": ("Expenses › Transport › Fuel", "fuel", "#D99A00"),
+    "Electricity": ("Expenses › Home › Electricity", "zap", "#E5A000"),
+    "Rent": ("Expenses › Home › Rent", "house", "#5B6475"),
+    "Mobile & internet": ("Expenses › Home › Mobile & internet", "wifi", "#0090FF"),
+    "Travel": ("Expenses › Leisure › Travel", "plane", "#8E4EC6"),
+    "Home loan interest": (
+        "Expenses › Finance › Home loan interest",
+        "percent",
+        "#5B6475",
+    ),
+    "Uncategorised": ("Expenses › Uncategorised", "circle-help", "#8D8D97"),
+    "TDS": ("Expenses › Taxes › TDS", "landmark", "#5B6475"),
+    "Professional tax": ("Expenses › Taxes › Professional tax", "landmark", "#5B6475"),
+    "Salary": ("Income › Salary", "briefcase-business", "#0B9B6A"),
+    "Employer EPF": ("Income › Employer EPF", "briefcase-business", "#0B9B6A"),
+    "Interest": ("Income › Interest", "percent", "#0B9B6A"),
+}
+
+from prototype_ui.aa_txns import TAGS, TXNS  # noqa: E402, F401

@@ -1,0 +1,85 @@
+{% extends "prototype_ui/base.html" %}
+{# PROTOTYPE N/O/P — Activity and Accounts tab screens inside navigation variant L. #}
+{% block theme_color %}#FFFFFF{% endblock %}
+{% block style %}
+    {% include "prototype_ui/partials/j_style.html" %}
+    .tnum { font-variant-numeric: tabular-nums; }
+    .pill { display: inline-flex; align-items: center; gap: 4px; border-radius: 999px; background: var(--well); padding: 2px 9px; font-size: 12px; font-weight: 500; color: var(--ink-2); }
+    .field { background: var(--well); border-radius: 14px; padding: 11px 14px; font-size: 15px; width: 100%; outline: none; }
+    .field:focus { background: #fff; box-shadow: inset 0 0 0 1px rgb(0 0 0 / .3), 0 0 0 4px rgb(0 0 0 / .06); }
+    details > summary { list-style: none; cursor: pointer; }
+    details > summary::-webkit-details-marker { display: none; }
+    details[open] .chev { transform: rotate(90deg); }
+{% endblock %}
+{% block body %}
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..800&display=swap"
+          rel="stylesheet">
+    <div class="mx-auto min-h-dvh max-w-xl px-6 pb-40 lg:pb-16">
+        <header class="sticky top-0 z-30 -mx-6 flex h-14 items-center gap-2 bg-white/90 px-4 pt-[env(safe-area-inset-top)] backdrop-blur-xl">
+            {% if parent_url %}
+                <a href="{{ parent_url }}"
+                   data-back
+                   class="grid size-10 place-items-center rounded-full"
+                   aria-label="Back to {{ back_to }}"><i data-lucide="chevron-left" class="size-6"></i></a>
+                <span class="min-w-0 truncate text-[15px] font-semibold">
+                    {% block header_title %}{% endblock %}
+                </span>
+            {% else %}
+                <span class="wordmark px-2 text-[16px]">FOLIO</span>
+            {% endif %}
+            <div class="ml-auto flex items-center gap-1">
+                {% block header_actions %}{% endblock %}
+                {% if root %}
+                    <a href="{{ settings_url }}"
+                       class="grid size-9 place-items-center rounded-full bg-(--ink) text-[12px] font-semibold text-white"
+                       aria-label="Settings">AP</a>
+                {% endif %}
+            </div>
+        </header>
+        {% block page %}{% endblock %}
+    </div>
+    {% include "prototype_ui/nav/tabbar.html" %}
+    {% block sheets %}{% endblock %}
+{% endblock %}
+{% block proto_state %}
+    <p class="font-semibold mb-1">{{ variant }} · {{ variant_name }}</p>
+    <p class="mb-3 leading-4 text-white/70">{{ rule }}</p>
+    <dl class="space-y-1.5">
+        <div>
+            <dt class="text-white/55">Screen · path</dt>
+            <dd>
+                {{ screen }} · {{ trail }}
+            </dd>
+        </div>
+        <div>
+            <dt class="text-white/55">Back goes to</dt>
+            <dd>
+                {{ back_to }}
+            </dd>
+        </div>
+        {% if t %}
+            <div>
+                <dt class="text-white/55">Postings (Dr +, Cr −)</dt>
+                {% for p in t.postings %}
+                    <dd class="flex justify-between gap-2">
+                        <span class="truncate">{{ p.path }}</span><span>{{ p.amount.text }}</span>
+                    </dd>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </dl>
+    <p class="font-semibold mt-3 mb-1">Jump to an Account kind</p>
+    <ul class="space-y-0.5">
+        {% for kind, name, url in kind_links %}
+            <li>
+                <a href="{{ url }}"
+                   class="underline decoration-white/30">{{ kind }}</a> <span class="text-white/55">· {{ name }}</span>
+            </li>
+        {% endfor %}
+    </ul>
+    <div id="proto-last" hidden></div>
+{% endblock %}
+{% block script %}
+    {% include "prototype_ui/nav/script.html" %}
+    {% block page_script %}{% endblock %}
+{% endblock %}

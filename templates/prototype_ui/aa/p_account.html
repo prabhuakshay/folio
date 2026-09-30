@@ -1,0 +1,162 @@
+{% extends "prototype_ui/aa/shell.html" %}
+{# P · Kind-first — each kind leads with its own hero and actions; the shared tail is expected, recent and details. #}
+{% block header_title %}{{ a.name }}{% endblock %}
+{% block page %}
+    {% if a.kind == "card" %}
+        <p class="kicker mt-4">Statement due {{ a.card.due_date }} · {{ a.card.days }} days</p>
+        <p class="figure num mt-3"
+           {% if a.m.due.whole|length > 7 %}style="font-size: clamp(56px, 17vw, 80px)"{% endif %}><span class="cur">₹</span>{{ a.m.due.whole }}</p>
+        <p class="mt-4 max-w-[32ch] text-[16px] leading-6 text-(--ink-2)">Pay this in full to keep “no revolving credit” met — {{ a.card.streak }} months running.</p>
+        <span class="mt-6 flex h-12 items-center justify-center gap-2 rounded-full bg-(--ink) text-[15px] font-medium text-white"><i data-lucide="check" class="size-4"></i>Record the payment</span>
+        <div class="mt-8">
+            <div class="flex justify-between text-[13px]"><span class="text-(--ink-2)">Limit used</span><span class="tnum">{{ a.value.text }} of {{ a.m.limit.text }}</span></div>
+            <div class="mt-2 h-1.5 overflow-hidden rounded-full bg-(--line)">
+                <div class="h-full rounded-full bg-(--ink)"
+                     style="width: {{ a.card.used_pct }}%"></div>
+            </div>
+            <p class="mt-2 text-[13px] text-(--ink-3)">{{ a.m.unbilled.text }} unbilled goes on the 22 Oct statement.</p>
+        </div>
+        <h2 class="kicker mt-8">Card EMIs billed here</h2>
+        <ul class="mt-1 divide-y divide-(--line)">{% for n, d in a.card.emis %}<li class="flex justify-between py-3 text-[15px]"><span>{{ n }}</span><span class="text-(--ink-2)">{{ d }}</span></li>{% endfor %}</ul>
+    {% elif a.kind == "loan" %}
+        <p class="kicker mt-4">Left to repay · {{ a.loan.rate }}</p>
+        <p class="figure num mt-3"><span class="cur">₹</span>{{ a.value.short }}</p>
+        <div class="mt-6">
+            <div class="h-2 overflow-hidden rounded-full bg-(--line)">
+                <div class="h-full rounded-full bg-(--ink)"
+                     style="width: {{ a.loan.paid_pct }}%"></div>
+            </div>
+            <div class="tnum mt-2 flex justify-between text-[13px] text-(--ink-2)"><span>{{ a.m.paid.text }} repaid</span><span>of {{ a.m.sanctioned.text }}</span></div>
+        </div>
+        <p class="mt-5 max-w-[32ch] text-[16px] leading-6 text-(--ink-2)">Paid off in <b class="text-(--ink)">{{ a.loan.ends }}</b>, {{ a.loan.left }} EMIs from now. {% if a.loan.interest_left != "₹0" %}{{ a.loan.interest_left }} of interest still to pay at this rate.{% endif %}</p>
+        <div class="mt-6 rounded-[20px] bg-(--well) p-4">
+            <p class="text-[13px] text-(--ink-2)">Next EMI · {{ a.loan.next }}</p>
+            <p class="stat mt-1 text-[28px]"><span class="cur">₹</span>{{ a.m.emi.whole }}</p>
+            <p class="mt-1 text-[13px] text-(--ink-2)">{{ upcoming.0.note }}</p>
+        </div>
+        <div class="mt-4 grid grid-cols-2 gap-2 text-[14px] font-medium">
+            <span class="flex h-11 items-center justify-center rounded-full bg-(--well)">Prepay</span>
+            <span class="flex h-11 items-center justify-center rounded-full bg-(--well)">Change EMI or rate</span>
+        </div>
+    {% elif a.kind == "holding" %}
+        <p class="kicker mt-4">Value · {{ a.holding.split }}</p>
+        <p class="figure num mt-3"><span class="cur">₹</span>{% if a.value_raw >= 1000000 %}{{ a.value.short }}{% else %}{{ a.value.whole }}{% endif %}</p>
+        <p class="mt-3 text-[17px] font-medium text-(--pos)">{{ a.gain.text }} <span class="text-(--ink-3)">· {{ a.gain_pct }} · XIRR {{ a.holding.xirr }}</span></p>
+        <div class="mt-6 flex items-center justify-between gap-3 border-y border-(--line) py-3 text-[14px]">
+            <span class="tnum">{{ a.holding.units }} units × ₹{{ a.m.price.whole }}{% if a.m.price.paise != "00" %}.{{ a.m.price.paise }}{% endif %}</span>
+            <span class="{% if a.holding.stale %}font-medium text-(--neg){% else %}text-(--ink-3){% endif %}">{{ a.holding.source }} · {{ a.holding.price_date }}{% if a.holding.stale %} · stale{% endif %}</span>
+        </div>
+        {% if a.holding.stale or a.holding.source == "By hand" %}
+            <span class="mt-4 flex h-11 items-center justify-center gap-2 rounded-full bg-(--ink) text-[14px] font-medium text-white"><i data-lucide="pencil" class="size-4"></i>{% if a.holding.source == "By hand" %}Revalue{% else %}Enter today's price{% endif %}</span>
+        {% endif %}
+        <h2 class="kicker mt-8">Earmarked</h2>
+        <div class="mt-2 flex h-2.5 overflow-hidden rounded-full bg-(--line)">
+            {% for g, how, pct in a.earmarks %}
+                <div class="h-full bg-(--ink)" style="width: {{ pct }}%"></div>
+            {% endfor %}
+        </div>
+        <p class="mt-2 text-[13px] text-(--ink-2)">{% for g, how, pct in a.earmarks %}{{ g }} · {{ how }}{% if not forloop.last %}; {% endif %}{% empty %}Nothing earmarked{% endfor %}{% if unallocated > 0 %} · {{ unallocated }}% Unallocated{% endif %}</p>
+        <h2 class="kicker mt-8">Lots, oldest first</h2>
+        <ul class="mt-1 divide-y divide-(--line) text-[14px]">
+            {% for d, u, c, note in a.holding.lots %}<li class="tnum flex justify-between py-2.5"><span>{{ d }}{% if note %} <span class="text-(--ink-3)">· {{ note }}</span>{% endif %}</span><span>{{ u }} u · {{ c }}</span></li>{% endfor %}
+        </ul>
+        {% if a.holding.lots_more %}<p class="mt-1 text-[13px] text-(--ink-3)">+ {{ a.holding.lots_more }} more lots</p>{% endif %}
+        <div class="mt-5 grid grid-cols-3 gap-2 text-[14px] font-medium">
+            <span class="flex h-11 items-center justify-center rounded-full bg-(--well)">Buy</span>
+            <span class="flex h-11 items-center justify-center rounded-full bg-(--well)">Sell</span>
+            <span class="flex h-11 items-center justify-center rounded-full bg-(--well)">Earmark</span>
+        </div>
+    {% elif a.kind == "deposit" %}
+        <p class="kicker mt-4">Matures {{ a.deposit.matures }} · {{ a.deposit.days }} days</p>
+        <p class="figure num mt-3"
+           {% if a.value.whole|length > 7 %}style="font-size: clamp(56px, 17vw, 80px)"{% endif %}><span class="cur">₹</span>{{ a.value.whole }}</p>
+        <div class="mt-6">
+            <div class="relative h-1.5 rounded-full bg-(--line)">
+                <div class="h-full rounded-full bg-(--ink)"
+                     style="width: {{ a.deposit.elapsed_pct }}%"></div>
+                <span class="absolute -top-1 size-3.5 -translate-x-1/2 rounded-full border-2 border-white bg-(--accent)"
+                      style="left: {{ a.deposit.elapsed_pct }}%"></span>
+            </div>
+            <div class="tnum mt-2 flex justify-between text-[12px] text-(--ink-3)"><span>{{ a.deposit.opened }}</span><span>today</span><span>{{ a.deposit.matures }}</span></div>
+        </div>
+        <p class="mt-5 max-w-[32ch] text-[16px] leading-6 text-(--ink-2)">₹2,00,000 at {{ a.deposit.rate }}, {{ a.deposit.compounding|lower }}. Worth {{ a.deposit.maturity_value }} at maturity. {{ a.m.accrued.text }} accrued since the last credit — shown, not counted.</p>
+        <div class="mt-6 flex items-center gap-3 rounded-[20px] bg-(--well) p-4">
+            <i data-lucide="refresh-cw" class="size-5"></i>
+            <span class="flex-1 text-[14px]"><span class="block font-medium">At maturity: {{ a.deposit.instruction|lower }}</span><span class="block text-(--ink-2)">Same Account, new terms — its Earmarks carry over</span></span>
+            <span class="text-[13px] font-medium text-(--accent)">Change</span>
+        </div>
+        <p class="mt-4 text-[13px] text-(--ink-2)">Breakable bank FD · whole Account earmarked to Emergency Fund.</p>
+    {% elif a.kind == "provident" %}
+        {% if a.provident.scheme == "EPF" %}
+            <p class="kicker mt-4">EPF · {{ a.provident.rate }} for {{ a.provident.rate_note }}</p>
+            <p class="figure num mt-3"
+               {% if a.value.whole|length > 7 %}style="font-size: clamp(56px, 17vw, 80px)"{% endif %}><span class="cur">₹</span>{{ a.value.whole }}</p>
+            <div class="mt-6 rounded-[20px] bg-(--well) p-4">
+                <p class="text-[15px] font-semibold">2025-26 interest not credited yet</p>
+                <p class="mt-1 text-[13px] text-(--ink-2)">Due since 31 Mar; overdue from tomorrow. About {{ a.provident.credit.1 }} at {{ a.provident.rate }} — confirm at what your passbook shows.</p>
+                <span class="mt-3 flex h-11 items-center justify-center rounded-full bg-(--ink) text-[14px] font-medium text-white">Confirm interest credit</span>
+            </div>
+            <p class="mt-5 text-[14px] text-(--ink-2)">{{ a.provident.status }}. {{ a.m.accrued.text }} accrued this year — shown, not counted.</p>
+        {% else %}
+            <p class="kicker mt-4">PPF · {{ a.provident.rate }} for {{ a.provident.rate_note }}</p>
+            <p class="figure num mt-3"
+               {% if a.value.whole|length > 7 %}style="font-size: clamp(56px, 17vw, 80px)"{% endif %}><span class="cur">₹</span>{{ a.value.whole }}</p>
+            <div class="mt-6">
+                <div class="flex justify-between text-[13px]"><span class="text-(--ink-2)">Deposited in 2026-27</span><span class="tnum">₹60,000 of ₹1,50,000</span></div>
+                <div class="mt-2 h-2 overflow-hidden rounded-full bg-(--line)">
+                    <div class="h-full rounded-full bg-(--ink)"
+                         style="width: {{ a.provident.fy_pct }}%"></div>
+                </div>
+                <p class="mt-2 text-[13px] text-(--ink-3)">{{ a.provident.status }} · ₹90,000 of room left before 31 Mar.</p>
+            </div>
+            <p class="mt-5 max-w-[32ch] text-[16px] leading-6 text-(--ink-2)">About {{ a.provident.credit.1 }} interest lands on {{ a.provident.credit.0 }}; {{ a.m.accrued.text }} accrued so far. Matures {{ a.provident.matures }}.</p>
+            <span class="mt-5 flex h-11 items-center justify-center rounded-full bg-(--well) text-[14px] font-medium">Record a deposit</span>
+        {% endif %}
+    {% else %}
+        <p class="kicker mt-4">Balance{% if a.ef %} · Emergency-Fund eligible{% endif %}</p>
+        <p class="figure num mt-3"
+           {% if a.value.whole|length > 7 %}style="font-size: clamp(56px, 17vw, 80px)"{% endif %}><span class="cur">₹</span>{{ a.value.whole }}</p>
+        <p class="mt-4 max-w-[32ch] text-[16px] leading-6 text-(--ink-2)">{{ a.sentence }}</p>
+        {% if a.earmarks %}
+            <div class="mt-6 flex h-2.5 overflow-hidden rounded-full bg-(--line)">
+                {% for g, how, pct in a.earmarks %}
+                    <div class="h-full bg-(--ink)" style="width: {{ pct }}%"></div>
+                {% endfor %}
+            </div>
+            <p class="mt-2 text-[13px] text-(--ink-2)">{% for g, how, pct in a.earmarks %}{{ g }} · {{ how }}{% endfor %} · rest Unallocated</p>
+        {% endif %}
+    {% endif %}
+    {% if upcoming and a.kind != "loan" %}
+        <h2 class="kicker mt-10">Expected</h2>
+        <ul class="mt-1 divide-y divide-(--line)">
+            {% for u in upcoming %}
+                <li class="flex items-center gap-3.5 py-3">
+                    <span class="min-w-0 flex-1"><span class="block truncate text-[15px]">{{ u.name }}</span><span class="block truncate text-[13px] text-(--ink-3)">{{ u.when }} · {{ u.note }}</span></span>
+                    {% if u.amount %}<span class="num text-[15px] font-medium">{{ u.amount.text }}</span>{% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    <h2 class="kicker mt-10">Recent</h2>
+    <ul class="mt-1 divide-y divide-(--line)">
+        {% for t in register|slice:":5" %}
+            <li>
+                <a href="{{ t.url }}" class="flex items-center gap-3.5 py-3">
+                    <span class="min-w-0 flex-1"><span class="block truncate text-[15px]">{{ t.payee }}</span><span class="block truncate text-[13px] text-(--ink-3)">{{ t.day }}{% if t.mine.units %} · {{ t.mine.units }} units{% endif %}</span></span>
+                    <span class="num text-[15px] font-medium">{{ t.mine.amount.text }}</span>
+                </a>
+            </li>
+        {% empty %}
+            <li class="py-6 text-[14px] text-(--ink-3)">No Transactions in this sample.</li>
+        {% endfor %}
+    </ul>
+    <a href="{{ all_url }}"
+       class="mt-3 block text-[14px] font-medium text-(--accent)">All in Activity</a>
+    <details class="mt-8 border-t border-(--line) pt-3">
+        <summary class="flex items-center justify-between py-2 text-[15px] font-medium"><span>Details</span><i data-lucide="chevron-right"
+   class="chev size-4 text-(--ink-3) transition-transform"></i></summary>
+        <dl class="divide-y divide-(--line) text-[14px]">
+            {% for k, v in a.terms %}<div class="flex justify-between gap-6 py-2.5"><dt class="shrink-0 text-(--ink-2)">{{ k }}</dt><dd class="text-right">{{ v }}</dd></div>{% endfor %}
+        </dl>
+    </details>
+{% endblock %}

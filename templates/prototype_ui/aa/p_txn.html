@@ -1,0 +1,66 @@
+{% extends "prototype_ui/aa/shell.html" %}
+{# P · Kind-first — edit a Transaction as the quick-add sentence; Folio shows how it reads it. #}
+{% block header_title %}Edit{% endblock %}
+{% block header_actions %}<span class="px-3 text-[15px] font-medium text-(--accent)">Save</span>{% endblock %}
+{% block page %}
+    {% if t.split %}
+        <p class="kicker mt-4">{{ t.payee }} · {{ t.day }}</p>
+        <p class="figure num mt-3 {% if t.amount.pos %}text-(--pos){% endif %}"
+           {% if t.amount.whole|length > 7 %}style="font-size: clamp(56px, 17vw, 80px)"{% endif %}><span class="cur">₹</span>{{ t.amount.whole }}</p>
+        <p class="mt-4 max-w-[32ch] text-[16px] leading-6 text-(--ink-2)">A split can't be one sentence. Each line is where part of the money went.</p>
+        <ul class="mt-6 space-y-2">
+            {% for p in t.postings %}
+                <li class="field flex items-center gap-3">
+                    <i data-lucide="{{ p.icon }}"
+                       class="size-4 shrink-0"
+                       style="color: {{ p.color }}"></i>
+                    <span class="min-w-0 flex-1 truncate">{% if p.amount.pos %}to{% else %}from{% endif %} {{ p.name }}</span>
+                    <span class="num tnum">₹{{ p.amount.whole }}</span>
+                </li>
+            {% endfor %}
+        </ul>
+        <p class="mt-2 text-[13px] font-medium text-(--accent)">+ Add line</p>
+    {% else %}
+        <p class="kicker mt-4">Type it the way you'd say it</p>
+        <div class="field mt-2 text-[20px]! leading-8">
+            <span class="rounded px-0.5" style="background: rgb(0 0 0 / .07)">{{ t.amount.whole }}</span>
+            <span class="rounded px-0.5"
+                  style="color: {{ t.color }};
+                         background: color-mix(in srgb, {{ t.color }} 13%, transparent)">{{ t.payee|lower }}</span>
+            {% if t.paid_from %}<span class="rounded px-0.5 text-[#B02A30]"
+      style="background: color-mix(in srgb, #B02A30 12%, transparent)">{% if t.paid_from == "ICICI Amazon Pay" %}card{% elif t.paid_from == "HDFC Savings" %}hdfc{% else %}{{ t.paid_from|lower }}{% endif %}</span>{% endif %}
+            <span class="rounded px-0.5 text-(--ink-2)">{{ t.day|lower }}</span>
+            {% for tag in t.tags %}<span class="text-(--accent)">#{{ tag|slugify }}</span>{% endfor %}
+        </div>
+        <div class="mt-3 flex flex-wrap gap-2 text-[14px] font-medium">
+            <span class="flex items-center gap-1.5 rounded-full bg-(--ink) px-3 py-1.5 text-white"><i data-lucide="{{ t.icon }}" class="size-4"></i>{{ t.category }}</span>
+            {% if t.paid_from %}<span class="rounded-full bg-(--ink) px-3 py-1.5 text-white">{{ t.paid_from }}</span>{% endif %}
+            <span class="rounded-full bg-(--well) px-3 py-1.5">Change…</span>
+        </div>
+        <h2 class="kicker mt-8">Folio reads this as</h2>
+        <div class="mt-2 border-y border-(--line) py-4">
+            <p class="text-[17px] leading-6">
+                {% if t.flag %}<span class="font-semibold text-(--neg)">₹{{ t.amount.whole }} to Uncategorised</span> — choose where it went.
+{% else %}₹{{ t.amount.whole }} {% if t.kind == "income" %}into <b>{{ t.paid_from }}</b> from <b>{{ t.category }}</b>{% else %}out of <b>{{ t.paid_from }}</b> into <b>{{ t.category }}</b>{% endif %}, at {{ t.payee }}, {{ t.date|date:"D j M" }}.{% endif %}
+    </p>
+    {% if t.postings.0.units %}<p class="mt-1 text-[13px] text-(--ink-2)">{{ t.postings.0.units }} units · {{ t.note }}</p>{% endif %}
+    </div>
+{% endif %}
+<div class="mt-6 flex flex-wrap items-center gap-1.5">
+    {% for tag in t.tags %}<span class="pill">#{{ tag }}</span>{% endfor %}
+    <span class="pill"><i data-lucide="plus" class="size-3"></i>Tag</span>
+    {% if t.note and not t.postings.0.units %}<span class="text-[13px] text-(--ink-2)">· {{ t.note }}</span>{% endif %}
+</div>
+{% if t.fulfils %}
+    <a class="mt-6 flex items-center gap-3 rounded-[20px] bg-(--well) p-4">
+        <i data-lucide="repeat" class="size-5"></i>
+        <span class="flex-1 text-[14px]"><span class="block font-medium">Fulfils {{ t.fulfils }}</span><span class="block text-(--ink-2)">{{ t.source }}</span></span>
+        <span class="text-[13px] font-medium text-(--neg)">Unlink</span>
+    </a>
+{% else %}
+    <p class="mt-6 text-[13px] text-(--ink-3)">{{ t.source }}</p>
+{% endif %}
+<div class="mt-8 flex gap-6 text-[14px] font-medium">
+    <span class="text-(--accent)">Split</span><span class="text-(--accent)">Make recurring</span><span class="ml-auto text-(--neg)">Delete</span>
+</div>
+{% endblock %}

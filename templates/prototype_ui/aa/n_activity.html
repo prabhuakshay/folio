@@ -1,0 +1,94 @@
+{% extends "prototype_ui/aa/shell.html" %}
+{# N · Plain — a day feed, type chips, and one Filter sheet for Account, Tag and Payee. #}
+{% block page %}
+    <h1 class="display mt-2 text-[40px] leading-none">Activity</h1>
+    <form class="mt-6 flex gap-2" method="get">
+        <input type="hidden" name="variant" value="{{ variant }}">
+        <label class="flex h-11 flex-1 items-center gap-2.5 rounded-full bg-(--well) px-4">
+            <i data-lucide="search" class="size-[18px] text-(--ink-3)"></i>
+            <input type="search"
+                   name="q"
+                   value="{{ f.q }}"
+                   placeholder="Payee, Account, Tag or amount"
+                   class="min-w-0 flex-1 bg-transparent text-[16px] outline-none placeholder:text-(--ink-3)">
+        </label>
+        <button type="button"
+                data-open="filters"
+                class="grid size-11 place-items-center rounded-full {% if f.tag or f.account or f.payee %}bg-(--ink) text-white{% else %}bg-(--well){% endif %}"
+                aria-label="Filters">
+            <i data-lucide="sliders-horizontal" class="size-[18px]"></i>
+        </button>
+    </form>
+    <div class="hide-scrollbar -mx-6 mt-4 flex gap-2 overflow-x-auto px-6 text-[14px] font-medium">
+        {% for label, url, on in chips %}
+            <a href="{{ url }}"
+               class="shrink-0 rounded-full px-3.5 py-1.5 {% if on %}bg-(--ink) text-white{% else %}bg-(--well){% endif %}">{{ label }}</a>
+        {% endfor %}
+    </div>
+    {% if f.tag or f.account or f.payee or f.q %}
+        <div class="mt-4 flex flex-wrap items-center gap-2 text-[13px]">
+            {% if f.account %}<span class="pill">Account: {{ account_label }}</span>{% endif %}
+            {% if f.tag %}<span class="pill">#{{ f.tag }}</span>{% endif %}
+            {% if f.payee %}<span class="pill">Payee: {{ f.payee }}</span>{% endif %}
+            {% if f.q %}<span class="pill">“{{ f.q }}”</span>{% endif %}
+            <a href="{{ clear_url }}" class="font-medium text-(--accent)">Clear</a>
+        </div>
+    {% endif %}
+    {% regroup txns by day as days %}
+    {% for d in days %}
+        <h2 class="mt-7 border-b border-(--line) pb-2.5 text-[15px] font-semibold">{{ d.grouper }}</h2>
+        <ul {% if forloop.first %}id="feed-today"{% endif %}
+            class="divide-y divide-(--line)">
+            {% for t in d.list %}
+                {% include "prototype_ui/aa/row.html" %}
+            {% endfor %}
+        </ul>
+    {% empty %}
+        <p class="py-16 text-center text-[15px] text-(--ink-3)">Nothing matches.</p>
+    {% endfor %}
+{% endblock %}
+{% block sheets %}
+    <div id="filters" hidden class="fixed inset-0 z-[60]">
+        <div data-close class="absolute inset-0 bg-black/45"></div>
+        <div class="absolute inset-x-0 bottom-0 max-h-[80dvh] overflow-y-auto rounded-t-[28px] bg-white px-6 pb-10 pt-3 lg:inset-x-auto lg:left-1/2 lg:w-[520px] lg:-translate-x-1/2">
+            <div class="mx-auto h-[5px] w-9 rounded-full bg-(--line)"></div>
+            <div class="mt-3 flex items-center justify-between">
+                <h2 class="text-[17px] font-semibold">Filter</h2>
+                <button type="button"
+                        data-close
+                        class="grid size-8 place-items-center rounded-full bg-(--well)"
+                        aria-label="Close">
+                    <i data-lucide="x" class="size-4"></i>
+                </button>
+            </div>
+            <h3 class="kicker mt-6">Account</h3>
+            <div class="mt-2 flex flex-wrap gap-2 text-[14px] font-medium">
+                {% for name, url, on in account_links %}
+                    <a href="{{ url }}"
+                       class="rounded-full px-3.5 py-1.5 {% if on %}bg-(--ink) text-white{% else %}bg-(--well){% endif %}">{{ name }}</a>
+                {% endfor %}
+            </div>
+            <h3 class="kicker mt-6">Tag</h3>
+            <div class="mt-2 flex flex-wrap gap-2 text-[14px] font-medium">
+                {% for name, url, on in tag_links %}
+                    <a href="{{ url }}"
+                       class="rounded-full px-3.5 py-1.5 {% if on %}bg-(--ink) text-white{% else %}bg-(--well){% endif %}">#{{ name }}</a>
+                {% endfor %}
+            </div>
+            <h3 class="kicker mt-6">Dates</h3>
+            <div class="mt-2 grid grid-cols-2 gap-2 text-[14px]">
+                <span class="field text-(--ink-3)">From · 1 Apr 2026</span><span class="field text-(--ink-3)">To · Today</span>
+            </div>
+            <p class="mt-6 text-[13px] text-(--ink-3)">Payee filters come from tapping a Payee on a Transaction.</p>
+        </div>
+    </div>
+{% endblock %}
+{% block page_script %}
+    <script>
+        document.addEventListener("click", (e) => {
+            const o = e.target.closest("[data-open]");
+            if (o) document.getElementById(o.dataset.open).hidden = false;
+            if (e.target.closest("[data-close]")) document.querySelectorAll("#filters").forEach((s) => (s.hidden = true));
+        });
+    </script>
+{% endblock %}

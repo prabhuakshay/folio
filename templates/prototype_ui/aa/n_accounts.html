@@ -1,0 +1,33 @@
+{% extends "prototype_ui/aa/shell.html" %}
+{# N · Plain — the Chart of Accounts' balance-sheet groups, one line per Account. #}
+{% block page %}
+    <h1 class="display mt-2 text-[40px] leading-none">Accounts</h1>
+    <p class="mt-3 text-[16px] text-(--ink-2)">₹{{ net.short }} net across {{ count }} Accounts.</p>
+    {% for g in groups %}
+        {% if g.rows %}
+            <div class="mt-8 flex items-baseline justify-between border-b border-(--line) pb-2.5">
+                <h2 class="text-[15px] font-semibold">{{ g.name }}</h2>
+                <p class="num text-[13px] text-(--ink-2)">{{ g.total.text }}</p>
+            </div>
+            <ul class="divide-y divide-(--line)">
+                {% for r in g.rows %}
+                    <li>
+                        <a href="{{ r.url }}" class="flex items-center gap-3.5 py-3.5">
+                            <span class="grid size-9 shrink-0 place-items-center rounded-full text-[10px] font-bold text-white"
+                                  style="background: {{ r.color }}">{{ r.mark }}</span>
+                            <span class="min-w-0 flex-1 truncate text-[15px]">{{ r.name }}</span>
+                            {% if r.stale %}<span class="pill text-(--neg)!">stale</span>{% endif %}
+                            <span class="num text-[15px] font-medium">{{ r.value.text }}</span>
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endfor %}
+    <div class="mt-8 grid grid-cols-2 gap-2 text-[14px] font-medium">
+        <span class="flex h-11 items-center justify-center gap-2 rounded-full bg-(--well)"><i data-lucide="plus"
+   class="size-4"></i>Add Account</span>
+        <a href="{{ imports_url }}"
+           class="flex h-11 items-center justify-center gap-2 rounded-full bg-(--well)"><i data-lucide="file-down" class="size-4"></i>Import statement</a>
+    </div>
+{% endblock %}

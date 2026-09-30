@@ -1,0 +1,13 @@
+{# A feed row shared by N and P: payee, what it was and where it came from, amount. #}
+<li>
+    <a href="{{ t.url }}" class="flex items-center gap-3.5 py-3.5">
+        <span class="tile size-9 rounded-full"
+              style="--c: {{ t.color }}"><i data-lucide="{{ t.icon }}"
+   class="size-4"></i></span>
+        <span class="min-w-0 flex-1">
+            <span class="block truncate text-[15px] leading-5">{{ t.payee }}</span>
+            <span class="block truncate text-[13px] leading-5 {% if t.flag %}font-medium text-(--neg){% else %}text-(--ink-3){% endif %}">{{ t.category }}{% if t.paid_from %} · {{ t.paid_from }}{% endif %}{% for tag in t.tags %} · #{{ tag }}{% endfor %}</span>
+        </span>
+        <span class="num shrink-0 text-[15px] font-medium {% if t.amount.pos %}text-(--pos){% endif %}">{% if t.amount.pos %}+{% endif %}<span class="cur">₹</span>{{ t.amount.whole }}</span>
+    </a>
+</li>

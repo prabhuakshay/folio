@@ -1,0 +1,87 @@
+{% extends "prototype_ui/aa/shell.html" %}
+{# N · Plain — one frame for every kind: figure, sentence, four tiles, then tabs. #}
+{% block header_title %}{{ a.name }}{% endblock %}
+{% block page %}
+    <p class="kicker mt-4">{{ kind_name }} · {% if a.kind == "holding" %}Value{% elif a.value.neg %}Owed{% else %}Balance{% endif %}</p>
+    <p class="figure num mt-3"
+       {% if a.value.whole|length > 7 %}style="font-size: clamp(56px, 17vw, 80px)"{% endif %}><span class="cur">₹</span>{{ a.value.whole }}</p>
+    <p class="mt-4 max-w-[32ch] text-[17px] leading-6 text-(--ink-2)">{{ a.sentence }}</p>
+    <div class="mt-8 grid grid-cols-2 gap-x-4 gap-y-6 border-y border-(--line) py-5">
+        {% for label, value, note in a.tiles %}
+            <div>
+                <p class="text-[13px] text-(--ink-2)">{{ label }}</p>
+                <p class="stat mt-1.5 text-[28px] {% if 'stale' in note|lower or 'overdue' in note|lower %}text-(--neg){% endif %}">{{ value }}</p>
+                <p class="mt-1 text-[12px] leading-4 text-(--ink-3)">{{ note }}</p>
+            </div>
+        {% endfor %}
+    </div>
+    <div class="hide-scrollbar -mx-6 mt-6 flex gap-6 overflow-x-auto border-b border-(--line) px-6 text-[15px] font-medium text-(--ink-3)">
+        {% for label, url, on in tab_links %}
+            <a href="{{ url }}"
+               class="shrink-0 pb-3 {% if on %}border-b-2 border-(--ink) text-(--ink){% endif %}">{{ label }}</a>
+        {% endfor %}
+    </div>
+    {% if page_tab == "upcoming" %}
+        <ul class="divide-y divide-(--line)">
+            {% for u in upcoming %}
+                <li class="flex items-center gap-3.5 py-3.5">
+                    <span class="min-w-0 flex-1"><span class="block truncate text-[15px]">{{ u.name }}</span><span class="block truncate text-[13px] text-(--ink-3)">{{ u.when }} · {{ u.note }}</span></span>
+                    {% if u.amount %}<span class="num text-[15px] font-medium">{{ u.amount.text }}</span>{% endif %}
+                </li>
+            {% empty %}
+                <li class="py-10 text-center text-[15px] text-(--ink-3)">Nothing expected.</li>
+            {% endfor %}
+        </ul>
+    {% elif page_tab == "earmarks" %}
+        {% if a.kind == "card" or a.kind == "loan" %}
+            <p class="py-10 text-center text-[15px] text-(--ink-3)">Liabilities aren't earmarked.</p>
+        {% else %}
+            <ul class="divide-y divide-(--line)">
+                {% for goal, how, pct in a.earmarks %}
+                    <li class="flex items-center justify-between py-3.5 text-[15px]"><span>{{ goal }}</span><span class="text-(--ink-2)">{{ how }} · {{ pct }}%</span></li>
+                {% endfor %}
+                {% if unallocated > 0 %}
+                    <li class="flex items-center justify-between py-3.5 text-[15px] text-(--ink-3)"><span>Unallocated</span><span>{{ unallocated }}%</span></li>
+                {% endif %}
+            </ul>
+            <span class="mt-4 flex h-11 items-center justify-center gap-2 rounded-full bg-(--well) text-[14px] font-medium"><i data-lucide="target" class="size-4"></i>Earmark to a Goal</span>
+        {% endif %}
+    {% elif page_tab == "terms" %}
+        <dl class="divide-y divide-(--line) text-[15px]">
+            {% for k, v in a.terms %}
+                <div class="flex justify-between gap-6 py-3.5">
+                    <dt class="shrink-0 text-(--ink-2)">{{ k }}</dt>
+                    <dd class="text-right">
+                        {{ v }}
+                    </dd>
+                </div>
+            {% endfor %}
+        </dl>
+        {% if a.holding %}
+            <h3 class="kicker mt-8">Lots, oldest first (FIFO)</h3>
+            <ul class="mt-1 divide-y divide-(--line) text-[14px]">
+                {% for d, u, c, note in a.holding.lots %}
+                    <li class="flex justify-between py-3"><span>{{ d }}{% if note %} · <span class="text-(--ink-3)">{{ note }}</span>{% endif %}</span><span class="tnum">{{ u }} · {{ c }}</span></li>
+                {% endfor %}
+            </ul>
+            {% if a.holding.lots_more %}<p class="mt-2 text-[13px] text-(--ink-3)">and {{ a.holding.lots_more }} more</p>{% endif %}
+        {% endif %}
+        <span class="mt-6 flex h-11 items-center justify-center gap-2 rounded-full bg-(--well) text-[14px] font-medium"><i data-lucide="pencil" class="size-4"></i>Edit Account</span>
+    {% else %}
+        <ul class="divide-y divide-(--line)">
+            {% for t in register %}
+                <li>
+                    <a href="{{ t.url }}" class="flex items-center gap-3.5 py-3.5">
+                        <span class="w-9 shrink-0 text-center"><span class="block text-[11px] text-(--ink-3)">{{ t.date|date:"M" }}</span><span class="stat block text-[20px]">{{ t.dnum }}</span></span>
+                        <span class="min-w-0 flex-1"><span class="block truncate text-[15px]">{{ t.payee }}</span><span class="block truncate text-[13px] text-(--ink-3)">{{ t.category }}{% if t.mine.units %} · {{ t.mine.units }} units{% endif %}</span></span>
+                        <span class="num text-[15px] font-medium {% if t.mine.amount.pos and a.kind == 'bank' %}text-(--pos){% endif %}">{{ t.mine.amount.text }}</span>
+                    </a>
+                </li>
+            {% empty %}
+                <li class="py-10 text-center text-[15px] text-(--ink-3)">No Transactions in this sample.</li>
+            {% endfor %}
+        </ul>
+        <a href="{{ all_url }}"
+           class="mt-4 block text-[14px] font-medium text-(--accent)">See all in Activity</a>
+    {% endif %}
+{% endblock %}

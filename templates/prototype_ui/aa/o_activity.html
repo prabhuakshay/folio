@@ -1,0 +1,91 @@
+{% extends "prototype_ui/aa/shell.html" %}
+{# O · Ledger — a register by month with In/Out totals and a filter bar that is always visible. #}
+{% block page %}
+    <h1 class="display mt-2 text-[40px] leading-none">Activity</h1>
+    <form class="mt-6 space-y-2" method="get" data-autosubmit>
+        <input type="hidden" name="variant" value="{{ variant }}">
+        <label class="flex h-11 items-center gap-2.5 rounded-full bg-(--well) px-4">
+            <i data-lucide="search" class="size-[18px] text-(--ink-3)"></i>
+            <input type="search"
+                   name="q"
+                   value="{{ f.q }}"
+                   placeholder="Search"
+                   class="min-w-0 flex-1 bg-transparent text-[16px] outline-none placeholder:text-(--ink-3)">
+        </label>
+        <div class="grid grid-cols-2 gap-2 text-[14px] sm:grid-cols-4">
+            <select name="account"
+                    class="field py-2! {% if f.account %}bg-(--ink)! text-white{% endif %}">
+                <option value="">Any Account</option>
+                {% for k, n in select_accounts %}<option value="{{ k }}"
+        {% if f.account == k %}selected{% endif %}>{{ n }}</option>{% endfor %}
+                {% if f.account and not account_known %}<option value="{{ f.account }}"
+        selected>{{ f.account }}</option>{% endif %}
+            </select>
+            <select name="type"
+                    class="field py-2! {% if f.type %}bg-(--ink)! text-white{% endif %}">
+                <option value="">Any type</option>
+                <option value="spending" {% if f.type == "spending" %}selected{% endif %}>Spending</option>
+                <option value="income" {% if f.type == "income" %}selected{% endif %}>Income</option>
+                <option value="transfer" {% if f.type == "transfer" %}selected{% endif %}>Transfers</option>
+                <option value="investment" {% if f.type == "investment" %}selected{% endif %}>Investments</option>
+                <option value="uncategorised"
+                        {% if f.type == "uncategorised" %}selected{% endif %}>Uncategorised</option>
+            </select>
+            <select name="tag"
+                    class="field py-2! {% if f.tag %}bg-(--ink)! text-white{% endif %}">
+                <option value="">Any Tag</option>
+                {% for tg in select_tags %}<option {% if f.tag == tg %}selected{% endif %}>{{ tg }}</option>{% endfor %}
+            </select>
+            <select name="payee"
+                    class="field py-2! {% if f.payee %}bg-(--ink)! text-white{% endif %}">
+                <option value="">Any Payee</option>
+                {% for p in select_payees %}<option {% if f.payee == p %}selected{% endif %}>{{ p }}</option>{% endfor %}
+            </select>
+        </div>
+        {% if filtered %}<a href="{{ clear_url }}"
+   class="inline-block pt-1 text-[13px] font-medium text-(--accent)">Clear filters · {{ txns|length }} shown</a>{% endif %}
+    </form>
+    {% if review and not filtered %}
+        <a href="{{ review_url }}"
+           class="mt-5 flex items-center gap-2 border-y border-(--line) py-3 text-[14px]">
+            <i data-lucide="circle-help" class="size-4 text-(--neg)"></i><span class="flex-1">{{ review|length }} in Uncategorised</span><i data-lucide="chevron-right" class="size-4 text-(--ink-3)"></i>
+        </a>
+    {% endif %}
+    {% for m in months %}
+        <div class="mt-8 border-b-2 border-(--ink) pb-2">
+            <h2 class="text-[15px] font-semibold">{{ m.name }}</h2>
+            <p class="tnum mt-1 flex gap-4 text-[12px] text-(--ink-2)"><span>In <b class="font-semibold text-(--pos)">{{ m.earned.text }}</b></span><span>Spent <b class="font-semibold text-(--ink)">{{ m.spent.text }}</b></span><span>Saved <b class="font-semibold text-(--ink)">{{ m.saved.text }}</b></span></p>
+        </div>
+        <ul class="divide-y divide-(--line)">
+            {% for t in m.txns %}
+                <li>
+                    <a href="{{ t.url }}" class="flex gap-3 py-3">
+                        <span class="tnum w-10 shrink-0 pt-0.5 text-[12px] leading-4 text-(--ink-3)">{{ t.date|date:"j M" }}
+                            <br>
+                        {{ t.dow }}</span>
+                        <span class="min-w-0 flex-1">
+                            <span class="flex items-baseline justify-between gap-3">
+                                <span class="truncate text-[15px]">{{ t.payee }}{% if t.flag %} <span class="text-[12px] font-medium text-(--neg)">Uncategorised</span>{% endif %}</span>
+                                <span class="num tnum shrink-0 text-[15px] font-medium {% if t.amount.pos %}text-(--pos){% endif %}">{{ t.amount.text }}</span>
+                            </span>
+                            {% if t.split %}
+                                {% for p in t.postings %}
+                                    <span class="tnum flex justify-between gap-3 text-[12px] leading-5 text-(--ink-3)"><span class="truncate">{{ p.name }}</span><span>{{ p.amount.text }}</span></span>
+                                {% endfor %}
+                            {% else %}
+                                <span class="block truncate text-[13px] leading-5 text-(--ink-3)">{% if t.amount.pos %}{{ t.paid_from }} ← {{ t.category }}{% else %}{{ t.category }} ← {{ t.paid_from }}{% endif %}{% for tag in t.tags %} · #{{ tag }}{% endfor %}</span>
+                            {% endif %}
+                        </span>
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% empty %}
+        <p class="py-16 text-center text-[15px] text-(--ink-3)">Nothing matches.</p>
+    {% endfor %}
+{% endblock %}
+{% block page_script %}
+    <script>
+        document.querySelectorAll("[data-autosubmit] select").forEach((s) => s.addEventListener("change", () => s.form.submit()));
+    </script>
+{% endblock %}
