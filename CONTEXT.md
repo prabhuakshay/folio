@@ -104,16 +104,20 @@ How a Goal's default Target Allocation de-risks as its date nears, stepping down
 _Avoid_: ratio, mix
 
 **Instrument**:
-One price series you can hold units of — a mutual fund plan and option, a listed stock/ETF/SGB/bond, one NPS scheme in one variant, physical gold, a ULIP fund, a property. Has an **Asset Class split**, usually 100% one class (a hybrid fund spans several). Priced from a feed where a free one exists, otherwise revalued by hand. INR only; foreign assets are entered as INR-valued Instruments.
+One price series you can hold units of — a mutual fund plan and option, a listed stock/ETF/SGB/bond, one NPS scheme in one variant, physical gold, a ULIP fund, a property. Has an **Asset Class split**, usually 100% one class (a hybrid fund spans several). Priced from a Feed where a free one exists, otherwise revalued by hand. INR only; foreign assets are entered as INR-valued Instruments. The searchable catalogue is made of Instruments; one its Feed has stopped listing is **inactive** — hidden from search unless held, never deleted.
 
 **Holding**:
-An Asset Account whose value can differ from its INR balance because it is revalued, by feed or by hand; every other Asset Account (bank, cash, wallet, FD, RD, EPF, PPF, chit fund, money lent) is valued at its balance. A Holding is your position in one Instrument at one place held (an MF folio, a demat account, an NPS PRAN tier), built from its Postings (buys, sells, SIP instalments, dividends, interest credits); each Posting to a Holding carries units as well as an INR amount at cost. Value is units × latest Price — computed, never posted, so price moves create no Transactions. Return is XIRR.
+An Asset Account whose value can differ from its INR balance because it is revalued, by Feed or by hand; every other Asset Account (bank, cash, wallet, FD, RD, EPF, PPF, chit fund, money lent) is valued at its balance. A Holding is your position in one Instrument at one place held (an MF folio, a demat account, an NPS PRAN tier), built from its Postings (buys, sells, SIP instalments, dividends, interest credits); each Posting to a Holding carries units as well as an INR amount at cost. Value is units × latest Price — computed, never posted, so price moves create no Transactions. Return is XIRR.
 
 **Emergency-Fund eligible**:
 Whether an Account or Instrument may count toward the Emergency Fund: savings, cash, wallets, liquid and overnight funds, and FDs you mark as breakable. Nothing else can be made eligible.
 
 **Price**:
-The value of one unit of an Instrument on a date, from a feed or entered by hand. A Holding is valued at its Instrument's latest Price, carried forward; a Price older than the Instrument's staleness window is **stale** — flagged, never blanked.
+The value of one unit of an Instrument on a date, from a Feed or entered by hand — one per date, a hand-entered Price outranking an uploaded file and an uploaded file outranking an automatic fetch, and an ETF's exchange close outranking its AMFI NAV. A Holding is valued at its Instrument's latest Price, carried forward, and at cost until its Instrument has one; a Price older than the Instrument's staleness window is **stale** — flagged, never blanked. A transaction's price is not a Price.
+
+**Feed**:
+A published file of Prices Folio reads — AMFI, a BSE or NSE bhavcopy, Protean NPS. Fetched automatically once a day, or **upload-only** (NSE always; any Feed switched off); every Feed also accepts its own file uploaded by hand. It prices only Instruments with an open Holding, back-filling past Prices at month-ends, daily for the last 30 days, back to the Instrument's earliest Posting.
+_Avoid_: source (reserved for a statement's sources), provider
 
 **Earmark**:
 Assignment of part of an Asset Account to a Goal: units of a Holding (so the Goal's share moves with price), a fixed INR amount of a plain Account, or the **whole** Account, following all its future units or balance. A whole Earmark is exclusive; otherwise an Account may be split across several Goals, and its Earmarks never exceed its units or balance, and a Goal whose fixed-INR Earmark outruns the balance is **short**. Earmarks are current-only.
