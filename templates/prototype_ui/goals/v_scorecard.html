@@ -1,0 +1,127 @@
+{% extends "prototype_ui/plan/shell.html" %}
+{# V · Three questions — Before Goals leads with the one Stage to act on; the rest sit under Ahead and Done. #}
+{% block header_title %}Before Goals{% endblock %}
+{% block page %}
+    {# ——— Stepper ——— #}
+    <ol class="mt-4 grid grid-cols-6 gap-1 text-center">
+        {% for s in stages %}
+            <li class="flex flex-col items-center gap-1.5">
+                <span class="grid size-8 place-items-center rounded-full text-[13px] font-semibold {% if s.state == 'met' %}bg-(--ink) text-white{% elif s.state == 'current' %}bg-(--accent) text-white{% else %}text-(--ink-3) ring-1 ring-(--ink-3){% endif %}">
+                    {% if s.state == "met" %}
+                        <i data-lucide="check" class="size-4"></i>
+                    {% else %}
+                        {{ s.n }}
+                    {% endif %}
+                </span>
+                <span class="text-[11px] leading-3 {% if s.state == 'current' %}font-semibold text-(--accent){% else %}text-(--ink-3){% endif %}">{% cycle "Credit" "Starter fund" "Protection" "Debt" "Emergency" "Goals" %}</span>
+            </li>
+        {% endfor %}
+    </ol>
+    {# ——— Do this next ——— #}
+    <section class="mt-8">
+        <p class="kicker text-(--accent)">Do this next · Stage {{ current.n }} of {{ stages|length }}</p>
+        <h1 class="display mt-1 text-[44px] leading-[.95]">{{ current.name }}</h1>
+        <p class="mt-3 max-w-[36ch] text-[15px] leading-6 text-(--ink-2)">
+            Surplus goes here before the Emergency Fund or any Goal. {{ current.measure }}.
+        </p>
+        <ul class="mt-6 space-y-5">
+            {% for name, short, detail, pct in current.gaps %}
+                <li>
+                    <div class="flex items-baseline justify-between gap-3">
+                        <span class="text-[15px] font-medium">{{ name }}</span><span class="tnum text-[15px] font-semibold text-(--neg)">{{ short }}</span>
+                    </div>
+                    <div class="mt-2 h-1.5 overflow-hidden rounded-full bg-(--line)">
+                        <div class="h-full rounded-full bg-(--ink)" style="width: {{ pct }}%"></div>
+                    </div>
+                    <p class="mt-1.5 text-[13px] text-(--ink-3)">{{ detail }}</p>
+                </li>
+            {% endfor %}
+        </ul>
+        <div class="mt-6 space-y-2">
+            {% for label, note in current.actions %}
+                <a href="{{ urls.policies }}"
+                   class="flex items-center gap-3 rounded-[20px] {% if forloop.first %}bg-(--ink) text-white{% else %}bg-(--well){% endif %} px-5 py-4">
+                    <span class="min-w-0 flex-1"><span class="block text-[15px] font-medium">{{ label }}</span><span class="block text-[13px] {% if forloop.first %}text-white/70{% else %}text-(--ink-2){% endif %}">{{ note }}</span></span>
+                    <i data-lucide="chevron-right" class="size-5"></i>
+                </a>
+            {% endfor %}
+        </div>
+        <a href="{{ urls.policies }}"
+           class="mt-4 inline-block text-[14px] font-medium text-(--ink-2) underline decoration-(--ink-3)/40 underline-offset-4">See your Policies</a>
+    </section>
+    {# ——— Also watched ——— #}
+    <h2 class="kicker mt-10">Also watched</h2>
+    <div class="mt-2 flex flex-wrap gap-2">
+        {% for name, value, note, state in also %}
+            <span class="rounded-[14px] bg-(--well) px-3.5 py-2.5 text-[13px]">
+                <span class="block text-(--ink-3)">{{ name }}</span>
+                <span class="tnum block font-semibold {% if state == 'warn' %}text-(--neg){% endif %}">{{ value }}</span>
+                <span class="block text-[11px] text-(--ink-3)">{{ note }}</span>
+            </span>
+        {% endfor %}
+    </div>
+    {# ——— Ahead ——— #}
+    <h2 class="display mt-12 text-[26px]">Ahead</h2>
+    <ul class="mt-2 divide-y divide-(--line)">
+        {% for s in stages %}
+            {% if s.n > current.n and s.state != "met" %}
+                <li class="py-4">
+                    <div class="flex items-baseline gap-3">
+                        <span class="tnum w-5 text-[13px] text-(--ink-3)">{{ s.n }}</span>
+                        <span class="flex-1 text-[16px] font-semibold">{{ s.name }}</span>
+                        {% if s.gap %}<span class="tnum text-[14px] font-medium">{{ s.gap }}</span>{% endif %}
+                    </div>
+                    <p class="mt-0.5 ml-8 text-[13px] text-(--ink-2)">{{ s.fact }}</p>
+                    {% if s.n == 6 %}
+                        <ul class="mt-3 ml-8 divide-y divide-(--line) rounded-[16px] bg-(--well) px-4">
+                            {% for g in ranked %}
+                                <li>
+                                    <a href="{{ g.url }}" class="flex items-center gap-3 py-3 text-[14px]">
+                                        <span class="tnum text-(--ink-3)">{{ g.rank }}</span>
+                                        <span class="min-w-0 flex-1"><span class="block font-medium">{{ g.name }}</span><span class="block truncate text-[12px] {% if g.tone == 'pos' %}text-(--pos){% else %}text-(--neg){% endif %}">{{ g.label }}{% for f in g.flags %} · {{ f }}{% endfor %}</span></span>
+                                        <i data-lucide="chevron-right" class="size-4 text-(--ink-3)"></i>
+                                    </a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        {% for label, note in s.actions %}
+                            <p class="mt-1 ml-8 text-[13px]">
+                                <span class="font-medium">{{ label }}</span> <span class="text-(--ink-3)">· {{ note }}</span>
+                            </p>
+                        {% endfor %}
+                    {% endif %}
+                </li>
+            {% endif %}
+        {% endfor %}
+    </ul>
+    {# ——— Done ——— #}
+    <details class="mt-8">
+        <summary class="flex items-center justify-between py-2">
+            <span class="display text-[26px]">Done</span>
+            <span class="flex items-center gap-1 text-[14px] text-(--ink-2)">
+                {% for s in stages %}
+                    {% if s.state == "met" %}{{ s.n }}{% endif %}
+                {% endfor %}
+                <i data-lucide="chevron-right" class="chev size-4 transition-transform"></i>
+            </span>
+        </summary>
+        <ul class="divide-y divide-(--line)">
+            {% for s in stages %}
+                {% if s.state == "met" %}
+                    <li class="flex gap-3 py-4">
+                        <i data-lucide="check" class="mt-0.5 size-4 text-(--pos)"></i>
+                        <span class="min-w-0 flex-1">
+                            <span class="block text-[15px] font-medium">{{ s.n }} · {{ s.name }}</span>
+                            <span class="block text-[13px] text-(--ink-2)">{{ s.fact }}</span>
+                            {% if s.watch %}<span class="mt-0.5 block text-[13px] text-(--ink-3)">{{ s.watch }}</span>{% endif %}
+                        </span>
+                    </li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    </details>
+    <p class="mt-8 text-[13px] text-(--ink-3)">
+        Nothing is blocked: Folio flags what skips a Stage. Thresholds live in Settings › Doctrine thresholds.
+    </p>
+{% endblock %}

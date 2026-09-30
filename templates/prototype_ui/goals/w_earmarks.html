@@ -1,0 +1,251 @@
+{% extends "prototype_ui/plan/shell.html" %}
+{# W · Worksheet — Earmarks change from the Account's side: split one Account across Goals and Unallocated. #}
+{% block header_title %}Earmarks · {{ g.name }}{% endblock %}
+{% block page_style %}
+    .led { width: 100%; font-variant-numeric: tabular-nums; }
+    .led td { padding: 9px 0; vertical-align: top; font-size: 14px; border-top: 1px solid var(--line); }
+    .led td + td { padding-left: 12px; text-align: right; white-space: nowrap; }
+    .led .note { display: block; font-size: 12px; color: var(--ink-3); white-space: normal; }
+    .seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 2px; border-radius: 999px; background: var(--well); padding: 3px; font-size: 13px; font-weight: 500; }
+    .seg span { border-radius: 999px; padding: 6px 0; text-align: center; color: var(--ink-2); }
+    .seg span[aria-pressed="true"] { background: #fff; color: var(--ink); box-shadow: 0 1px 2px rgb(0 0 0 / .08); }
+    .split td { padding: 10px 0; border-top: 1px solid var(--line); font-size: 14px; vertical-align: middle; }
+    .split td + td { padding-left: 10px; text-align: right; }
+    .split input { width: 120px; text-align: right; }
+    .sw { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 8px; }
+{% endblock %}
+{% block page %}
+    <p class="kicker mt-4">{{ g.name }} · {{ g.m.have.text }} Earmarked</p>
+    <table class="led mt-3">
+        {% for e in g.earmarks %}
+            <tr>
+                <td>
+                    <a href="{{ g.earmarks_url }}&acct={{ e.key }}"
+                       class="{% if acct == e.key %}font-semibold text-(--accent){% endif %}">{{ e.acct }}</a>
+                    <span class="note">{{ e.form }} · {{ e.detail }}</span>
+                </td>
+                <td>{{ e.m.text }}</td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td class="text-(--ink-3)">Nothing Earmarked to {{ g.name }} yet</td>
+                <td></td>
+            </tr>
+        {% endfor %}
+    </table>
+    {% if acct %}
+        {# The split panel: one Account across every Goal that holds part of it, plus Unallocated. #}
+        <section class="mt-8 rounded-[20px] bg-(--well) p-4">
+            {% if acct == "ppfas" %}
+                <p class="text-[17px] font-semibold">Parag Parikh Flexi Cap</p>
+                <p class="text-[13px] text-(--ink-3)">7,412.318 units · ₹6,12,476 · Equity</p>
+            {% elif acct == "uti" %}
+                <p class="text-[17px] font-semibold">UTI Nifty 50 Index</p>
+                <p class="text-[13px] text-(--ink-3)">2,512.004 units · ₹4,03,905 · Equity</p>
+            {% elif acct == "hdfc" %}
+                <p class="text-[17px] font-semibold">HDFC Savings</p>
+                <p class="text-[13px] text-(--ink-3)">₹1,84,320 · Cash · EF eligible</p>
+            {% elif acct == "epf" %}
+                <p class="text-[17px] font-semibold">EPF</p>
+                <p class="text-[13px] text-(--ink-3)">₹7,85,300 · Debt · locked in</p>
+            {% elif acct == "ppf" %}
+                <p class="text-[17px] font-semibold">PPF · SBI</p>
+                <p class="text-[13px] text-(--ink-3)">₹5,10,000 · Debt · locked in</p>
+            {% elif acct == "fd" %}
+                <p class="text-[17px] font-semibold">HDFC FD ··4417</p>
+                <p class="text-[13px] text-(--ink-3)">₹2,07,163 · Cash · breakable, EF eligible</p>
+            {% elif acct == "sgb" %}
+                <p class="text-[17px] font-semibold">SGB 2023-24 Series III</p>
+                <p class="text-[13px] text-(--ink-3)">20 units · ₹1,42,000 · Gold & silver</p>
+            {% elif acct == "sbi" %}
+                <p class="text-[17px] font-semibold">SBI Salary</p>
+                <p class="text-[13px] text-(--ink-3)">₹42,110 · Cash · EF eligible</p>
+            {% elif acct == "cash" %}
+                <p class="text-[17px] font-semibold">Cash</p>
+                <p class="text-[13px] text-(--ink-3)">₹3,200 · Cash · EF eligible</p>
+            {% endif %}
+            {% if acct == "ppfas" or acct == "uti" or acct == "sgb" %}
+                <div class="seg mt-4">
+                    <span aria-pressed="true">Units</span><span>Whole Account</span>
+                </div>
+            {% else %}
+                <div class="seg mt-4">
+                    <span {% if acct != "epf" and acct != "ppf" and acct != "fd" %}aria-pressed="true"{% endif %}>Fixed ₹</span>
+                    <span {% if acct == "epf" or acct == "ppf" or acct == "fd" %}aria-pressed="true"{% endif %}>Whole Account</span>
+                </div>
+            {% endif %}
+            <div class="mt-4 flex h-3 gap-px overflow-hidden rounded-full">
+                {% if acct == "ppfas" %}
+                    <div class="bg-(--ink)" style="width: 67%"></div>
+                    <div class="bg-(--ink-3)/40" style="width: 33%"></div>
+                {% elif acct == "uti" %}
+                    <div class="bg-(--ink)" style="width: 8%"></div>
+                    <div class="bg-(--ink-3)/40" style="width: 92%"></div>
+                {% elif acct == "hdfc" %}
+                    <div class="bg-(--ink)" style="width: 65%"></div>
+                    <div class="bg-(--ink-3)/40" style="width: 35%"></div>
+                {% elif acct == "epf" or acct == "ppf" or acct == "fd" %}
+                    <div class="bg-(--ink)" style="width: 100%"></div>
+                {% else %}
+                    <div class="bg-(--ink-3)/40" style="width: 100%"></div>
+                {% endif %}
+            </div>
+            <table class="split tnum mt-4 w-full">
+                {% if acct == "ppfas" %}
+                    <tr>
+                        <td>
+                            <span class="sw bg-(--ink)"></span>Retirement
+                        </td>
+                        <td>
+                            <input class="field py-1.5!" value="5,000">
+                        </td>
+                        <td class="w-24">₹4,13,150</td>
+                    </tr>
+                {% elif acct == "uti" %}
+                    <tr>
+                        <td>
+                            <span class="sw bg-(--ink)"></span>Europe 2028
+                        </td>
+                        <td>
+                            <input class="field py-1.5!" value="212">
+                        </td>
+                        <td class="w-24">₹34,087</td>
+                    </tr>
+                {% elif acct == "hdfc" %}
+                    <tr>
+                        <td>
+                            <span class="sw bg-(--ink)"></span>Emergency Fund
+                        </td>
+                        <td>
+                            <input class="field py-1.5!" value="₹1,20,000">
+                        </td>
+                        <td class="w-24">₹1,20,000</td>
+                    </tr>
+                {% elif acct == "epf" or acct == "ppf" %}
+                    <tr>
+                        <td>
+                            <span class="sw bg-(--ink)"></span>Retirement
+                        </td>
+                        <td class="text-(--ink-3)">Whole</td>
+                        <td class="w-24">
+                            {% if acct == "epf" %}
+                                ₹7,85,300
+                            {% else %}
+                                ₹5,10,000
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% elif acct == "fd" %}
+                    <tr>
+                        <td>
+                            <span class="sw bg-(--ink)"></span>Emergency Fund
+                        </td>
+                        <td class="text-(--ink-3)">Whole</td>
+                        <td class="w-24">₹2,07,163</td>
+                    </tr>
+                {% endif %}
+                {% if acct == "epf" or acct == "ppf" or acct == "fd" %}
+                    <tr>
+                        <td colspan="3" class="text-[13px] text-(--ink-3)">
+                            A whole Earmark is exclusive: it follows every future credit, and no other Goal can hold part of this Account. Switch to Fixed ₹ to split it.
+                        </td>
+                    </tr>
+                {% else %}
+                    {% if g.key == "retirement" and acct != "ppfas" or g.key == "ef" and acct != "hdfc" or g.key == "europe" and acct != "uti" or g.key == "college" %}
+                        <tr class="bg-(--accent-soft)">
+                            <td class="pl-2">
+                                <span class="sw bg-(--accent)"></span><span class="font-medium">{{ g.name }}</span>
+                            </td>
+                            <td>
+                                <input class="field py-1.5! bg-white!" placeholder="0">
+                            </td>
+                            <td class="w-24 pr-2 text-(--ink-3)">₹0</td>
+                        </tr>
+                    {% endif %}
+                    <tr>
+                        <td>
+                            <span class="sw bg-(--ink-3)/40"></span>Unallocated
+                        </td>
+                        <td class="text-(--ink-3)">
+                            {% if acct == "ppfas" %}
+                                2,412.318
+                            {% elif acct == "uti" %}
+                                2,300.004
+                            {% elif acct == "sgb" %}
+                                20
+                            {% else %}
+                                remainder
+                            {% endif %}
+                        </td>
+                        <td class="w-24 font-medium">
+                            {% if acct == "ppfas" %}
+                                ₹1,99,326
+                            {% elif acct == "uti" %}
+                                ₹3,69,818
+                            {% elif acct == "hdfc" %}
+                                ₹64,320
+                            {% elif acct == "sgb" %}
+                                ₹1,42,000
+                            {% elif acct == "sbi" %}
+                                ₹42,110
+                            {% elif acct == "cash" %}
+                                ₹3,200
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endif %}
+            </table>
+            <p class="mt-3 text-[12px] text-(--ink-3)">
+                Earmarks can't exceed the Account. Unallocated is recomputed as you type. Nothing is bought or sold.
+            </p>
+            <span class="mt-4 flex h-11 items-center justify-center gap-2 rounded-full bg-(--ink) text-[14px] font-medium text-white"><i data-lucide="check" class="size-4"></i>Save split</span>
+        </section>
+    {% endif %}
+    <h2 class="display mt-10 text-[26px]">
+        {% if g.key == "ef" %}
+            Eligible Accounts
+        {% else %}
+            Accounts you can Earmark
+        {% endif %}
+    </h2>
+    <p class="text-[13px] text-(--ink-3)">
+        {% if g.key == "ef" %}
+            Only savings, cash, wallets, liquid funds and breakable FDs can count toward the Emergency Fund.
+        {% else %}
+            Tap one to split it between Goals.
+        {% endif %}
+    </p>
+    <table class="led mt-3">
+        {% for e in g.earmarks %}
+            <tr>
+                <td>
+                    <a href="{{ g.earmarks_url }}&acct={{ e.key }}"
+                       class="{% if acct == e.key %}font-semibold text-(--accent){% endif %}">{{ e.acct }}</a>
+                    <span class="note">{{ e.cls }} · {{ e.form }} to {{ g.name }}</span>
+                </td>
+                <td>
+                    <i data-lucide="chevron-right" class="inline size-4 text-(--ink-3)"></i>
+                </td>
+            </tr>
+        {% endfor %}
+        {% for u in unallocated %}
+            {% if g.key != "ef" or "EF eligible" in u.cls %}
+                {# Accounts already listed above as this Goal's own Earmarks. #}
+                {% if g.key == "retirement" and u.key == "ppfas" or g.key == "europe" and u.key == "uti" or g.key == "ef" and u.key == "hdfc" %}
+                {% else %}
+                    <tr>
+                        <td>
+                            <a href="{{ g.earmarks_url }}&acct={{ u.key }}"
+                               class="{% if acct == u.key %}font-semibold text-(--accent){% endif %}">{{ u.name }}</a>
+                            <span class="note">{{ u.cls }} · {{ u.units }} Unallocated</span>
+                        </td>
+                        <td>{{ u.m.text }}</td>
+                    </tr>
+                {% endif %}
+            {% endif %}
+        {% endfor %}
+    </table>
+    {% if g.key == "ef" %}
+        <span class="mt-5 flex h-11 items-center justify-center gap-2 rounded-full bg-(--well) text-[14px] font-medium"><i data-lucide="wand-sparkles" class="size-4"></i>Fill from eligible Unallocated · +₹1,09,630</span>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,463 @@
+{% extends "prototype_ui/plan/shell.html" %}
+{# U · One page — the figure, projection, Earmarks, mix against the Glide Path, calculator, settings; Earmarks change in a bottom sheet. #}
+{% block header_title %}{{ g.name }}{% endblock %}
+{% block page_style %}
+    .row td { padding: 7px 0; vertical-align: top; font-size: 14px; }
+    .row td:last-child { text-align: right; padding-left: 12px; }
+    .calc td { padding: 5px 0; font-size: 14px; color: var(--ink-2); vertical-align: top; }
+    .calc td:first-child { width: 22px; color: var(--ink-3); }
+    .calc td:last-child { text-align: right; color: var(--ink); white-space: nowrap; }
+    .calc tr.sum td { border-top: 1px solid var(--ink); font-weight: 600; color: var(--ink); padding-top: 8px; }
+{% endblock %}
+{% block page %}
+    <p class="kicker mt-4">
+        {% if g.rank %}Rank {{ g.rank }} · {% endif %}{{ g.rank_note }} · {{ g.date }}
+    </p>
+    <p class="figure num mt-3"><span class="cur">₹</span>{{ g.m.have.short }}</p>
+    <p class="mt-4 max-w-[34ch] text-[16px] leading-6 text-(--ink-2)">
+        {% if g.key == "ef" %}
+            Earmarked of ₹{{ g.m.target.whole }} — 6 months of your ₹80,000 monthly outflow.
+        {% else %}
+            Earmarked of ₹{{ g.m.target.short }} by {{ g.date }} (₹{{ g.m.today.short }} today at {{ g.inflation.1 }} {{ g.inflation.0|lower }} inflation).
+        {% endif %}
+    </p>
+    <p class="mt-4 text-[15px] font-medium text-(--{{ g.tone }})">{{ g.status_line }}</p>
+    {% for f in g.flags %}<p class="mt-1 text-[14px] text-(--ink-2)">{{ f }}</p>{% endfor %}
+    {% if g.status == "out_of_order" %}
+        <a href="{{ urls.scorecard }}"
+           class="mt-2 inline-flex items-center gap-1 text-[14px] font-medium text-(--accent)">See Before Goals<i data-lucide="chevron-right" class="size-4"></i></a>
+    {% endif %}
+    <div class="relative mt-5 h-2 rounded-full bg-(--line)">
+        <div class="h-full rounded-full bg-(--ink)" style="width: {{ g.pct }}%"></div>
+        {% if g.projected_m %}
+            <div class="absolute -top-1 h-4 w-0.5 bg-(--accent)"
+                 style="left: {{ g.proj_pct }}%"
+                 title="Projected"></div>
+        {% endif %}
+    </div>
+    <div class="tnum mt-1.5 flex justify-between text-[12px] text-(--ink-3)">
+        <span>{{ g.pct }}% Earmarked</span>
+        {% if g.projected_m %}<span class="text-(--accent)">{{ g.proj_pct }}% projected by {{ g.date }}</span>{% endif %}
+    </div>
+    {# ——— Projection ——— #}
+    {% if g.key == "ef" %}
+        <section class="mt-10">
+            <h2 class="display text-[26px]">Months covered</h2>
+            <p class="stat num mt-3 text-[56px]">{{ g.months }}<span class="text-[24px] text-(--ink-3)"> of {{ g.months_target }}</span></p>
+            <div class="mt-3 grid grid-cols-6 gap-1">
+                {% for i in "123456" %}
+                    <div class="h-2 rounded-full {% if forloop.counter <= 4 %}bg-(--ink){% else %}bg-(--line){% endif %}"></div>
+                {% endfor %}
+            </div>
+            <p class="mt-3 text-[14px] text-(--ink-2)">₹{{ g.m.gap.whole }} short of 6 months. Surplus comes here once Stage 3, Protection, is met.</p>
+            <div class="mt-5 rounded-[20px] bg-(--accent-soft) p-5">
+                <p class="text-[13px] font-medium text-(--accent)">One tap</p>
+                <p class="mt-1 text-[15px] leading-6">{{ g.suggest }}</p>
+                <span class="mt-4 inline-flex h-10 items-center gap-2 rounded-full bg-(--ink) px-4 text-[14px] font-medium text-white"><i data-lucide="wand-sparkles" class="size-4"></i>Fill from eligible Unallocated</span>
+            </div>
+        </section>
+    {% elif g.chart %}
+        <section class="mt-10">
+            <h2 class="display text-[26px]">Will it get there</h2>
+            <p class="mt-1 text-[14px] text-(--ink-2)">
+                Projected <span class="num font-medium text-(--ink)">₹{{ g.projected_m.short }}</span> against <span class="num font-medium text-(--ink)">₹{{ g.m.target.short }}</span>, grown along the Glide Path with the SIPs that name it.
+            </p>
+            <svg viewBox="0 0 {{ g.chart.w }} {{ g.chart.h }}"
+                 class="mt-5 w-full overflow-visible"
+                 role="img"
+                 aria-label="Projection">
+                <line x1="0" x2="{{ g.chart.w }}" y1="{{ g.chart.target_y }}" y2="{{ g.chart.target_y }}" stroke="var(--ink)" stroke-dasharray="3 4" stroke-width="1" />
+                <text x="0" y="{{ g.chart.target_y }}" dy="-6" font-size="11" fill="var(--ink-2)">Target ₹{{ g.m.target.short }}</text>
+                {% if g.chart.more %}
+                    <path d="{{ g.chart.more }}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-dasharray="5 4" />
+                {% endif %}
+                <path d="{{ g.chart.now }}" fill="none" stroke="var(--ink)" stroke-width="2.5" stroke-linejoin="round" />
+                <line x1="0" x2="{{ g.chart.w }}" y1="{{ g.chart.h }}" y2="{{ g.chart.h }}" stroke="var(--line)" />
+            </svg>
+            <div class="mt-1.5 flex justify-between text-[12px] text-(--ink-3)">
+                <span>Now</span><span>{{ g.chart.end }}</span>
+            </div>
+            <div class="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[12px] text-(--ink-2)">
+                <span class="flex items-center gap-1.5"><span class="h-0.5 w-4 bg-(--ink)"></span>At current SIPs</span>
+                {% if g.chart.more %}
+                    <span class="flex items-center gap-1.5"><span class="h-0.5 w-4 bg-(--accent)"></span>With ₹{{ g.m.sip.whole }} a month more</span>
+                {% endif %}
+            </div>
+            {% if g.sip %}
+                <div class="mt-6 rounded-[20px] bg-(--well) p-5">
+                    <p class="text-[13px] font-medium text-(--ink-2)">Extra needed beyond existing Schedules</p>
+                    <p class="stat num mt-1 text-[34px]"><span class="cur">₹</span>{{ g.m.sip.whole }}<span class="text-[16px] font-medium text-(--ink-3)"> a month</span></p>
+                    <table class="row tnum mt-3 w-full">
+                        {% for s in g.sip_split %}
+                            <tr class="border-t border-(--line)">
+                                <td>
+                                    {{ s.inst }} <span class="text-(--ink-3)">· {{ s.cls }}</span>
+                                </td>
+                                <td>{{ s.m.text }}</td>
+                            </tr>
+                        {% endfor %}
+                    </table>
+                    <span class="mt-4 inline-flex h-10 items-center gap-2 rounded-full bg-(--ink) px-4 text-[14px] font-medium text-white"><i data-lucide="plus" class="size-4"></i>Start these SIPs</span>
+                    <p class="mt-2 text-[12px] text-(--ink-3)">Opens pre-filled Schedules naming {{ g.name }}; nothing is created until you confirm.</p>
+                </div>
+            {% endif %}
+        </section>
+    {% endif %}
+    {# ——— Retirement calculator ——— #}
+    {% if g.calc %}
+        <section class="mt-12">
+            <h2 class="display text-[26px]">How the target is set</h2>
+            <p class="mt-3 text-[15px]">
+                You could retire at <span class="font-semibold">{{ g.calc.earliest }}</span> at your current pace.
+            </p>
+            <table class="calc tnum mt-4 w-full">
+                <tr>
+                    <td></td>
+                    <td>Monthly outflow, trailing 12 months</td>
+                    <td>₹80,000</td>
+                </tr>
+                {% for l in g.calc.loans %}
+                    <tr>
+                        <td>−</td>
+                        <td>{{ l.name }} · {{ l.ends }}, before you retire</td>
+                        <td>{{ l.m.text }}</td>
+                    </tr>
+                {% endfor %}
+                <tr class="sum">
+                    <td>=</td>
+                    <td>Retirement expense a month</td>
+                    <td>₹36,283</td>
+                </tr>
+                <tr>
+                    <td>×</td>
+                    <td>12</td>
+                    <td>₹4,35,396 a year</td>
+                </tr>
+                <tr>
+                    <td>÷</td>
+                    <td>Safe Withdrawal Rate {{ g.calc.swr }} <span class="text-(--ink-3)">· band {{ g.calc.swr_band }}</span></td>
+                    <td></td>
+                </tr>
+                <tr class="sum">
+                    <td>=</td>
+                    <td>Target in today's rupees</td>
+                    <td>₹{{ g.m.today.short }}</td>
+                </tr>
+                <tr>
+                    <td>↗</td>
+                    <td>at {{ g.inflation.1 }} a year to {{ g.date }}</td>
+                    <td></td>
+                </tr>
+                <tr class="sum">
+                    <td>=</td>
+                    <td>Target at retirement</td>
+                    <td>₹{{ g.m.target.short }}</td>
+                </tr>
+            </table>
+            <p class="mt-3 text-[13px] text-(--ink-3)">
+                Retirement date = born {{ g.calc.dob }} + retirement age {{ g.calc.age }}. Pensions and rent never reduce the expense.
+            </p>
+            <div class="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-[14px] font-medium">
+                <span class="underline decoration-(--ink-3)/40 underline-offset-4">Declare the expense instead</span>
+                <span class="underline decoration-(--ink-3)/40 underline-offset-4">Change retirement age</span>
+            </div>
+            <h3 class="kicker mt-8">Retiring earlier</h3>
+            <table class="row tnum mt-1 w-full">
+                <tr class="text-[12px] text-(--ink-3)">
+                    <td>Age</td>
+                    <td class="!text-right">Target</td>
+                    <td>Extra a month</td>
+                </tr>
+                {% for w in g.calc.what_if %}
+                    <tr class="border-t border-(--line) {% if w.age == g.calc.age %}font-semibold{% endif %}">
+                        <td>
+                            {{ w.age }}
+                            {% if w.age == g.calc.age %}<span class="font-normal text-(--ink-3)">· your plan</span>{% endif %}
+                        </td>
+                        <td class="text-right">₹{{ w.target.short }}</td>
+                        <td>
+                            {% if w.sip.pos %}
+                                ₹{{ w.sip.whole }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </section>
+    {% endif %}
+    {# ——— Earmarks ——— #}
+    <section class="mt-12">
+        <div class="flex items-baseline justify-between">
+            <h2 class="display text-[26px]">Earmarked</h2>
+            <span class="num text-[15px] font-medium">{{ g.m.have.text }}</span>
+        </div>
+        {% if g.earmarks %}
+            <ul class="mt-2 divide-y divide-(--line)">
+                {% for e in g.earmarks %}
+                    <li class="flex items-start gap-3 py-4">
+                        <div class="min-w-0 flex-1">
+                            <p class="flex items-center gap-1.5 text-[15px] font-medium">
+                                {{ e.acct }}
+                                {% if e.locked %}<i data-lucide="lock" class="size-3.5 text-(--ink-3)" aria-label="Can't be sold"></i>{% endif %}
+                            </p>
+                            <p class="text-[13px] text-(--ink-2)">{{ e.form }} · {{ e.cls }}</p>
+                            <p class="text-[12px] text-(--ink-3)">{{ e.detail }}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="num text-[15px]">{{ e.m.text }}</p>
+                            <button type="button"
+                                    data-ear="{{ e.key }}"
+                                    class="mt-1 text-[13px] font-medium text-(--accent)">Change</button>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="mt-3 text-[15px] text-(--ink-2)">Nothing Earmarked yet. Earmark Unallocated money, or start a SIP that names this Goal.</p>
+        {% endif %}
+        {% if g.suggest and g.key != "ef" %}<p class="mt-2 text-[13px] text-(--ink-3)">{{ g.suggest }}</p>{% endif %}
+        <button type="button"
+                data-ear=""
+                class="mt-4 inline-flex h-10 items-center gap-2 rounded-full bg-(--well) px-4 text-[14px] font-medium">
+            <i data-lucide="plus" class="size-4"></i>Add an Earmark
+        </button>
+        {% if g.schedules %}
+            <h3 class="kicker mt-8">Schedules naming it</h3>
+            <ul class="mt-1 divide-y divide-(--line) text-[14px]">
+                {% for n, how, _ in g.schedules %}
+                    <li class="py-3">
+                        <a href="{{ urls.schedules }}" class="block"><span class="font-medium">{{ n }}</span> <span class="text-(--ink-3)">· {{ how }}</span></a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </section>
+    {# ——— Mix ——— #}
+    {% if g.mix %}
+        <section class="mt-12">
+            <h2 class="display text-[26px]">Mix</h2>
+            <p class="mt-1 text-[14px] text-(--ink-2)">Target from the {{ g.band }} Glide Path band{% if g.offset %}, offset {{ g.offset }} pp{% endif %}; Earmarked money only.</p>
+            <div class="mt-4 space-y-5">
+                {% for c in g.mix %}
+                    <div>
+                        <div class="flex items-baseline justify-between text-[14px]">
+                            <span class="font-medium">{{ c.cls }}</span>
+                            <span class="tnum {% if c.off %}text-(--neg){% else %}text-(--ink-3){% endif %} {% if c.far %}font-semibold{% endif %}">
+                                {% if c.drift > 0 %}+{% endif %}{{ c.drift }} pp
+                            </span>
+                        </div>
+                        <div class="mt-1.5 space-y-1">
+                            <div class="flex items-center gap-2">
+                                <div class="h-2 flex-1 rounded-full bg-(--line)">
+                                    <div class="h-full rounded-full bg-(--ink-3)" style="width: {{ c.target }}%"></div>
+                                </div>
+                                <span class="tnum w-16 text-right text-[12px] text-(--ink-3)">{{ c.target }}% target</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="h-2 flex-1 rounded-full bg-(--line)">
+                                    <div class="h-full rounded-full bg-(--ink)" style="width: {{ c.actual }}%"></div>
+                                </div>
+                                <span class="tnum w-16 text-right text-[12px]">{{ c.actual }}% now</span>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            <h3 class="kicker mt-8">Glide Path</h3>
+            <div class="hide-scrollbar -mx-6 mt-2 flex gap-1 overflow-x-auto px-6">
+                {% for s in g.glide %}
+                    <div class="w-24 shrink-0">
+                        <div class="flex h-16 items-end rounded-[10px] {% if forloop.first %}bg-(--accent-soft){% else %}bg-(--well){% endif %} px-2 pb-1.5">
+                            <div class="w-full rounded-[4px] {% if forloop.first %}bg-(--accent){% else %}bg-(--ink){% endif %}"
+                                 style="height: {{ s.eq }}%"></div>
+                        </div>
+                        <p class="tnum mt-1.5 text-[13px] font-medium">{{ s.eq }}% equity</p>
+                        <p class="text-[12px] text-(--ink-3)">{{ s.when }} · {{ s.band }}</p>
+                    </div>
+                {% endfor %}
+            </div>
+            {% if g.step %}
+                <p class="mt-3 text-[14px]">
+                    <span class="font-medium">Next step {{ g.step.0 }}</span> <span class="text-(--ink-2)">· {{ g.step.1 }}</span>
+                </p>
+            {% endif %}
+            {% if g.rebalance %}
+                <h3 class="kicker mt-8">To rebalance, cheapest first</h3>
+                <ol class="mt-2 space-y-4">
+                    {% for name, text, state in g.rebalance %}
+                        <li class="flex gap-3 {% if state == 'blocked' %}text-(--ink-3){% endif %}">
+                            <span class="tnum grid size-6 shrink-0 place-items-center rounded-full text-[12px] font-semibold {% if state == 'blocked' %}bg-(--well){% else %}bg-(--ink) text-white{% endif %}">{{ forloop.counter }}</span>
+                            <div>
+                                <p class="text-[15px] font-medium">{{ name }}</p>
+                                <p class="text-[14px] leading-5 {% if state != 'blocked' %}text-(--ink-2){% endif %}">{{ text }}</p>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ol>
+            {% endif %}
+        </section>
+    {% endif %}
+    {# ——— Settings ——— #}
+    <section class="mt-12">
+        <h2 class="display text-[26px]">Settings</h2>
+        <table class="row mt-2 w-full">
+            <tr class="border-b border-(--line)">
+                <td class="text-(--ink-2)">Name</td>
+                <td>{{ g.name }}</td>
+            </tr>
+            {% if g.key != "ef" %}
+                <tr class="border-b border-(--line)">
+                    <td class="text-(--ink-2)">Target today</td>
+                    <td class="tnum">
+                        ₹{{ g.m.today.whole }}
+                        {% if g.calc %}<span class="text-(--ink-3)">· from the calculator</span>{% endif %}
+                    </td>
+                </tr>
+                <tr class="border-b border-(--line)">
+                    <td class="text-(--ink-2)">Inflation</td>
+                    <td>{{ g.inflation.0 }} · {{ g.inflation.1 }}</td>
+                </tr>
+            {% endif %}
+            <tr class="border-b border-(--line)">
+                <td class="text-(--ink-2)">Date</td>
+                <td>
+                    {{ g.date }}
+                    {% if g.date_how %}<span class="block text-[12px] text-(--ink-3)">{{ g.date_how }}</span>{% endif %}
+                </td>
+            </tr>
+            {% if g.rank %}
+                <tr class="border-b border-(--line)">
+                    <td class="text-(--ink-2)">Rank</td>
+                    <td>
+                        {{ g.rank }} of {{ ranked|length }}
+                        {% if not g.system %}<span class="ml-2 text-(--accent)">Move up · Move down</span>{% endif %}
+                    </td>
+                </tr>
+            {% endif %}
+            {% for cls, inst in g.preferred %}
+                <tr class="border-b border-(--line)">
+                    <td class="text-(--ink-2)">Preferred · {{ cls }}</td>
+                    <td class="{% if inst == 'not set' %}text-(--ink-3){% endif %}">{{ inst }}</td>
+                </tr>
+            {% endfor %}
+            {% if g.mix %}
+                <tr class="border-b border-(--line)">
+                    <td class="text-(--ink-2)">Glide Path offset</td>
+                    <td>{{ g.offset }} pp from the band midpoint</td>
+                </tr>
+            {% endif %}
+        </table>
+        {% if not g.system %}
+            <div class="mt-6 flex items-center gap-5 text-[14px] font-medium">
+                <span class="inline-flex h-10 items-center gap-2 rounded-full bg-(--well) px-4"><i data-lucide="flag" class="size-4"></i>Mark reached</span>
+                <span class="text-(--neg)">Delete Goal</span>
+            </div>
+        {% else %}
+            <p class="mt-4 text-[13px] text-(--ink-3)">A system Goal: it can't be deleted{% if g.key == "retirement" %} or marked reached{% endif %}.</p>
+        {% endif %}
+    </section>
+{% endblock %}
+{% block sheets %}
+    <div id="ear-scrim"
+         {% if open != "earmarks" %}hidden{% endif %}
+         data-ear-close
+         class="fixed inset-0 z-50 bg-black/30"></div>
+    <div id="ear-sheet"
+         {% if open != "earmarks" %}hidden{% endif %}
+         class="fixed inset-x-0 bottom-0 z-50 mx-auto max-h-[88dvh] max-w-xl overflow-y-auto rounded-t-[28px] bg-white px-6 pt-3 pb-[max(24px,env(safe-area-inset-bottom))]">
+        <div class="mx-auto h-1 w-10 rounded-full bg-(--line)"></div>
+        <div class="mt-4 flex items-start gap-3">
+            <div class="min-w-0 flex-1">
+                <p class="text-[17px] font-semibold">Earmark to {{ g.name }}</p>
+                <p class="text-[13px] text-(--ink-3)">
+                    {% if g.key == "ef" %}
+                        Only Emergency-Fund-eligible Accounts
+                    {% else %}
+                        Any Asset Account with an Asset Class
+                    {% endif %}
+                </p>
+            </div>
+            <button type="button"
+                    data-ear-close
+                    class="grid size-9 place-items-center rounded-full bg-(--well)"
+                    aria-label="Close">
+                <i data-lucide="x" class="size-4"></i>
+            </button>
+        </div>
+        <label class="mt-5 block">
+            <span class="kicker">Account</span>
+            <select id="ear-acct" class="field mt-1">
+                {% for e in g.earmarks %}
+                    <option value="{{ e.key }}"
+                            data-avail="Now {{ e.form }} · {{ e.detail }}">{{ e.acct }} · Earmarked</option>
+                {% endfor %}
+                {% for u in unallocated %}
+                    {% if g.key != "ef" or "EF" in u.cls %}
+                        <option value="{{ u.key }}"
+                                data-avail="{{ u.units }} Unallocated · {{ u.m.text }} · {{ u.cls }}">{{ u.name }}</option>
+                    {% endif %}
+                {% endfor %}
+            </select>
+        </label>
+        <p id="ear-avail" class="mt-2 text-[13px] text-(--ink-2)"></p>
+        <fieldset class="mt-5">
+            <legend class="kicker">Earmark</legend>
+            <div class="mt-2 grid grid-cols-3 gap-1 rounded-full bg-(--well) p-1 text-center text-[13px] font-medium">
+                <label class="cursor-pointer rounded-full py-2 has-[:checked]:bg-white has-[:checked]:shadow-sm">
+                    <input type="radio" name="form" class="sr-only" checked>
+                    Units
+                </label>
+                <label class="cursor-pointer rounded-full py-2 has-[:checked]:bg-white has-[:checked]:shadow-sm">
+                    <input type="radio" name="form" class="sr-only">
+                    Fixed ₹
+                </label>
+                <label class="cursor-pointer rounded-full py-2 has-[:checked]:bg-white has-[:checked]:shadow-sm">
+                    <input type="radio" name="form" class="sr-only">
+                    Whole
+                </label>
+            </div>
+        </fieldset>
+        <label class="mt-4 block">
+            <span class="kicker">Amount</span>
+            <input class="field tnum mt-1" placeholder="Units or ₹" inputmode="decimal">
+        </label>
+        <p class="mt-2 text-[12px] text-(--ink-3)">
+            Never more than the Account holds. A whole Earmark follows every future unit or rupee and takes the Account for this Goal alone.
+        </p>
+        <span class="mt-5 flex h-12 items-center justify-center gap-2 rounded-full bg-(--ink) text-[15px] font-medium text-white"><i data-lucide="check" class="size-4"></i>Save Earmark</span>
+        <p class="mt-4 text-center text-[14px] font-medium text-(--neg)">Release this Earmark</p>
+    </div>
+{% endblock %}
+{% block page_script %}
+    <script>
+    (() => {
+        const scrim = document.getElementById("ear-scrim");
+        const sheet = document.getElementById("ear-sheet");
+        const acct = document.getElementById("ear-acct");
+        const avail = document.getElementById("ear-avail");
+        const show = () => (avail.textContent = acct.selectedOptions[0]?.dataset.avail || "");
+        const close = () => {
+            sheet.hidden = scrim.hidden = true;
+            delete document.body.dataset.sheet;
+        };
+        const open = (key) => {
+            if (key) acct.value = key;
+            else acct.selectedIndex = [...acct.options].findIndex((o) => !o.textContent.includes("Earmarked"));
+            show();
+            sheet.hidden = scrim.hidden = false;
+            document.body.dataset.sheet = "earmark";
+        };
+        acct.addEventListener("change", show);
+        document.addEventListener("click", (e) => {
+            const b = e.target.closest("[data-ear]");
+            if (b) open(b.dataset.ear);
+            if (e.target.closest("[data-ear-close]")) close();
+        });
+        document.addEventListener("keydown", (e) => e.key === "Escape" && close());
+        show();
+        if (!sheet.hidden) document.body.dataset.sheet = "earmark";
+    })();
+    </script>
+{% endblock %}

@@ -83,7 +83,7 @@ def _base(request, screen, parent=None, back_to="— (tab root)", trail="Plan"):
             "recurring": _u("prototype-plan-recurring", variant),
             "schedules": _u("prototype-plan-recurring", variant, view="schedules"),
             "policies": _u("prototype-plan-policies", variant),
-            "scorecard": nav_url("scorecard", "L"),
+            "scorecard": _u("prototype-before-goals", "U"),
             "activity": _u("prototype-aa-activity", "P"),
             "uncategorised": _u("prototype-aa-activity", "P", type="uncategorised"),
             "hdfc": _u("prototype-aa-account", "P", "hdfc"),

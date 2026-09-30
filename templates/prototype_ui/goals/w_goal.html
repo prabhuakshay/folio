@@ -1,0 +1,469 @@
+{% extends "prototype_ui/plan/shell.html" %}
+{# W · Worksheet — a Goal opens with what to do next, then its figures as ledger rows. #}
+{% block header_title %}{{ g.name }}{% endblock %}
+{% block page_style %}
+    .led { width: 100%; font-variant-numeric: tabular-nums; }
+    .led td { padding: 9px 0; vertical-align: top; font-size: 14px; border-top: 1px solid var(--line); }
+    .led td + td { padding-left: 12px; text-align: right; white-space: nowrap; }
+    .led .note { display: block; font-size: 12px; color: var(--ink-3); white-space: normal; }
+    .led th { padding: 0 0 6px; font-size: 12px; font-weight: 500; color: var(--ink-3); text-align: right; }
+    .led th:first-child { text-align: left; }
+    .cell { display: inline-block; min-width: 88px; border-radius: 10px; background: var(--well); padding: 3px 10px; text-align: right; }
+    .todo { counter-reset: todo; }
+    .todo > li { counter-increment: todo; }
+    .todo > li::before { content: counter(todo); display: grid; place-items: center; flex-shrink: 0; width: 24px; height: 24px; border-radius: 999px; background: var(--ink); color: #fff; font-size: 12px; font-weight: 600; }
+    .todo > li.muted::before { background: var(--well); color: var(--ink-2); }
+{% endblock %}
+{% block page %}
+    <div class="mt-4 flex items-center gap-2">
+        <span class="tile size-8 rounded-full" style="--c: #000"><i data-lucide="{{ g.icon }}" class="size-4"></i></span>
+        <p class="kicker">
+            {% if g.system %}System Goal · {% endif %}
+            {% if g.rank %}Rank {{ g.rank }} · {% endif %}
+            {{ g.date }}
+        </p>
+    </div>
+    <h1 class="display mt-3 text-[40px] leading-none">What to do</h1>
+    <ol class="todo mt-5 space-y-4">
+        {% if g.status == "out_of_order" %}
+            <li class="flex gap-3">
+                <div class="min-w-0 flex-1">
+                    <p class="text-[15px] font-semibold">Protection comes first</p>
+                    <p class="text-[13px] leading-5 text-(--ink-2)">
+                        {{ current.name }} is Stage {{ current.n }}: {{ current.fact }}. Surplus goes there before this Goal.
+                    </p>
+                    <a href="{{ urls.scorecard }}"
+                       class="mt-2 inline-flex h-9 items-center gap-1.5 rounded-full bg-(--ink) px-4 text-[13px] font-medium text-white">Open Before Goals</a>
+                </div>
+            </li>
+        {% endif %}
+        {% if g.suggest and g.key == "ef" %}
+            <li class="flex gap-3">
+                <div class="min-w-0 flex-1">
+                    <p class="text-[15px] font-semibold">Fill from eligible Unallocated</p>
+                    <p class="text-[13px] leading-5 text-(--ink-2)">{{ g.suggest|cut:"Fill from eligible Unallocated: " }}</p>
+                    <span class="mt-2 inline-flex h-9 items-center gap-1.5 rounded-full bg-(--ink) px-4 text-[13px] font-medium text-white"><i data-lucide="plus" class="size-4"></i>Earmark ₹1,09,630</span>
+                </div>
+            </li>
+            <li class="flex gap-3">
+                <div class="min-w-0 flex-1">
+                    <p class="text-[15px] font-semibold">Then save ₹43,200 more</p>
+                    <p class="text-[13px] leading-5 text-(--ink-2)">Surplus comes here once Stage 3, Protection, is met.</p>
+                </div>
+            </li>
+        {% endif %}
+        {% if g.sip %}
+            <li class="flex gap-3">
+                <div class="min-w-0 flex-1">
+                    <p class="text-[15px] font-semibold">Start a ₹{{ g.m.sip.whole }} a month SIP</p>
+                    <p class="text-[13px] leading-5 text-(--ink-2)">The extra needed beyond existing Schedules, split by Target Allocation:</p>
+                    <table class="led mt-1">
+                        {% for s in g.sip_split %}
+                            <tr>
+                                <td>
+                                    {{ s.cls }}<span class="note {% if 'Pick' in s.inst %}text-(--neg)!{% endif %}">{{ s.inst }}</span>
+                                </td>
+                                <td>{{ s.m.text }}</td>
+                            </tr>
+                        {% endfor %}
+                    </table>
+                    <span class="mt-2 inline-flex h-9 items-center gap-1.5 rounded-full {% if g.status == 'out_of_order' %}bg-(--well) text-(--ink){% else %}bg-(--ink) text-white{% endif %} px-4 text-[13px] font-medium"><i data-lucide="repeat" class="size-4"></i>Set up these SIPs</span>
+                </div>
+            </li>
+        {% endif %}
+        {% if g.key == "europe" and g.step %}
+            <li class="flex gap-3">
+                <div class="min-w-0 flex-1">
+                    <p class="text-[15px] font-semibold">Glide Path steps down in {{ g.step.0 }} — switch before it</p>
+                    <p class="text-[13px] leading-5 text-(--ink-2)">{{ g.step.1 }}. The mix already sits far from its target.</p>
+                </div>
+            </li>
+        {% endif %}
+        {% for rung, text, state in g.rebalance %}
+            {% if state == "ready" %}
+                <li class="flex gap-3">
+                    <div class="min-w-0 flex-1">
+                        <p class="text-[15px] font-semibold">Rebalance · {{ rung }}</p>
+                        <p class="text-[13px] leading-5 text-(--ink-2)">{{ text }}</p>
+                        {% if rung == "Re-earmark" %}
+                            <a href="{{ g.earmarks_url }}"
+                               class="mt-2 inline-flex h-9 items-center gap-1.5 rounded-full bg-(--well) px-4 text-[13px] font-medium">Change Earmarks</a>
+                        {% endif %}
+                    </div>
+                </li>
+            {% endif %}
+        {% endfor %}
+        {% if g.key == "retirement" %}
+            <li class="muted flex gap-3">
+                <div class="min-w-0 flex-1">
+                    <p class="text-[15px] font-semibold">Nothing to fund — on track</p>
+                    <p class="text-[13px] leading-5 text-(--ink-2)">
+                        At your current pace you could retire at {{ g.calc.earliest }}, a year before {{ g.calc.age }}.
+                    </p>
+                </div>
+            </li>
+        {% endif %}
+    </ol>
+    <p class="mt-8 text-[16px] font-semibold leading-6 {% if g.tone == 'neg' %}text-(--neg){% else %}text-(--pos){% endif %}">
+        {{ g.status_line }}
+    </p>
+    {% for f in g.flags %}<p class="mt-1 text-[14px] leading-5 text-(--ink-2)">{{ f }}</p>{% endfor %}
+    {% if g.calc %}
+        <h2 class="display mt-10 text-[26px]">Calculator</h2>
+        <p class="text-[13px] text-(--ink-3)">Inputs in grey cells. Target = Retirement expense ÷ Safe Withdrawal Rate.</p>
+        <p class="kicker mt-4">Inputs</p>
+        <table class="led mt-1">
+            <tr>
+                <td>
+                    Trailing monthly outflow<span class="note">As the Emergency Fund counts it · last 12 months</span>
+                </td>
+                <td>₹80,000</td>
+            </tr>
+            {% for l in g.calc.loans %}
+                <tr>
+                    <td>
+                        less {{ l.name }}<span class="note">EMI {{ l.ends }}, before retirement</span>
+                    </td>
+                    <td>−{{ l.m.text }}</td>
+                </tr>
+            {% endfor %}
+            <tr>
+                <td>
+                    Declared monthly expense<span class="note">Overrides the above once set · today's rupees</span>
+                </td>
+                <td>
+                    <span class="cell text-(--ink-3)">not set</span>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Safe Withdrawal Rate<span class="note">Band {{ g.calc.swr_band }}</span>
+                </td>
+                <td>
+                    <span class="cell">{{ g.calc.swr }}</span>
+                </td>
+            </tr>
+            <tr>
+                <td>Date of birth</td>
+                <td>
+                    <span class="cell">{{ g.calc.dob }}</span>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Retirement age<span class="note">Sets the date: {{ g.date }}</span>
+                </td>
+                <td>
+                    <span class="cell">{{ g.calc.age }}</span>
+                </td>
+            </tr>
+        </table>
+        <p class="kicker mt-6">Outputs</p>
+        <table class="led mt-1">
+            <tr>
+                <td>Retirement expense</td>
+                <td>
+                    ₹36,283/mo<span class="note">₹4,35,396 a year</span>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Target today<span class="note">₹4,35,396 ÷ {{ g.calc.swr }}</span>
+                </td>
+                <td>₹{{ g.m.today.short }}</td>
+            </tr>
+            <tr>
+                <td>
+                    Target in {{ g.date }}<span class="note">At {{ g.inflation.1 }} general inflation</span>
+                </td>
+                <td>₹{{ g.m.target.short }}</td>
+            </tr>
+            <tr>
+                <td>
+                    Projected corpus<span class="note">Earmarks + Schedules, grown along the Glide Path</span>
+                </td>
+                <td>₹{{ g.projected_m.short }}</td>
+            </tr>
+            <tr>
+                <td>Gap</td>
+                <td class="text-(--pos)">None</td>
+            </tr>
+            <tr>
+                <td class="font-semibold">Earliest retirement age</td>
+                <td class="font-semibold">{{ g.calc.earliest }}</td>
+            </tr>
+        </table>
+        <p class="kicker mt-6">What if you retired at</p>
+        <table class="led mt-1">
+            <tr>
+                <th>Age</th>
+                <th>Target then</th>
+                <th>Extra SIP</th>
+            </tr>
+            {% for w in g.calc.what_if %}
+                <tr {% if w.age == g.calc.age %}class="font-semibold"{% endif %}>
+                    <td>{{ w.age }}</td>
+                    <td>₹{{ w.target.short }}</td>
+                    <td>
+                        {% if w.sip.whole == "0" %}
+                            —
+                        {% else %}
+                            {{ w.sip.text }}/mo
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <h2 class="display mt-10 text-[26px]">Target</h2>
+        <table class="led mt-2">
+            <tr>
+                <td>In today's rupees</td>
+                <td>{{ g.m.today.text }}</td>
+            </tr>
+            <tr>
+                <td>Inflation</td>
+                <td>{{ g.inflation.0 }} · {{ g.inflation.1 }}</td>
+            </tr>
+            <tr>
+                <td>
+                    At the date{% if g.key == "ef" %}<span class="note">6 × ₹80,000 of monthly outflow</span>{% endif %}
+                </td>
+                <td>{{ g.m.target.text }}</td>
+            </tr>
+            <tr>
+                <td>
+                    Date{% if g.date_how %}<span class="note">{{ g.date_how }}</span>{% endif %}
+                </td>
+                <td>{{ g.date }}</td>
+            </tr>
+            {% if g.years %}
+                <tr>
+                    <td>Time left</td>
+                    <td>{{ g.years }}</td>
+                </tr>
+            {% endif %}
+        </table>
+    {% endif %}
+    <h2 class="display mt-10 text-[26px]">Progress</h2>
+    <table class="led mt-2">
+        <tr>
+            <td>Earmarked</td>
+            <td>{{ g.m.have.text }}</td>
+        </tr>
+        <tr>
+            <td>Of target</td>
+            <td>
+                {{ g.pct }}%
+                {% if g.months %}<span class="note">{{ g.months }} of {{ g.months_target }} months</span>{% endif %}
+            </td>
+        </tr>
+        {% if g.projected_m %}
+            <tr>
+                <td>
+                    Projected at {{ g.date }}<span class="note">Earmarks + Schedules naming it</span>
+                </td>
+                <td>{{ g.projected_m.text }}</td>
+            </tr>
+        {% endif %}
+        <tr>
+            <td>Gap</td>
+            <td class="{% if g.gap %}text-(--neg){% else %}text-(--pos){% endif %}">
+                {% if g.gap %}
+                    {{ g.m.gap.text }}
+                {% else %}
+                    None
+                {% endif %}
+            </td>
+        </tr>
+        {% if g.key != "ef" %}
+            <tr>
+                <td>
+                    Extra SIP needed<span class="note">Flat, beyond existing Schedules</span>
+                </td>
+                <td>
+                    {% if g.sip %}
+                        {{ g.m.sip.text }}/mo
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+            </tr>
+        {% endif %}
+        <tr>
+            <td>
+                Surplus left for it<span class="note">{{ g.rank_note }}</span>
+            </td>
+            <td>
+                {% if g.key == "retirement" or g.key == "europe" %}
+                    {{ surplus_free.text }}/mo
+                {% elif g.key == "college" %}
+                    <span class="text-(--neg)">₹39,300/mo</span>
+                {% else %}
+                    —
+                {% endif %}
+            </td>
+        </tr>
+    </table>
+    {% if g.schedules %}
+        <p class="kicker mt-6">Schedules naming it</p>
+        <table class="led mt-1">
+            {% for name, how, _ in g.schedules %}
+                <tr>
+                    <td>
+                        {{ name }}<span class="note">{{ how }}</span>
+                    </td>
+                    <td></td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% endif %}
+    <div class="mt-10 flex items-baseline justify-between">
+        <h2 class="display text-[26px]">Earmarks</h2>
+        <a href="{{ g.earmarks_url }}"
+           class="text-[14px] font-medium text-(--accent)">Change</a>
+    </div>
+    <table class="led mt-2">
+        {% for e in g.earmarks %}
+            <tr>
+                <td>
+                    <a href="{{ g.earmarks_url }}&acct={{ e.key }}">{{ e.acct }}</a>
+                    <span class="note">{{ e.form }} · {{ e.cls }}
+                        {% if e.locked %}· locked in{% endif %}
+                    </span>
+                </td>
+                <td>{{ e.m.text }}</td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td class="text-(--ink-3)">Nothing Earmarked yet</td>
+                <td></td>
+            </tr>
+        {% endfor %}
+        <tr>
+            <td class="font-semibold">Total</td>
+            <td class="font-semibold">{{ g.m.have.text }}</td>
+        </tr>
+    </table>
+    {% if g.suggest and g.key != "ef" %}<p class="mt-2 text-[13px] text-(--ink-3)">{{ g.suggest }}</p>{% endif %}
+    {% if g.mix %}
+        <h2 class="display mt-10 text-[26px]">Mix</h2>
+        <p class="text-[13px] text-(--ink-3)">Target from the {{ g.band }} band midpoint{% if g.offset %}, offset {{ g.offset }} pp{% endif %}. Nudge past ±5 pp, switch past ±10 pp.</p>
+        <table class="led mt-3">
+            <tr>
+                <th>Asset Class</th>
+                <th>Target</th>
+                <th>Actual</th>
+                <th>Drift</th>
+            </tr>
+            {% for m in g.mix %}
+                <tr>
+                    <td>{{ m.cls }}</td>
+                    <td>{{ m.target }}%</td>
+                    <td>{{ m.actual }}%</td>
+                    <td class="{% if m.off %}text-(--neg){% endif %} {% if m.far %}font-semibold{% endif %}">
+                        {% if m.drift > 0 %}+{% elif m.drift < 0 %}−{% endif %}{{ m.drift|stringformat:"d"|cut:"-" }} pp
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+        {% if g.rebalance %}
+            <p class="kicker mt-6">Rebalancing, cheapest first</p>
+            <table class="led mt-1">
+                {% for rung, text, state in g.rebalance %}
+                    <tr>
+                        <td class="{% if state == 'blocked' %}text-(--ink-3){% endif %}">
+                            {{ forloop.counter }}. {{ rung }}<span class="note">{{ text }}</span>
+                        </td>
+                        <td class="text-[12px] {% if state == 'blocked' %}text-(--ink-3){% else %}text-(--accent){% endif %}">
+                            {% if state == 'blocked' %}
+                                Can't
+                            {% else %}
+                                Do
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </table>
+        {% endif %}
+        <p class="kicker mt-6">Glide Path</p>
+        <table class="led mt-1">
+            <tr>
+                <th>From</th>
+                <th>Band</th>
+                <th>Equity</th>
+                <th>Debt</th>
+                <th>Gold</th>
+            </tr>
+            {% for s in g.glide %}
+                <tr {% if forloop.first %}class="font-semibold"{% endif %}>
+                    <td>{{ s.when }}</td>
+                    <td>{{ s.band }}</td>
+                    <td>{{ s.eq }}%</td>
+                    <td>{{ s.debt }}%</td>
+                    <td>{{ s.gold }}%</td>
+                </tr>
+            {% endfor %}
+        </table>
+        {% if g.step %}<p class="mt-2 text-[13px] text-(--ink-3)">Next step {{ g.step.0 }}: {{ g.step.1 }}. Announced 6 months ahead.</p>{% endif %}
+        <p class="kicker mt-6">Where new money goes</p>
+        <table class="led mt-1">
+            {% for cls, inst in g.preferred %}
+                <tr>
+                    <td>{{ cls }}</td>
+                    <td class="{% if inst == 'not set' %}text-(--neg){% endif %}">{{ inst }}</td>
+                </tr>
+            {% endfor %}
+            <tr>
+                <td>
+                    Glide Path offset<span class="note">pp from the band midpoint, carried across steps</span>
+                </td>
+                <td>
+                    <span class="cell">{{ g.offset }} pp</span>
+                </td>
+            </tr>
+        </table>
+    {% elif g.key == "ef" %}
+        <h2 class="display mt-10 text-[26px]">Mix</h2>
+        <p class="mt-1 text-[14px] leading-5 text-(--ink-2)">Fixed at 100% cash and liquid debt. Only Emergency-Fund-eligible Accounts can be Earmarked here.</p>
+    {% endif %}
+    <h2 class="display mt-10 text-[26px]">Settings</h2>
+    <ul class="mt-2 divide-y divide-(--line) border-t border-(--line) text-[15px]">
+        <li class="flex items-center justify-between py-3">
+            <span>Name</span><span class="flex items-center gap-1 text-(--ink-2)">{{ g.name }}
+                {% if not g.system %}<i data-lucide="chevron-right" class="size-4 text-(--ink-3)"></i>{% endif %}
+            </span>
+        </li>
+        <li class="flex items-center justify-between py-3">
+            <span>Rank</span><span class="flex items-center gap-1 text-(--ink-2)">
+                {% if g.rank %}
+                    {{ g.rank }} of {{ ranked|length }}
+                {% else %}
+                    Stage 5
+                {% endif %}
+                {% if g.rank and not g.system %}<i data-lucide="chevron-right" class="size-4 text-(--ink-3)"></i>{% endif %}
+            </span>
+        </li>
+        {% if g.key != "ef" %}
+            <li class="flex items-center justify-between py-3">
+                <span>Inflation</span><span class="flex items-center gap-1 text-(--ink-2)">{{ g.inflation.0 }} · {{ g.inflation.1 }}<i data-lucide="chevron-right" class="size-4 text-(--ink-3)"></i></span>
+            </li>
+        {% endif %}
+        {% if g.key == "retirement" %}
+            <li class="flex items-center justify-between py-3">
+                <span>Date</span><span class="text-(--ink-2)">From retirement age</span>
+            </li>
+        {% elif not g.system %}
+            <li class="flex items-center justify-between py-3">
+                <span>Date</span><span class="flex items-center gap-1 text-(--ink-2)">{{ g.date }}<i data-lucide="chevron-right" class="size-4 text-(--ink-3)"></i></span>
+            </li>
+            <li class="py-3 font-medium">Mark reached</li>
+            <li class="py-3 font-medium text-(--neg)">Delete Goal</li>
+        {% endif %}
+    </ul>
+    {% if g.system %}
+        <p class="mt-2 text-[13px] text-(--ink-3)">
+            A system Goal: can't be deleted{% if g.key == "retirement" %} or marked reached{% endif %}.
+        </p>
+    {% endif %}
+{% endblock %}

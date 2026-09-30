@@ -1,0 +1,512 @@
+{% extends "prototype_ui/plan/shell.html" %}
+{# V · Three questions — a Goal answers Getting there, What's in it, How it's invested on tabs; Earmarks edit in place. #}
+{% block header_title %}{{ g.name }}{% endblock %}
+{% block header_actions %}
+    <button type="button"
+            data-sheet-open="settings"
+            class="grid size-10 place-items-center rounded-full"
+            aria-label="Goal settings">
+        <i data-lucide="ellipsis" class="size-5"></i>
+    </button>
+{% endblock %}
+{% block page_style %}
+    .seg a[aria-current="page"] { background: #fff; color: var(--ink); box-shadow: 0 1px 2px rgb(0 0 0 / .08); }
+    input[type="range"] { width: 100%; accent-color: var(--ink); }
+    .eq { background: var(--ink); }
+    .debt { background: var(--ink-3); }
+    .gold { background: #C9A227; }
+    #money[data-edit] .view-only, #money:not([data-edit]) .edit-only { display: none !important; }
+{% endblock %}
+{% block page %}
+    {% with v=view|default:"getting" %}
+        {# ——— Compact header ——— #}
+        <p class="kicker mt-4">
+            {% if g.system %}System Goal{% else %}Goal · rank {{ g.rank }}{% endif %}
+            · {{ g.date }}
+        </p>
+        <h1 class="display mt-1 text-[40px] leading-none">{{ g.name }}</h1>
+        <p class="mt-3 text-[14px]">
+            <span class="font-semibold {% if g.tone == 'pos' %}text-(--pos){% else %}text-(--neg){% endif %}">{{ g.label }}</span>
+            <span class="text-(--ink-2)">· {{ g.status_line }}</span>
+        </p>
+        <div class="mt-4 h-1.5 overflow-hidden rounded-full bg-(--line)">
+            <div class="h-full rounded-full bg-(--ink)" style="width: {{ g.pct }}%"></div>
+        </div>
+        <p class="tnum mt-1.5 text-[13px] text-(--ink-2)">
+            ₹{{ g.m.have.short }} of ₹{{ g.m.target.short }}
+            {% if g.date != "Ongoing" %}by {{ g.date }}{% endif %}
+            {% if g.inflation.1 != "—" %}<span class="text-(--ink-3)">· ₹{{ g.m.today.short }} today at {{ g.inflation.1 }}</span>{% endif %}
+        </p>
+        {# ——— Three questions ——— #}
+        <nav class="seg mt-6 grid grid-cols-3 gap-1 rounded-full bg-(--well) p-1 text-center text-[13px] font-medium text-(--ink-2)">
+            <a href="{{ g.url }}"
+               class="rounded-full py-2"
+               {% if v == "getting" %}aria-current="page"{% endif %}>Getting there</a>
+            <a href="{{ g.url }}&view=money"
+               class="rounded-full py-2"
+               {% if v == "money" or v == "earmarks" %}aria-current="page"{% endif %}>What's in it</a>
+            <a href="{{ g.url }}&view=mix"
+               class="rounded-full py-2"
+               {% if v == "mix" %}aria-current="page"{% endif %}>How it's invested</a>
+        </nav>
+        {% if g.status == "out_of_order" %}
+            <a href="{{ urls.scorecard }}"
+               class="mt-5 flex items-start gap-3 rounded-[20px] bg-(--accent-soft) p-4 text-[14px]">
+                <i data-lucide="list-checks" class="mt-0.5 size-5 shrink-0 text-(--accent)"></i>
+                <span><span class="font-semibold">Out of order.</span> Stage {{ current.n }}, {{ current.name }}, comes first — this Goal can't show on track until it's met. <span class="font-medium text-(--accent)">Before Goals ›</span></span>
+            </a>
+        {% endif %}
+        {# ———————— Getting there ———————— #}
+        {% if v == "getting" %}
+            {% if g.calc %}
+                {% with c=g.calc %}
+                    <section id="calc" class="mt-8">
+                        <p class="kicker">Retirement needs, at your date</p>
+                        <p class="figure num mt-2">
+                            <span class="cur">₹</span><span data-out="target">{{ g.m.target.short }}</span>
+                        </p>
+                        <p class="mt-3 text-[15px] leading-6 text-(--ink-2)">
+                            <span data-out="today">₹{{ g.m.today.short }}</span> in today's rupees, inflated at 6% to <span data-out="date">{{ g.date }}</span>.
+                        </p>
+                        <dl class="tnum mt-6 grid grid-cols-3 gap-3 border-y border-(--line) py-4">
+                            <div>
+                                <dt class="kicker">Projected</dt>
+                                <dd class="stat mt-1 text-[24px]" data-out="projected">
+                                    {{ g.projected_m.short }}
+                                </dd>
+                            </div>
+                            <div>
+                                <dt class="kicker">Extra SIP</dt>
+                                <dd class="stat mt-1 text-[24px]" data-out="sip">
+                                    ₹0
+                                </dd>
+                            </div>
+                            <div>
+                                <dt class="kicker">Earliest age</dt>
+                                <dd class="stat mt-1 text-[24px]" data-out="earliest">
+                                    {{ c.earliest }}
+                                </dd>
+                            </div>
+                        </dl>
+                        <p class="mt-3 text-[14px] font-medium" data-out="verdict"></p>
+                        <div class="mt-8 space-y-7">
+                            <label class="block">
+                                <span class="flex items-baseline justify-between text-[15px] font-medium"><span>Retire at</span><span class="tnum" data-show="age">{{ c.age }}</span></span>
+                                <input type="range" min="45" max="65" step="1" value="{{ c.age }}" data-in="age" class="mt-3">
+                                <span class="mt-1 block text-[12px] text-(--ink-3)">Born {{ c.dob }} · changes your Retirement date</span>
+                            </label>
+                            <label class="block">
+                                <span class="flex items-baseline justify-between text-[15px] font-medium"><span>Spending a month, today's ₹</span><span class="tnum" data-show="monthly">₹{{ c.monthly }}</span></span>
+                                <input type="range"
+                                       min="20000"
+                                       max="150000"
+                                       step="1"
+                                       value="{{ c.monthly }}"
+                                       data-in="monthly"
+                                       class="mt-3">
+                                <span class="mt-1 block text-[12px] leading-4 text-(--ink-3)">
+                                    Outflow ₹{{ c.outflow }} less
+                                    {% for l in c.loans %}
+                                        {{ l.name }} {{ l.m.text }} ({{ l.ends }}){% if not forloop.last %},{% endif %}
+                                    {% endfor %}
+                                    · <a href="#" class="font-medium text-(--ink-2) underline">declare instead</a>
+                                </span>
+                            </label>
+                            <label class="block">
+                                <span class="flex items-baseline justify-between text-[15px] font-medium"><span>Safe Withdrawal Rate</span><span class="tnum" data-show="swr">3%</span></span>
+                                <input type="range" min="2" max="4" step="0.25" value="3" data-in="swr" class="mt-3">
+                                <span class="mt-1 block text-[12px] text-(--ink-3)" data-out="swr-note">Recommended {{ c.swr_band }}</span>
+                            </label>
+                        </div>
+                        <p class="mt-8 text-[13px] leading-5 text-(--ink-3)">
+                            Counts only what's Earmarked to Retirement (₹{{ g.m.have.short }}), plus the Schedules below, grown along the Glide Path at your Expected Returns. Pensions and rent never reduce the target.
+                        </p>
+                        <a href="#"
+                           class="mt-4 flex h-12 items-center justify-center rounded-full bg-(--well) text-[15px] font-medium">Save these as my Retirement settings</a>
+                    </section>
+                {% endwith %}
+            {% elif g.key == "ef" %}
+                <section class="mt-8">
+                    <p class="kicker">Months of outflow covered</p>
+                    <p class="figure num mt-2">
+                        {{ g.months }}<span class="cur">of {{ g.months_target }}</span>
+                    </p>
+                    <p class="mt-3 text-[15px] leading-6 text-(--ink-2)">₹{{ g.m.gap.whole }} short of 6 months at ₹80,000 a month. Only Emergency-Fund-eligible money counts, and only once it's Earmarked.</p>
+                    <div class="mt-6 rounded-[20px] bg-(--well) p-5">
+                        <p class="text-[15px] font-semibold">Fill from eligible Unallocated</p>
+                        <p class="mt-1 text-[14px] leading-5 text-(--ink-2)">{{ g.suggest }}</p>
+                        <a href="{{ g.url }}&view=earmarks"
+                           class="mt-4 flex h-11 items-center justify-center rounded-full bg-(--ink) text-[15px] font-medium text-white">Earmark ₹1,09,630</a>
+                    </div>
+                </section>
+            {% else %}
+                <section class="mt-8">
+                    <p class="kicker">Projected at {{ g.date }}</p>
+                    <p class="figure num mt-2">
+                        <span class="cur">₹</span>{{ g.projected_m.short }}
+                    </p>
+                    <p class="mt-3 text-[15px] leading-6 text-(--ink-2)">
+                        Against ₹{{ g.m.target.short }} needed — ₹{{ g.m.gap.short }} short at today's Schedules.
+                    </p>
+                    {% for f in g.flags %}<p class="mt-2 text-[14px] font-medium text-(--neg)">{{ f }}</p>{% endfor %}
+                    <details class="mt-6 rounded-[20px] bg-(--well)">
+                        <summary class="flex items-center gap-4 p-5">
+                            <span class="min-w-0 flex-1">
+                                <span class="kicker block">Extra needed each month</span>
+                                <span class="stat mt-1 block text-[34px]"><span class="cur">₹</span>{{ g.m.sip.whole }}</span>
+                            </span>
+                            <span class="inline-flex h-10 items-center gap-1.5 rounded-full bg-(--ink) px-4 text-[14px] font-medium text-white">Start SIP <i data-lucide="chevron-right" class="chev size-4 transition-transform"></i></span>
+                        </summary>
+                        <div class="px-5 pb-5">
+                            <p class="text-[13px] text-(--ink-2)">Split by Target Allocation across Preferred Instruments. Each Schedule names this Goal; nothing is created until you confirm.</p>
+                            <ul class="mt-3 divide-y divide-(--line) text-[14px]">
+                                {% for s in g.sip_split %}
+                                    <li class="flex items-center justify-between gap-3 py-2.5">
+                                        <span class="min-w-0"><span class="block font-medium">{{ s.inst }}</span><span class="block text-[12px] text-(--ink-3)">{{ s.cls }} · monthly</span></span>
+                                        <input class="field tnum w-28 text-right" value="₹{{ s.m.whole }}">
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                            <span class="mt-4 flex h-11 items-center justify-center rounded-full bg-(--ink) text-[15px] font-medium text-white">Review {{ g.sip_split|length }} Schedules</span>
+                        </div>
+                    </details>
+                </section>
+            {% endif %}
+            {% if g.schedules %}
+                <h2 class="kicker mt-10">Schedules naming this Goal</h2>
+                <ul class="mt-2 divide-y divide-(--line)">
+                    {% for name, what, key in g.schedules %}
+                        <li class="flex items-center gap-3 py-3.5">
+                            <i data-lucide="repeat" class="size-4 text-(--ink-3)"></i>
+                            <span class="min-w-0 flex-1"><span class="block text-[15px] font-medium">{{ name }}</span><span class="block text-[13px] text-(--ink-2)">{{ what }}</span></span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endif %}
+        {# ———————— What's in it ———————— #}
+        {% if v == "money" or v == "earmarks" %}
+            <section id="money"
+                     class="mt-8"
+                     {% if v == "earmarks" %}data-edit{% endif %}>
+                <div class="flex items-baseline justify-between">
+                    <h2 class="display text-[26px]">Earmarked</h2>
+                    {% if g.earmarks %}
+                        <button type="button" data-edit-toggle class="view-only text-[14px] font-medium text-(--accent)">Edit</button>
+                    {% endif %}
+                </div>
+                <p class="stat mt-1 text-[34px]">
+                    <span class="cur">₹</span>{{ g.m.have.whole }}
+                </p>
+                {% if g.earmarks %}
+                    <ul class="mt-4 divide-y divide-(--line)">
+                        {% for e in g.earmarks %}
+                            <li class="py-4">
+                                <div class="flex items-baseline justify-between gap-3">
+                                    <span class="text-[15px] font-medium">{{ e.acct }}</span>
+                                    <span class="tnum text-[15px]">{{ e.m.text }}</span>
+                                </div>
+                                <p class="view-only mt-0.5 text-[13px] text-(--ink-2)">
+                                    {{ e.form }} <span class="text-(--ink-3)">· {{ e.detail }} · {{ e.cls }}</span>
+                                </p>
+                                <div class="edit-only mt-2 flex items-center gap-2">
+                                    <select class="field w-auto py-2.5 text-[14px]">
+                                        <option {% if "units" in e.form %}selected{% endif %}>Units</option>
+                                        <option {% if "fixed" in e.form %}selected{% endif %}>Fixed ₹</option>
+                                        <option {% if "Whole" in e.form %}selected{% endif %}>Whole Account</option>
+                                    </select>
+                                    {% if "Whole" not in e.form %}
+                                        <input class="field tnum min-w-0 flex-1 py-2.5 text-right text-[14px]"
+                                               value="{{ e.form|cut:' units'|cut:' fixed' }}">
+                                    {% else %}
+                                        <span class="flex-1 text-[13px] text-(--ink-3)">{{ e.detail }}</span>
+                                    {% endif %}
+                                    <button type="button"
+                                            class="grid size-10 shrink-0 place-items-center rounded-full bg-(--well) text-(--neg)"
+                                            aria-label="Remove">
+                                        <i data-lucide="minus" class="size-4"></i>
+                                    </button>
+                                </div>
+                                {% if "Whole" not in e.form %}<p class="edit-only mt-1 text-[12px] text-(--ink-3)">{{ e.detail }}</p>{% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <div class="mt-4 rounded-[20px] bg-(--well) p-5 text-[14px] leading-5 text-(--ink-2)">
+                        Nothing Earmarked yet. Earmark units or rupees from Unallocated, or start a SIP that names this Goal.
+                        <button type="button"
+                                data-edit-toggle
+                                class="view-only mt-3 block font-medium text-(--accent)">Earmark from Unallocated</button>
+                    </div>
+                {% endif %}
+                {% if g.suggest %}
+                    <div class="mt-4 flex items-start gap-3 rounded-[20px] bg-(--well) p-4 text-[14px]">
+                        <i data-lucide="sparkles" class="mt-0.5 size-4 shrink-0"></i>
+                        <span class="flex-1 text-(--ink-2)">{{ g.suggest }}</span>
+                        {% if g.key == "ef" %}<button type="button" class="shrink-0 font-medium text-(--accent)">Fill</button>{% endif %}
+                    </div>
+                {% endif %}
+                <div class="edit-only">
+                    <h3 class="kicker mt-8">
+                        Add from Unallocated
+                        {% if g.key == "ef" %}· eligible only{% endif %}
+                    </h3>
+                    <ul class="mt-2 divide-y divide-(--line)">
+                        {% for u in unallocated %}
+                            {% if g.key != "ef" or "EF" in u.cls %}
+                                <li class="flex items-center gap-3 py-3">
+                                    <span class="min-w-0 flex-1"><span class="block text-[15px] font-medium">{{ u.name }}</span><span class="block text-[13px] text-(--ink-2)">{{ u.units }} · {{ u.cls }}</span></span>
+                                    <span class="tnum text-[14px]">{{ u.m.text }}</span>
+                                    <button type="button"
+                                            class="grid size-9 place-items-center rounded-full bg-(--ink) text-white"
+                                            aria-label="Earmark {{ u.name }}">
+                                        <i data-lucide="plus" class="size-4"></i>
+                                    </button>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                    <div class="fixed inset-x-0 bottom-[calc(64px+env(safe-area-inset-bottom))] z-30 border-t border-(--line) bg-white/95 backdrop-blur lg:bottom-0">
+                        <div class="mx-auto flex max-w-xl gap-2 px-6 py-3">
+                            <button type="button"
+                                    data-edit-toggle
+                                    class="h-11 flex-1 rounded-full bg-(--well) text-[15px] font-medium">Cancel</button>
+                            <button type="button"
+                                    data-edit-toggle
+                                    class="h-11 flex-[2] rounded-full bg-(--ink) text-[15px] font-medium text-white">Save Earmarks</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        {% endif %}
+        {# ———————— How it's invested ———————— #}
+        {% if v == "mix" %}
+            <section class="mt-8">
+                {% if not g.mix %}
+                    <h2 class="display text-[26px]">Fixed mix</h2>
+                    <p class="mt-2 text-[15px] leading-6 text-(--ink-2)">The Emergency Fund is fixed at 100% cash and liquid debt. It has no Glide Path and never drifts.</p>
+                {% else %}
+                    <h2 class="display text-[26px]">Target and actual</h2>
+                    <p class="mt-1 text-[13px] text-(--ink-3)">{{ g.band }} to go · SEBI band midpoint{% if g.offset %} {{ g.offset }} pp{% endif %}</p>
+                    <div class="mt-5 space-y-3 text-[13px]">
+                        <div>
+                            <p class="mb-1.5 text-(--ink-2)">Target</p>
+                            <div class="flex h-3 gap-px overflow-hidden rounded-full">
+                                {% for x in g.mix %}
+                                    {% if x.target %}
+                                        <div class="{% if forloop.counter == 1 %}eq{% elif forloop.counter == 2 %}debt{% else %}gold{% endif %}"
+                                             style="width: {{ x.target }}%"></div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div>
+                            <p class="mb-1.5 text-(--ink-2)">Actual</p>
+                            <div class="flex h-3 gap-px overflow-hidden rounded-full bg-(--line)">
+                                {% for x in g.mix %}
+                                    {% if x.actual %}
+                                        <div class="{% if forloop.counter == 1 %}eq{% elif forloop.counter == 2 %}debt{% else %}gold{% endif %}"
+                                             style="width: {{ x.actual }}%"></div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    <ul class="tnum mt-4 divide-y divide-(--line) text-[14px]">
+                        {% for x in g.mix %}
+                            <li class="flex items-center gap-3 py-2.5">
+                                <span class="size-2.5 rounded-full {% if forloop.counter == 1 %}eq{% elif forloop.counter == 2 %}debt{% else %}gold{% endif %}"></span>
+                                <span class="flex-1">{{ x.cls }}</span>
+                                <span class="text-(--ink-2)">{{ x.actual }}% of {{ x.target }}%</span>
+                                <span class="pill {% if x.far %}text-(--neg){% elif x.off %}text-(--ink){% endif %}">
+                                    {% if x.drift > 0 %}+{% endif %}{{ x.drift }} pp
+                                </span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                    {% if g.rebalance %}
+                        <h3 class="display mt-10 text-[22px]">Rebalance, cheapest first</h3>
+                        <ol class="mt-3 space-y-3">
+                            {% for step, text, state in g.rebalance %}
+                                <li class="flex gap-3.5 text-[14px] {% if state == 'blocked' %}text-(--ink-3){% endif %}">
+                                    <span class="grid size-7 shrink-0 place-items-center rounded-full text-[13px] font-semibold {% if state == 'blocked' %}bg-(--well){% else %}bg-(--ink) text-white{% endif %}">{{ forloop.counter }}</span>
+                                    <span><span class="block font-medium {% if state != 'blocked' %}text-(--ink){% endif %}">{{ step }}</span><span class="block leading-5 {% if state != 'blocked' %}text-(--ink-2){% endif %}">{{ text }}</span></span>
+                                </li>
+                            {% endfor %}
+                        </ol>
+                    {% endif %}
+                    <h3 class="display mt-10 text-[22px]">Glide Path</h3>
+                    {% if g.step %}
+                        <p class="mt-1 text-[14px] {% if 'months' in g.step.1 %}font-medium text-(--accent){% else %}text-(--ink-2){% endif %}">
+                            Next step {{ g.step.0 }} · {{ g.step.1 }}
+                        </p>
+                    {% endif %}
+                    <ol class="tnum mt-4 border-l border-(--line) pl-5 text-[14px]">
+                        {% for s in g.glide %}
+                            <li class="relative pb-4">
+                                <span class="absolute top-1.5 -left-[25px] size-2.5 rounded-full {% if forloop.first %}bg-(--ink){% else %}bg-white ring-1 ring-(--ink-3){% endif %}"></span>
+                                <span class="flex items-baseline justify-between gap-3"><span class="font-medium">{{ s.when }}</span><span class="text-(--ink-2)">{{ s.eq }} / {{ s.debt }} / {{ s.gold }}</span></span>
+                                <span class="block text-[12px] text-(--ink-3)">{{ s.band }}{% if forloop.first %} · now{% endif %}</span>
+                            </li>
+                        {% endfor %}
+                    </ol>
+                    <p class="text-[12px] text-(--ink-3)">Equity / debt / gold %</p>
+                    <div class="mt-6 flex items-center justify-between rounded-[20px] bg-(--well) px-5 py-4">
+                        <span><span class="block text-[15px] font-medium">Equity offset</span><span class="block text-[12px] text-(--ink-3)">Carried across every step</span></span>
+                        <span class="flex items-center gap-3">
+                            <button type="button"
+                                    class="grid size-8 place-items-center rounded-full bg-white"
+                                    aria-label="Less equity">
+                                <i data-lucide="minus" class="size-4"></i>
+                            </button>
+                            <span class="tnum w-12 text-center text-[15px] font-semibold">{{ g.offset }} pp</span>
+                            <button type="button"
+                                    class="grid size-8 place-items-center rounded-full bg-white"
+                                    aria-label="More equity">
+                                <i data-lucide="plus" class="size-4"></i>
+                            </button>
+                        </span>
+                    </div>
+                {% endif %}
+                <h3 class="kicker mt-8">Preferred Instruments · where new money goes</h3>
+                <ul class="mt-2 divide-y divide-(--line) text-[14px]">
+                    {% for cls, inst in g.preferred %}
+                        <li class="flex justify-between gap-3 py-2.5">
+                            <span class="text-(--ink-2)">{{ cls }}</span><span class="{% if inst == 'not set' %}text-(--accent){% endif %} font-medium">{{ inst }}</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </section>
+        {% endif %}
+    {% endwith %}
+{% endblock %}
+{% block sheets %}
+    <div id="sheet-scrim" hidden data-sheet-close class="fixed inset-0 z-50 bg-black/30"></div>
+    <div data-sheet="settings"
+         hidden
+         class="fixed inset-x-0 bottom-0 z-50 mx-auto max-h-[88dvh] max-w-xl overflow-y-auto rounded-t-[28px] bg-white px-6 pt-3 pb-[max(24px,env(safe-area-inset-bottom))]">
+        <div class="mx-auto h-1 w-10 rounded-full bg-(--line)"></div>
+        <div class="mt-4 flex items-center justify-between">
+            <p class="text-[17px] font-semibold">Goal settings</p>
+            <button type="button"
+                    data-sheet-close
+                    class="grid size-9 place-items-center rounded-full bg-(--well)"
+                    aria-label="Close">
+                <i data-lucide="x" class="size-4"></i>
+            </button>
+        </div>
+        <div class="mt-4 space-y-3">
+            <label class="block">
+                <span class="kicker">Name</span>
+                <input class="field mt-1" value="{{ g.name }}" {% if g.system %}disabled{% endif %}>
+            </label>
+            <div class="grid grid-cols-2 gap-2">
+                <label class="block">
+                    <span class="kicker">Target, today's ₹</span>
+                    <input class="field tnum mt-1"
+                           value="₹{{ g.m.today.whole }}"
+                           {% if g.system %}disabled{% endif %}>
+                </label>
+                <label class="block">
+                    <span class="kicker">Date</span>
+                    <input class="field mt-1" value="{{ g.date }}" {% if g.system %}disabled{% endif %}>
+                </label>
+            </div>
+            <label class="block">
+                <span class="kicker">Inflation</span>
+                <select class="field mt-1">
+                    <option {% if g.inflation.0 == "General" %}selected{% endif %}>General · 6%</option>
+                    <option>Medical · 12%</option>
+                    <option {% if g.inflation.0 == "Custom" %}selected{% endif %}>
+                        Custom{% if g.inflation.0 == "Custom" %} · {{ g.inflation.1 }}{% endif %}
+                    </option>
+                </select>
+            </label>
+            <p class="text-[13px] text-(--ink-3)">
+                {% if g.system %}{{ g.date_how|default:g.rank_note }}{% else %}Rank {{ g.rank }} · {{ g.rank_note }} · drag to reorder on Home › Goals{% endif %}
+            </p>
+        </div>
+        {% if not g.system %}
+            <span class="mt-6 flex h-12 items-center justify-center rounded-full bg-(--ink) text-[15px] font-medium text-white">Mark reached</span>
+            <p class="mt-2 text-center text-[12px] text-(--ink-3)">Releases its Earmarks to Unallocated</p>
+            <span class="mt-4 flex items-center justify-center gap-1.5 text-[14px] font-medium text-(--neg)"><i data-lucide="trash-2" class="size-4"></i>Delete Goal</span>
+        {% else %}
+            <p class="mt-6 text-center text-[13px] text-(--ink-3)">A system Goal can't be deleted or marked reached.</p>
+        {% endif %}
+    </div>
+{% endblock %}
+{% block page_script %}
+    <script>
+    (() => {
+        const scrim = document.getElementById("sheet-scrim");
+        const close = () => {
+            document.querySelectorAll("[data-sheet]").forEach((s) => (s.hidden = true));
+            scrim.hidden = true;
+            delete document.body.dataset.sheet;
+        };
+        document.addEventListener("click", (e) => {
+            const o = e.target.closest("[data-sheet-open]");
+            if (o) {
+                document.querySelector(`[data-sheet="${o.dataset.sheetOpen}"]`).hidden = false;
+                scrim.hidden = false;
+                document.body.dataset.sheet = o.dataset.sheetOpen;
+            }
+            if (e.target.closest("[data-sheet-close]")) close();
+            if (e.target.closest("[data-edit-toggle]")) document.getElementById("money")?.toggleAttribute("data-edit");
+        });
+        document.addEventListener("keydown", (e) => e.key === "Escape" && close());
+
+        const calc = document.getElementById("calc");
+        if (!calc) return;
+        // Same model as goals.py: monthly steps along the SEBI Glide Path, Earmarks and Schedules only.
+        const AGE_NOW = 36.55, START = 1708450, BIRTH = 1990;
+        const FLOWS = [[10000, 0.10], [10000, 0], [12600, 0]];
+        const equity = (y) => (y >= 15 ? 80 : y >= 10 ? 72 : y >= 5 ? 58 : y >= 3 ? 42 : y >= 1 ? 28 : 12);
+        const ret = (y) => { const e = equity(y) / 100, g = Math.min(0.05, 1 - e); return e * 0.11 + (1 - e - g) * 0.07 + g * 0.07; };
+        const project = (age, extra) => {
+            const months = Math.round((age - AGE_NOW) * 12);
+            let v = START;
+            for (let i = 0; i < months; i++) {
+                v *= 1 + ret((months - i) / 12) / 12;
+                for (const [a, s] of FLOWS) v += a * (1 + s) ** Math.floor((i + 6) / 12);
+                v += extra;
+            }
+            return v;
+        };
+        const need = (monthly, swr, age) => ((monthly * 12) / swr) * 1.06 ** (age - AGE_NOW);
+        const short = (n) => (n >= 1e7 ? (n / 1e7).toFixed(2) + " Cr" : n >= 1e5 ? (n / 1e5).toFixed(2) + " L" : Math.round(n).toLocaleString("en-IN"));
+        const $ = (k) => calc.querySelector(`[data-out="${k}"]`);
+        const val = (k) => +calc.querySelector(`[data-in="${k}"]`).value;
+        const run = () => {
+            const age = val("age"), monthly = val("monthly"), swr = val("swr") / 100;
+            calc.querySelector('[data-show="age"]').textContent = age;
+            calc.querySelector('[data-show="monthly"]').textContent = "₹" + monthly.toLocaleString("en-IN");
+            calc.querySelector('[data-show="swr"]').textContent = +(swr * 100).toFixed(2) + "%";
+            const t = need(monthly, swr, age), p = project(age, 0);
+            $("target").textContent = short(t);
+            $("today").textContent = "₹" + short((monthly * 12) / swr);
+            $("date").textContent = "Mar " + (BIRTH + age);
+            $("projected").textContent = short(p);
+            let sip = 0;
+            if (p < t) {
+                let lo = 0, hi = 1e6;
+                for (let k = 0; k < 40; k++) { const m = (lo + hi) / 2; project(age, m) >= t ? (hi = m) : (lo = m); }
+                sip = Math.ceil(hi / 100) * 100;
+            }
+            $("sip").textContent = "₹" + short(sip);
+            let earliest = "70+";
+            for (let a = 40; a <= 70; a++) if (project(a, 0) >= need(monthly, swr, a)) { earliest = a; break; }
+            $("earliest").textContent = earliest;
+            const v = $("verdict");
+            v.textContent = p >= t ? `On track — ₹${short(p - t)} to spare at ${age}.` : `Behind — ₹${short(sip)} a month more to retire at ${age}.`;
+            v.className = "mt-3 text-[14px] font-medium " + (p >= t ? "text-(--pos)" : "text-(--neg)");
+            const note = $("swr-note");
+            const out = swr < 0.025 || swr > 0.035;
+            note.textContent = out ? `Outside the recommended {{ g.calc.swr_band }} — Folio will warn.` : "Recommended {{ g.calc.swr_band }}";
+            note.className = "mt-1 block text-[12px] " + (out ? "font-medium text-(--neg)" : "text-(--ink-3)");
+        };
+        calc.addEventListener("input", run);
+        run();
+    })();
+    </script>
+{% endblock %}

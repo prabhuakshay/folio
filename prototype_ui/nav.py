@@ -9,7 +9,7 @@ import json
 from urllib.parse import quote
 
 from django.http import Http404
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.urls import reverse
 
 from prototype_ui.data import ACCOUNTS, UPCOMING
@@ -256,6 +256,12 @@ def screen(request, key):
         raise Http404
     variant = _variant(request)
     name = request.GET.get("name", "")
+    # Filled in by the "Goal detail and Before Goals screens" prototype.
+    if variant == "L" and key == "scorecard":
+        return redirect(f"{reverse('prototype-before-goals')}?variant=U")
+    if variant == "L" and key == "goal":
+        slug = {"Emergency Fund": "ef", "Retirement": "retirement"}.get(name, "europe")
+        return redirect(f"{reverse('prototype-goal', args=[slug])}?variant=U")
     parent = _parent(key, variant)
     ctx = _nav_context(variant)
     ctx.update(

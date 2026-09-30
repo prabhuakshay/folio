@@ -1,6 +1,6 @@
 from django.urls import path
 
-from prototype_ui import aa, nav, plan, views
+from prototype_ui import aa, goals, nav, plan, views
 
 urlpatterns = [
     path("", views.home, name="prototype-ui"),
@@ -18,4 +18,7 @@ urlpatterns = [
     path("plan/schedule/<slug:key>/", plan.schedule, name="prototype-plan-schedule"),
     path("plan/policies/", plan.policies, name="prototype-plan-policies"),
     path("plan/policies/<slug:key>/", plan.policy, name="prototype-plan-policy"),
+    path("goals/<slug:key>/", goals.goal, name="prototype-goal"),
+    path("goals/<slug:key>/earmarks/", goals.earmarks, name="prototype-goal-earmarks"),
+    path("before-goals/", goals.before_goals, name="prototype-before-goals"),
 ]
