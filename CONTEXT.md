@@ -15,7 +15,13 @@ A system Goal, fixed at 100% cash and liquid debt, that must cover the trailing 
 _Avoid_: rainy-day fund, buffer
 
 **Take-home**:
-Trailing-12-month Income less Taxes and less whatever an Income Transaction puts straight into a retirement Account (employee and employer EPF/NPS, VPF, EPF and PPF interest credited); excludes Realised and Unrealised Gains. The base for the EMI cap, life-cover need and savings rate. Declared by hand until the ledger holds enough history.
+Trailing-12-month Income less Taxes and less whatever an Income Transaction puts straight into a retirement Account (employee and employer EPF/NPS, VPF, EPF and PPF interest credited); excludes Realised and Unrealised Gains. The base for the EMI cap, life-cover need and savings rate. In drawdown, Earned income plus Planned withdrawal replaces it as the EMI cap's base, and the life-cover need drops its income multiple to outstanding Liabilities less unearmarked liquid assets. Declared by hand until the ledger holds enough history.
+
+**Earned income**:
+Take-home less what the Interest and Dividends roles receive — salary, consulting, pension, annuity, rent: money that doesn't come out of your own corpus. In drawdown it is what the corpus doesn't have to fund.
+
+**Planned withdrawal**:
+In drawdown, what the Retirement corpus can sustainably give: the Safe Withdrawal Rate × the Retirement Goal's current Earmarked value, recomputed as that value moves. An SWP or other scheduled move from a Retirement-Earmarked Account into Bank & Cash carries it out rather than adding to it.
 
 **Dependent**:
 A person who relies on your income or is under your health cover. Recorded in your profile; never logs in and owns nothing. Every Dependent needs health cover; only one flagged as **relying on your income** creates a need for term life cover.
@@ -84,11 +90,11 @@ _Avoid_: recurring payment, standing instruction, mandate
 One dated instance a Schedule, Loan, Card, Term Deposit or Provident Account expects. It is **due** until **fulfilled** — by confirming it (with the date and amount edited if needed) or by linking a Transaction already recorded — or **skipped**; past its date it is **overdue**, and it never expires on its own. It returns to due if its Transaction is unlinked, deleted or undone with its Import; only deleting an auto-posted one skips it. Auto-post holds back, leaving it due, when a Match already exists.
 
 **Budget**:
-A monthly pay-yourself-first plan: expected income, less the **savings** reserved (the savings-rate target or the scheduled savings, whichever is larger), less **committed** spend (Occurrences that hit Expense Accounts, and Loan EMIs), leaves **spendable**. Spend not from a fulfilled Occurrence is **discretionary** and draws spendable down. Optional **limits** on any Expense Account, monthly or yearly, apply from the month they are set and never roll over. A Budget month begins on a chosen month-start day.
+A monthly pay-yourself-first plan: expected income, less the **savings** reserved (the savings-rate target or the scheduled savings, whichever is larger), less **committed** spend (Occurrences that hit Expense Accounts, and Loan EMIs), leaves **spendable**. In drawdown, expected income is Planned withdrawal ÷ 12 plus expected Earned income, and savings are only the scheduled savings, from the first Budget month starting on or after the Retirement date. Spend not from a fulfilled Occurrence is **discretionary** and draws spendable down. Optional **limits** on any Expense Account, monthly or yearly, apply from the month they are set and never roll over. A Budget month begins on a chosen month-start day.
 _Avoid_: envelope, sinking fund (a planned big spend is a Goal)
 
 **Saved**:
-Take-home less outflow (as the Emergency Fund counts it), plus what Income Transactions put straight into retirement Accounts. The **savings rate** is saved ÷ Take-home; loan principal repaid is outflow, not saving.
+Take-home less outflow (as the Emergency Fund counts it), plus what Income Transactions put straight into retirement Accounts. The **savings rate** is saved ÷ Take-home; loan principal repaid is outflow, not saving. Hidden in drawdown, where the withdrawal rate replaces it.
 
 **Surplus to direct**:
 Money Folio won't count as spendable — income that arrived without a Schedule (a bonus, a refund) and spendable left at month end — shown with advice pointing at the current Stage. Never moved automatically.
@@ -160,7 +166,7 @@ _Avoid_: insurance account, plan (the insurer's product name only)
 One of a fixed set, each with a fixed meaning for the Doctrine: term life and endowment/ULIP (life cover, counted only when you are the life assured), health base and health super top-up (health cover, a floater counting its full sum insured for each person covered; a top-up counts only where a person's counted base cover reaches its deductible); personal accident, critical illness, motor, home, travel and other are recorded but never counted.
 
 **Retirement**:
-A system Goal like any other whose target is set live by a calculator: Retirement expense ÷ Safe Withdrawal Rate, in today's rupees. Its date is your date of birth plus your **retirement age**; it counts only what is Earmarked to it. Past that date it is in **drawdown**: judged by its **withdrawal rate** (trailing-12-month outflow ÷ Earmarked value) against the Safe Withdrawal Rate instead of on track or behind. Never marked reached; cannot be deleted.
+A system Goal like any other whose target is set live by a calculator: Retirement expense ÷ Safe Withdrawal Rate, in today's rupees. Its date is your date of birth plus your **retirement age**; it counts only what is Earmarked to it. Past that date it — and the whole Doctrine and Budget with it — is in **drawdown**: judged by its **withdrawal rate** (trailing-12-month outflow less Earned income, floored at zero, ÷ Earmarked value) against the Safe Withdrawal Rate instead of on track or behind. There is no separate retired or partly-retired mode; you move the date by changing your retirement age. For the first 12 months of drawdown its figures are provisional: Earned income comes from the Occurrences expected over the next 12 months, or a declared figure, rather than from history. In drawdown, Stage 6 is met when the withdrawal rate is within or below the Safe Withdrawal Rate band and every other Goal is on track. Never marked reached; cannot be deleted.
 
 **Retirement expense**:
 The yearly spending the Retirement corpus must replace: trailing outflow (as the Emergency Fund counts it) less payments on Loans that end before retirement, unless you declare a monthly figure in today's rupees. Pensions, rent and other retirement income never reduce it.
@@ -170,7 +176,7 @@ The share of the Retirement corpus you can draw in the first year of retirement,
 _Avoid_: SWR (in the UI), 4% rule
 
 **Surplus**:
-Trailing monthly Take-home less trailing monthly outflow — the money Doctrine advice directs, to the current Stage and then down the Goal rank.
+Trailing monthly Take-home less trailing monthly outflow — the money Doctrine advice directs, to the current Stage and then down the Goal rank. In drawdown it is Earned income plus Planned withdrawal less outflow; below zero the Budget month is **over plan**.
 
 **Drift**:
 How far a Goal's actual mix sits from its Target Allocation, per Asset Class in percentage points. Past the inner band Folio nudges you to rebalance — first by re-earmarking between Goals or from Unallocated, then by steering new money; past the outer band, or at a Glide Path step, it suggests switching or selling. Judged per Goal; Unallocated has no target and never drifts.
