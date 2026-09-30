@@ -10,6 +10,7 @@ import json
 
 from django.http import Http404
 from django.shortcuts import render
+from django.template.loader import select_template
 
 from prototype_ui import plan_data as B
 from prototype_ui.aa_ledger import _u
@@ -23,11 +24,13 @@ VARIANTS = {
     "Q": "Rooms",
     "R": "The month",
     "S": "What needs you",
+    "T": "Chosen",
 }
 
 RULES = {
     "Q": "Plan is an index of four rooms, each with one live line. Budget is a top-down waterfall to spendable, then limits, then surplus. Recurring splits Due and Schedules; confirming or linking happens in a bottom sheet. Policies are grouped by what they count toward; a Policy is a plain record.",
     "R": "Plan is this Budget month on one page. Budget is one sentence of arithmetic and a burn-down of spendable. Recurring is a timeline through the month; each Occurrence opens in place to confirm or link, and Schedules group by the Account they leave. Policies are cover per person against the floor and the life need.",
+    "T": "The picks so far: Q everywhere, with a Budget that mixes Q's waterfall bars and S's itemised ledger, limits table and surplus decision. Recurring is still to choose.",
     "S": "Plan opens with a queue of what needs a decision, then quiet links. Budget is an itemised ledger — every Occurrence behind every line — with limits as a table. Confirming an Occurrence is its own screen that shows the Match. Policies open with the Doctrine's verdict and gaps; a Policy leads with whether it counts.",
 }
 
@@ -261,21 +264,29 @@ def _policies(variant):
     }
 
 
+def _render(request, variant, screen, ctx):
+    # T holds only the screens that differ from the Q it was picked from.
+    names = [f"prototype_ui/plan/{variant.lower()}_{screen}.html"]
+    if variant == "T":
+        names.append(f"prototype_ui/plan/q_{screen}.html")
+    return render(request, select_template(names).template.name, ctx)
+
+
 def root(request):
     variant, ctx = _base(request, "plan")
-    return render(request, f"prototype_ui/plan/{variant.lower()}_root.html", ctx)
+    return _render(request, variant, "root", ctx)
 
 
 def budget(request):
     variant, ctx = _base(request, "budget", "prototype-plan", "Plan", "Plan › Budget")
-    return render(request, f"prototype_ui/plan/{variant.lower()}_budget.html", ctx)
+    return _render(request, variant, "budget", ctx)
 
 
 def recurring(request):
     variant, ctx = _base(request, "recurring", "prototype-plan", "Plan", "Plan › Recurring")
     ctx["view"] = request.GET.get("view", "due")
     ctx["open"] = request.GET.get("open", "")
-    return render(request, f"prototype_ui/plan/{variant.lower()}_recurring.html", ctx)
+    return _render(request, variant, "recurring", ctx)
 
 
 def occurrence(request, key):
@@ -286,7 +297,7 @@ def occurrence(request, key):
         request, "occurrence", "prototype-plan-recurring", "Recurring", f"Plan › Recurring › {o['name']}"
     )
     ctx["o"] = _occ(o, variant)
-    return render(request, f"prototype_ui/plan/{variant.lower()}_occurrence.html", ctx)
+    return _render(request, variant, "occurrence", ctx)
 
 
 def schedule(request, key):
@@ -299,12 +310,12 @@ def schedule(request, key):
     ctx["s"] = _sched(key, SCHEDULES[key], variant)
     ctx["s_occurrences"] = [o for o in ctx["occurrences"] if o["schedule"] == key]
     ctx["s_done"] = [d for d in ctx["done"] if d["name"] == SCHEDULES[key]["name"]]
-    return render(request, f"prototype_ui/plan/{variant.lower()}_schedule.html", ctx)
+    return _render(request, variant, "schedule", ctx)
 
 
 def policies(request):
     variant, ctx = _base(request, "policies", "prototype-plan", "Plan", "Plan › Policies")
-    return render(request, f"prototype_ui/plan/{variant.lower()}_policies.html", ctx)
+    return _render(request, variant, "policies", ctx)
 
 
 def policy(request, key):
@@ -317,4 +328,4 @@ def policy(request, key):
     if p["premium"]:
         p = {**p, "premium_url": _u("prototype-plan-schedule", variant, p["premium"][2])}
     ctx["p"] = p
-    return render(request, f"prototype_ui/plan/{variant.lower()}_policy.html", ctx)
+    return _render(request, variant, "policy", ctx)
