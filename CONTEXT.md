@@ -7,6 +7,43 @@ A single-person finance ledger for Indian markets: what I own, what I owe, what 
 **Doctrine**:
 The ordered set of financial-health rules Folio holds you to (emergency fund, insurance cover, debt limits, allocation by horizon). Folio is opinionated: it advises and enforces against the Doctrine, not just records.
 
+**Account**:
+A node in the Chart of Accounts that Postings hit. Every Account has one Account Type. A bank account, cash, a wallet, a loan, a credit card, a Holding, Groceries, Salary — all are Accounts.
+An Account can be **closed** (zero balance required; hidden from pickers, history kept, reopenable) or **deleted** (its Postings and sub-accounts moved to another Account first).
+_Avoid_: ledger, category, head
+
+**Account Role**:
+A system purpose an Account serves so Folio can find it — Opening Balances, Realised Gains, Interest paid, Insurance premiums. A role-bearing Account can be deleted; Folio recreates it when the role is next needed, or the role is pointed at another Account.
+
+**Account Type**:
+One of Asset, Liability, Equity, Income, Expense. Fixes which side of the balance sheet or income statement an Account reports on.
+
+**Chart of Accounts**:
+The hierarchy of Accounts, grouped (e.g. Expenses › Food › Groceries, Assets › Bank › HDFC Savings). Postings hit only leaf Accounts; group Accounts only roll up. Folio seeds a default Indian personal Chart of Accounts, which you then edit freely.
+
+**Transaction**:
+Something that happened to your money on one day, recorded as two or more Postings that sum to zero — a card bill payment, an EMI split into principal and interest, an MF purchase, a payslip split into gross salary, TDS, EPF and net pay. Dated by when it happened, not when it cleared.
+_Avoid_: entry, journal, voucher
+
+**Posting**:
+One leg of a Transaction: a signed INR amount (Dr +, Cr −) to one Account. A Transaction's Postings always balance.
+_Avoid_: split, line item
+
+**Opening Balance**:
+A Transaction on an Account's start date that brings in its balance as of that day, against the Opening Balances Equity Account. Each Account has its own start date. For a Holding it is an opening position: units and cost.
+
+**Realised Gain**:
+The difference between a sale's proceeds and the FIFO cost of the units sold, posted to an Income Account.
+
+**Unrealised Gain**:
+The gap between Holdings' market value and their cost. Computed and shown under Equity on the balance sheet; never posted.
+
+**Net Worth**:
+Assets at market value minus Liabilities.
+
+**Financial Year**:
+April to March — the default reporting period. Periods are never closed or locked; this is a personal finance app, not an accounting package.
+
 **Goal**:
 A named future need with a target amount and a target date (e.g. "Vacation 2027", "Retirement"). Each Goal has its own Target Allocation because its horizon sets its risk appetite.
 _Avoid_: bucket, compartment, envelope
@@ -22,7 +59,7 @@ _Avoid_: ratio, mix
 Something you can hold value in — a mutual fund scheme, a listed stock/ETF/SGB, an FD, PPF, EPF, NPS tier, gold, a property. Belongs to one Asset Class. Priced from a feed where a free one exists, otherwise revalued by hand. INR only; foreign assets are entered as INR-valued Instruments.
 
 **Holding**:
-Your position in one Instrument, built from its transactions (buys, sells, SIP instalments, dividends, interest credits). Value is units × price; return is XIRR.
+An Asset Account holding your position in one Instrument, built from its Postings (buys, sells, SIP instalments, dividends, interest credits); each Posting to a Holding carries units as well as an INR amount at cost. Value is units × latest price — computed, never posted, so price moves create no Transactions. Return is XIRR.
 
 **Earmark**:
 Assignment of some units of a Holding to a Goal. A Holding may be split across several Goals by units, so each Goal's share moves with price.
@@ -39,6 +76,10 @@ A Goal like any other, with a projection calculator attached — not a separate 
 
 ## Relationships
 
+- A **Transaction** has two or more **Postings**, summing to zero
+- A **Posting** hits exactly one **Account**
+- An **Account** has exactly one **Account Type** and sits in the **Chart of Accounts**
+- An **Account** carries zero or more **Account Roles**; each role is held by at most one Account
 - A **Goal** has exactly one **Target Allocation**
 - A **Target Allocation** is expressed over **Asset Classes**
 - An **Instrument** belongs to exactly one **Asset Class**
@@ -48,4 +89,5 @@ A Goal like any other, with a projection calculator attached — not a separate 
 
 ## Flagged ambiguities
 
+- "Account" means any Account in the Chart of Accounts, not just bank/cash. Say "bank Account" when that's meant. "Category" (for income/expense) is retired — those are Income and Expense Accounts.
 - "compartmentalization" in the original brief meant earmarking money to **Goals**, each with its own **Target Allocation** — not a single portfolio-level ratio.
