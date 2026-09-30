@@ -42,7 +42,7 @@ One of Asset, Liability, Equity, Income, Expense. Fixes which side of the balanc
 The hierarchy of Accounts, grouped (e.g. Expenses › Food › Groceries, Assets › Bank › HDFC Savings). Postings hit only leaf Accounts; group Accounts only roll up. Folio seeds a default Indian personal Chart of Accounts, which you then edit freely.
 
 **Transaction**:
-Something that happened to your money on one day, recorded as two or more Postings that sum to zero — a card bill payment, an EMI split into principal and interest, an MF purchase, a payslip split into gross salary, TDS, EPF and net pay. Dated by when it happened, not when it cleared. A Corporate Action within one Holding is the one Transaction with a single Posting: units at ₹0.
+Something that happened to your money on one day, recorded as two or more Postings that sum to zero — a card bill payment, an EMI split into principal and interest, an MF purchase, a payslip split into gross salary, TDS, EPF and net pay. Dated by when it happened, not when it cleared. It may carry a Payee, Tags and one free-text **note**, which search reads. A Corporate Action within one Holding is the one Transaction with a single Posting: units at ₹0.
 _Avoid_: entry, journal, voucher
 
 **Posting**:
