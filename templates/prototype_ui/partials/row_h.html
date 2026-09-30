@@ -1,0 +1,10 @@
+<li class="flex items-center gap-3.5 py-3.5 {% if t.new %}row-new{% endif %}">
+    <span class="tile size-9 rounded-full"
+          style="--c: {{ t.color }}"><i data-lucide="{{ t.icon }}"
+   class="size-4"></i></span>
+    <div class="min-w-0 flex-1">
+        <p class="truncate text-[15px] leading-5">{{ t.payee }}</p>
+        <p class="truncate text-[13px] leading-5 text-(--ink-3)">{{ t.category }} · {{ t.time }}</p>
+    </div>
+    <p class="num text-[15px] font-medium {% if t.amount.pos %}text-(--pos){% endif %}">{{ t.amount.sign }}<span class="cur">₹</span>{{ t.amount.whole }}</p>
+</li>

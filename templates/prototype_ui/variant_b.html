@@ -1,0 +1,181 @@
+{% extends "prototype_ui/base.html" %}
+{# PROTOTYPE B (dark) and D (light) — card-led. Net worth glows at the top, accounts are swipeable cards, the doctrine step and a spend donut follow. #}
+{% block style %}
+    {% if tokens.mode == "dark" %}
+        :root { color-scheme: dark; --glass: rgb(255 255 255 / .06); --glass-ring: rgb(255 255 255 / .08); --panel-ring: rgb(255 255 255 / .06); --tabbar: rgb(10 13 19 / .85); --hairline: rgb(255 255 255 / .06); --track: rgb(255 255 255 / .08); --aurora: .34; --panel-shadow: none; }
+    {% else %}
+        :root { --glass: var(--surface); --glass-ring: rgb(11 16 32 / .06); --panel-ring: rgb(11 16 32 / .05); --tabbar: rgb(255 255 255 / .88); --hairline: rgb(11 16 32 / .07); --track: var(--canvas); --aurora: .22; --panel-shadow: 0 1px 2px rgb(11 16 32 / .04), 0 8px 24px -10px rgb(11 16 32 / .10); }
+    {% endif %}
+    .aurora { background:
+    radial-gradient(60% 70% at 20% 0%, color-mix(in srgb, var(--accent) calc(var(--aurora) * 100%), transparent), transparent 70%),
+    radial-gradient(50% 60% at 90% 10%, rgb(61 214 140 / .16), transparent 70%); }
+    .glass { background: var(--glass); box-shadow: inset 0 0 0 1px var(--glass-ring), var(--panel-shadow); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+    .panel { background: var(--surface); border-radius: var(--radius); box-shadow: inset 0 0 0 1px var(--panel-ring), var(--panel-shadow); }
+    .bank { position: relative; overflow: hidden; border-radius: 22px; background: linear-gradient(135deg, var(--from), var(--to)); box-shadow: inset 0 0 0 1px rgb(255 255 255 / .12), 0 18px 40px -18px var(--to); }
+    .bank::before { content: ""; position: absolute; width: 220px; height: 220px; right: -70px; top: -90px; border-radius: 50%; background: radial-gradient(circle, rgb(255 255 255 / .22), transparent 65%); }
+    .bank::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(115deg, transparent 0 22px, rgb(255 255 255 / .035) 22px 23px); }
+    .glow-border { position: relative; }
+    .glow-border::before { content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px; background: linear-gradient(140deg, color-mix(in srgb, var(--accent) 80%, transparent), transparent 45%, transparent 70%, rgb(61 214 140 / .5)); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none; }
+    .rise { animation: rise .9s var(--ease-sheet) both; }
+    @keyframes rise { from { opacity: 0; transform: translateY(10px) scale(.98); filter: blur(4px); } }
+    #composer .sheet { box-shadow: inset 0 1px 0 var(--hairline); }
+{% endblock %}
+{% block body %}
+    <div class="aurora pointer-events-none absolute inset-x-0 top-0 h-[520px]"></div>
+    <div class="relative mx-auto w-full max-w-[1120px] pb-32 lg:px-8 lg:pb-12">
+        <header class="flex items-center gap-3 px-5 pt-[max(1rem,env(safe-area-inset-top))] lg:px-0 lg:pt-6">
+            <span class="grid size-10 place-items-center rounded-full bg-gradient-to-br from-(--accent) to-emerald-400 text-[13px] font-bold text-(--on-accent)">AP</span>
+            <div class="flex-1 leading-tight">
+                <p class="text-[13px] text-(--ink-2)">Good evening</p>
+                <p class="text-[16px] font-bold">Akshay</p>
+            </div>
+            <nav class="mr-4 hidden items-center gap-1 text-[14px] font-medium text-(--ink-2) lg:flex">
+                <a href="#" class="glass rounded-full px-4 py-2 text-(--ink)">Home</a><a href="#" class="rounded-full px-4 py-2 hover:text-(--ink)">Accounts</a><a href="#" class="rounded-full px-4 py-2 hover:text-(--ink)">Goals</a><a href="#" class="rounded-full px-4 py-2 hover:text-(--ink)">Plan</a>
+            </nav>
+            <button type="button"
+                    class="glass grid size-10 place-items-center rounded-full text-(--ink-2)"
+                    aria-label="Search">
+                <i data-lucide="search" class="size-[18px]"></i>
+            </button>
+            <button type="button"
+                    class="glass relative grid size-10 place-items-center rounded-full text-(--ink-2)"
+                    aria-label="Notifications">
+                <i data-lucide="bell"
+                   class="size-[18px]"></i><span class="absolute right-2.5 top-2.5 size-2 rounded-full bg-(--neg)"></span>
+            </button>
+        </header>
+        <div class="lg:mt-6 lg:grid lg:grid-cols-[1fr_400px] lg:gap-8">
+            <div class="min-w-0 lg:sticky lg:top-6 lg:self-start">
+                <section class="rise px-5 pt-9 text-center lg:px-0 lg:pt-6 lg:text-left">
+                    <p class="text-[13px] font-medium text-(--ink-2)">Net worth</p>
+                    <p class="num mt-1.5 text-[44px] font-bold leading-[50px] tracking-[-0.035em] lg:text-[56px] lg:leading-[62px]"><span class="cur">₹</span>{{ net_worth.whole }}<span class="paise">.{{ net_worth.paise }}</span></p>
+                    <p class="mt-2.5 inline-flex items-center gap-1.5 rounded-full bg-(--pos)/12 px-2.5 py-1 text-[13px] font-semibold text-(--pos)"><i data-lucide="arrow-up-right" class="size-3.5"></i>{{ nw_change.text }} · {{ nw_change_pct }}% this month</p>
+                </section>
+                <div class="mt-7 grid grid-cols-4 gap-2 px-5 lg:max-w-md lg:px-0">
+                    <button type="button"
+                            data-compose
+                            class="flex flex-col items-center gap-2 text-[12px] font-medium text-(--ink-2)"><span class="grid size-14 place-items-center rounded-full bg-(--accent) text-(--on-accent) shadow-[0_8px_24px_-6px_var(--accent)]"><i data-lucide="plus" class="size-6"></i></span>Add</button>
+                    <button type="button"
+                            class="flex flex-col items-center gap-2 text-[12px] font-medium text-(--ink-2)"><span class="glass grid size-14 place-items-center rounded-full text-(--ink)"><i data-lucide="arrow-left-right" class="size-[22px]"></i></span>Transfer</button>
+                    <button type="button"
+                            class="flex flex-col items-center gap-2 text-[12px] font-medium text-(--ink-2)"><span class="glass grid size-14 place-items-center rounded-full text-(--ink)"><i data-lucide="file-down" class="size-[22px]"></i></span>Import</button>
+                    <button type="button"
+                            class="flex flex-col items-center gap-2 text-[12px] font-medium text-(--ink-2)"><span class="glass grid size-14 place-items-center rounded-full text-(--ink)"><i data-lucide="target" class="size-[22px]"></i></span>Goals</button>
+                </div>
+                <section class="mt-9">
+                    <div class="flex items-baseline justify-between px-5 lg:px-0">
+                        <h2 class="text-[17px] font-bold tracking-tight">Accounts</h2>
+                        <a href="#" class="text-[13px] font-semibold text-(--accent)">All 11</a>
+                    </div>
+                    <div class="hide-scrollbar mt-3.5 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-5 px-5 pb-6 lg:grid lg:grid-cols-2 lg:overflow-visible lg:scroll-px-0 lg:px-0">
+                        {% for c in cards %}
+                            <article class="bank flex h-[172px] w-[272px] lg:w-auto shrink-0 snap-start flex-col p-5 text-white"
+                                     style="--from: {{ c.from }};
+                                            --to: {{ c.to }}">
+                                <div class="relative z-10 flex items-center gap-2.5">
+                                    <span class="grid size-9 place-items-center rounded-full bg-white/15"><i data-lucide="{{ c.icon }}" class="size-[18px]"></i></span>
+                                    <div class="leading-tight">
+                                        <p class="text-[14px] font-semibold">{{ c.name }}</p>
+                                        <p class="text-[12px] text-white/65">{{ c.kind }}</p>
+                                    </div>
+                                </div>
+                                <p class="num relative z-10 mt-auto text-[26px] font-bold tracking-tight">{{ c.balance.sign }}<span class="cur">₹</span>{{ c.balance.whole }}{% if c.balance.paise != "00" %}<span class="paise">.{{ c.balance.paise }}</span>{% endif %}</p>
+                                <p class="relative z-10 mt-1 text-[12px] text-white/65">{{ c.foot }}</p>
+                            </article>
+                        {% endfor %}
+                    </div>
+                </section>
+                <a href="#" class="panel glow-border mx-5 block p-5 lg:mx-0">
+                    <div class="flex items-center gap-3">
+                        <span class="grid size-11 place-items-center rounded-2xl bg-(--accent)/15 text-(--accent) shadow-[0_0_24px_-4px_var(--accent)]"><i data-lucide="shield-plus" class="size-[22px]"></i></span>
+                        <div class="flex-1 leading-tight">
+                            <p class="text-[12px] font-semibold text-(--accent)">Your next step</p>
+                            <p class="mt-1 text-[17px] font-bold tracking-tight">Top up your term cover</p>
+                        </div>
+                        <span class="num text-[13px] font-semibold text-(--ink-2)">{{ stage_index }}/{{ stages|length }}</span>
+                    </div>
+                    <p class="mt-3 text-[14px] leading-[21px] text-(--ink-2)">{{ current_stage.detail }}. Folio points your surplus here until it's closed.</p>
+                    <div class="mt-4 flex items-center gap-1.5">
+                        {% for s in stages %}
+                            <span class="h-1 flex-1 rounded-full {% if s.current %}bg-(--accent) shadow-[0_0_10px_var(--accent)]{% elif s.met %}bg-(--pos){% else %}bg-(--track){% endif %}"
+                                  title="{{ s.name }}"></span>
+                        {% endfor %}
+                    </div>
+                    <span class="mt-5 inline-flex h-10 items-center gap-2 rounded-full bg-(--ink) px-4 text-[14px] font-semibold text-(--canvas)">Compare term plans<i data-lucide="arrow-right" class="size-4"></i></span>
+                </a>
+            </div>
+            <div class="min-w-0">
+                <section class="panel mx-5 mt-4 p-5 lg:mx-0 lg:mt-0">
+                    <div class="flex items-baseline justify-between">
+                        <h2 class="text-[17px] font-bold tracking-tight">{{ month.name }}</h2>
+                        <span class="text-[13px] text-(--ink-3)">{{ month.days_left }} day left</span>
+                    </div>
+                    <div class="mt-4 flex items-center gap-5">
+                        <div class="relative size-[124px] shrink-0">
+                            <svg viewBox="0 0 100 100" class="size-full -rotate-90">
+                                <circle cx="50" cy="50" r="42" fill="none" stroke="var(--track)" stroke-width="9" />
+                                {% for d in donut %}
+                                    <circle cx="50" cy="50" r="42" fill="none" stroke="{{ d.color }}" stroke-width="9" stroke-linecap="round" stroke-dasharray="{{ d.dash }}" stroke-dashoffset="{{ d.offset }}" />
+                                {% endfor %}
+                            </svg>
+                            <div class="absolute inset-0 grid place-content-center text-center">
+                                <p class="num text-[17px] font-bold leading-tight"><span class="cur">₹</span>{{ month.spent.short }}</p>
+                                <p class="text-[11px] text-(--ink-3)">of ₹{{ month.budget.short }}</p>
+                            </div>
+                        </div>
+                        <ul class="min-w-0 flex-1 space-y-2 text-[13px]">
+                            {% for d in donut|slice:":4" %}
+                                <li class="flex items-center gap-2"><span class="size-2 shrink-0 rounded-full"
+      style="background: {{ d.color }}"></span><span class="flex-1 truncate text-(--ink-2)">{{ d.name }}</span><span class="num font-semibold">{{ d.pct }}%</span></li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <div class="mt-5 flex items-center gap-3 rounded-2xl bg-(--neg)/10 px-3.5 py-3 text-[13px]">
+                        <i data-lucide="flame" class="size-[18px] shrink-0 text-(--neg)"></i>
+                        <p class="text-(--ink-2)"><span class="font-semibold text-(--ink)">Dining out is ₹1,120 over.</span> Everything else is on budget.</p>
+                    </div>
+                </section>
+                <section class="mt-8 px-5 lg:px-0">
+                    <div class="flex items-baseline justify-between">
+                        <h2 class="text-[17px] font-bold tracking-tight">Activity</h2>
+                        <a href="#" class="text-[13px] font-semibold text-(--accent)">See all</a>
+                    </div>
+                    {% regroup transactions by day as days %}
+                    {% for d in days %}
+                        <h3 class="mb-2 mt-5 text-[12px] font-semibold text-(--ink-3)">{{ d.grouper }}</h3>
+                        <ul {% if forloop.first %}id="feed-today"{% endif %}
+                            class="panel divide-y divide-(--hairline) overflow-hidden">
+                            {% for t in d.list %}
+                                {% include "prototype_ui/partials/row_b.html" %}
+                            {% endfor %}
+                        </ul>
+                    {% endfor %}
+                </section>
+            </div>
+        </div>
+    </div>
+    <nav class="fixed inset-x-0 bottom-0 z-40 border-t border-(--hairline) bg-(--tabbar) pb-[env(safe-area-inset-bottom)] backdrop-blur-xl lg:hidden">
+        <div class="grid h-[62px] grid-cols-5 items-center text-[10px] font-semibold text-(--ink-3)">
+            <a href="#"
+               class="flex flex-col items-center gap-1 text-(--ink)"><i data-lucide="house"
+   class="size-[22px]"></i>Home</a>
+            <a href="#"
+               class="flex flex-col items-center gap-1"><i data-lucide="wallet-cards"
+   class="size-[22px]"></i>Accounts</a>
+            <div class="flex justify-center">
+                <button type="button"
+                        data-compose
+                        class="grid size-[52px] -translate-y-3 place-items-center rounded-full bg-(--accent) text-(--on-accent) shadow-[0_0_0_6px_var(--canvas),0_10px_28px_-6px_var(--accent)] transition-transform active:scale-95"
+                        aria-label="New expense">
+                    <i data-lucide="plus" class="size-6"></i>
+                </button>
+            </div>
+            <a href="#"
+               class="flex flex-col items-center gap-1"><i data-lucide="target"
+   class="size-[22px]"></i>Goals</a>
+            <a href="#"
+               class="flex flex-col items-center gap-1"><i data-lucide="compass"
+   class="size-[22px]"></i>Plan</a>
+        </div>
+    </nav>
+{% endblock %}

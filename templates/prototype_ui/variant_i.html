@@ -1,0 +1,314 @@
+{% extends "prototype_ui/base.html" %}
+{# PROTOTYPE I — Converged: D's look, G's tiles (content-sized, never truncated), F's month calendar, and a one-line doctrine banner that disappears once every stage is met. One component system: cards are shadow-only, selected = solid ink. #}
+{% block style %}
+    :root { --shadow: 0 1px 2px rgb(11 16 32 / .04), 0 6px 20px -8px rgb(11 16 32 / .10); }
+    .aurora { background:
+    radial-gradient(55% 60% at 18% 0%, color-mix(in srgb, var(--accent) 20%, transparent), transparent 72%),
+    radial-gradient(45% 50% at 92% 6%, color-mix(in srgb, var(--pos) 12%, transparent), transparent 72%); }
+    .card { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); }
+    .raised { background: var(--surface); box-shadow: var(--shadow); }
+    .label { font-size: 13px; font-weight: 600; color: var(--ink-3); }
+    .bank { position: relative; overflow: hidden; border-radius: 22px; background: linear-gradient(135deg, var(--from), var(--to)); box-shadow: 0 16px 32px -18px var(--to); }
+    .bank::before { content: ""; position: absolute; width: 220px; height: 220px; right: -70px; top: -90px; border-radius: 50%; background: radial-gradient(circle, rgb(255 255 255 / .2), transparent 65%); }
+    .bento { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .cal { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; }
+    .day { aspect-ratio: 1 / 1.08; border-radius: 12px; display: flex; flex-direction: column; justify-content: space-between; padding: 6px 7px; text-align: left; transition: background-color .15s, color .15s, transform .15s; }
+    .day:active { transform: scale(.94); }
+    .l0 { background: var(--canvas); }
+    .l1 { background: color-mix(in srgb, var(--accent) 10%, var(--surface)); }
+    .l2 { background: color-mix(in srgb, var(--accent) 22%, var(--surface)); }
+    .l3 { background: color-mix(in srgb, var(--accent) 40%, var(--surface)); }
+    .l4 { background: color-mix(in srgb, var(--accent) 68%, var(--surface)); color: #fff; }
+    .l4 .day-amt { color: rgb(255 255 255 / .8); }
+    .day[aria-pressed="true"] { background: var(--ink); color: var(--surface); }
+    .day[aria-pressed="true"] .day-amt { color: rgb(255 255 255 / .7); }
+    .day-amt { font-size: 10px; font-weight: 600; color: var(--ink-3); line-height: 1; }
+    .today-dot { width: 4px; height: 4px; border-radius: 99px; background: var(--accent); }
+    .day[aria-pressed="true"] .today-dot { background: #fff; }
+    @media (min-width: 1024px) { .day { padding: 8px 9px; } .day-amt { font-size: 11px; } }
+{% endblock %}
+{% block body %}
+    <div class="aurora pointer-events-none absolute inset-x-0 top-0 h-[480px]"></div>
+    <div class="relative mx-auto w-full max-w-[1160px] pb-32 lg:px-8 lg:pb-12">
+        <header class="flex items-center gap-3 px-5 pt-[max(1rem,env(safe-area-inset-top))] lg:px-0 lg:pt-6">
+            <span class="grid size-10 place-items-center rounded-full bg-(--accent) text-[13px] font-bold text-white">AP</span>
+            <div class="flex-1 leading-tight">
+                <p class="text-[13px] font-medium text-(--ink-2)">Good evening</p>
+                <p class="text-[16px] font-bold">Akshay</p>
+            </div>
+            <nav class="raised mr-3 hidden items-center gap-1 rounded-full p-1 text-[14px] font-semibold text-(--ink-2) lg:flex">
+                <a href="#" class="rounded-full bg-(--ink) px-4 py-1.5 text-white">Home</a><a href="#" class="rounded-full px-4 py-1.5">Accounts</a><a href="#" class="rounded-full px-4 py-1.5">Goals</a><a href="#" class="rounded-full px-4 py-1.5">Plan</a>
+            </nav>
+            <button type="button"
+                    class="raised grid size-10 place-items-center rounded-full text-(--ink-2)"
+                    aria-label="Search">
+                <i data-lucide="search" class="size-[18px]"></i>
+            </button>
+            <button type="button"
+                    class="raised relative grid size-10 place-items-center rounded-full text-(--ink-2)"
+                    aria-label="Notifications">
+                <i data-lucide="bell" class="size-[18px]"></i><span class="absolute right-[11px] top-[10px] size-2 rounded-full bg-(--neg) shadow-[0_0_0_2px_var(--surface)]"></span>
+            </button>
+        </header>
+        <div class="lg:mt-4 lg:grid lg:grid-cols-[minmax(0,1fr)_420px] lg:items-start lg:gap-8">
+            <div class="min-w-0">
+                <section class="px-5 pt-8 text-center lg:px-0 lg:pt-6 lg:text-left">
+                    <p class="label">Net worth</p>
+                    <p class="num mt-1 text-[44px] font-bold leading-[50px] tracking-[-0.035em] lg:text-[54px] lg:leading-[60px]"><span class="cur">₹</span>{{ net_worth.whole }}<span class="paise">.{{ net_worth.paise }}</span></p>
+                    <p class="mt-2.5 inline-flex items-center gap-1 rounded-full bg-(--pos)/10 px-2.5 py-1 text-[13px] font-semibold text-(--pos)"><i data-lucide="arrow-up-right" class="size-3.5"></i>{{ nw_change.text }} · {{ nw_change_pct }}% this month</p>
+                </section>
+                <div class="mt-7 grid grid-cols-4 gap-2 px-5 lg:max-w-md lg:px-0">
+                    <button type="button"
+                            data-compose
+                            class="flex flex-col items-center gap-2 text-[12px] font-semibold text-(--ink-2)"><span class="grid size-[56px] place-items-center rounded-full bg-(--accent) text-white shadow-[0_10px_22px_-8px_var(--accent)]"><i data-lucide="plus" class="size-6"></i></span>Add</button>
+                    <button type="button"
+                            class="flex flex-col items-center gap-2 text-[12px] font-semibold text-(--ink-2)"><span class="raised grid size-[56px] place-items-center rounded-full text-(--ink)"><i data-lucide="arrow-left-right" class="size-[22px]"></i></span>Transfer</button>
+                    <button type="button"
+                            class="flex flex-col items-center gap-2 text-[12px] font-semibold text-(--ink-2)"><span class="raised grid size-[56px] place-items-center rounded-full text-(--ink)"><i data-lucide="file-down" class="size-[22px]"></i></span>Import</button>
+                    <button type="button"
+                            class="flex flex-col items-center gap-2 text-[12px] font-semibold text-(--ink-2)"><span class="raised grid size-[56px] place-items-center rounded-full text-(--ink)"><i data-lucide="target" class="size-[22px]"></i></span>Goals</button>
+                </div>
+                {% if current_stage %}
+                    <a href="#"
+                       class="card mx-5 mt-8 flex items-center gap-3 p-3.5 pr-4 lg:mx-0">
+                        <span class="grid size-10 shrink-0 place-items-center rounded-full bg-(--accent-soft) text-(--accent)"><i data-lucide="shield-plus" class="size-5"></i></span>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-[15px] font-bold leading-5">Top up your term cover</p>
+                            <p class="text-[13px] leading-5 text-(--ink-2)">₹1.10 Cr short · step {{ stage_index }} of {{ stages|length }}</p>
+                        </div>
+                        <i data-lucide="chevron-right" class="size-5 shrink-0 text-(--ink-3)"></i>
+                    </a>
+                {% endif %}
+                <section class="mt-8">
+                    <div class="flex items-baseline justify-between px-5 lg:px-0">
+                        <h2 class="text-[17px] font-bold tracking-tight">Accounts</h2>
+                        <a href="#" class="text-[13px] font-semibold text-(--accent)">All 11</a>
+                    </div>
+                    <div class="hide-scrollbar mt-3 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-5 px-5 pb-6 lg:grid lg:grid-cols-2 lg:overflow-visible lg:px-0">
+                        {% for c in cards %}
+                            <article class="bank flex h-[164px] w-[268px] shrink-0 snap-start flex-col p-5 text-white lg:w-auto"
+                                     style="--from: {{ c.from }};
+                                            --to: {{ c.to }}">
+                                <div class="relative z-10 flex items-center gap-2.5">
+                                    <span class="grid size-9 place-items-center rounded-full bg-white/15"><i data-lucide="{{ c.icon }}" class="size-[18px]"></i></span>
+                                    <div class="min-w-0 leading-tight">
+                                        <p class="truncate text-[14px] font-semibold">{{ c.name }}</p>
+                                        <p class="truncate text-[12px] text-white/65">{{ c.kind }}</p>
+                                    </div>
+                                </div>
+                                <p class="num relative z-10 mt-auto text-[26px] font-bold tracking-tight">{{ c.balance.sign }}<span class="cur">₹</span>{{ c.balance.whole }}{% if c.balance.paise != "00" %}<span class="paise">.{{ c.balance.paise }}</span>{% endif %}</p>
+                                <p class="relative z-10 mt-1 text-[12px] text-white/70">{{ c.foot }}</p>
+                            </article>
+                        {% endfor %}
+                    </div>
+                </section>
+                <div class="bento px-5 lg:px-0">
+                    <a href="#" class="card col-span-2 p-5">
+                        <div class="flex items-start justify-between gap-4">
+                            <div class="min-w-0">
+                                <p class="label">{{ month.name }} budget</p>
+                                <p class="num mt-1 text-[26px] font-bold leading-8 tracking-tight"><span class="cur">₹</span>{{ month.left.whole }} <span class="text-[15px] font-semibold text-(--ink-3)">left</span></p>
+                                <p class="mt-0.5 text-[13px] text-(--ink-2)">₹{{ month.spent.whole }} of ₹{{ month.budget.whole }} · {{ month.days_left }} day to go</p>
+                            </div>
+                            <div class="relative size-[64px] shrink-0">
+                                <svg viewBox="0 0 88 88" class="size-full -rotate-90" aria-hidden="true">
+                                    <circle cx="44" cy="44" r="37" fill="none" stroke="var(--canvas)" stroke-width="11" />
+                                    <circle cx="44" cy="44" r="37" fill="none" stroke="var(--accent)" stroke-width="11" stroke-linecap="round" stroke-dasharray="{% widthratio month.pct 100 232.5 %} 232.5" />
+                                </svg>
+                                <span class="absolute inset-0 grid place-items-center text-[13px] font-bold">{{ month.pct }}%</span>
+                            </div>
+                        </div>
+                        <div class="mt-4 flex h-2 gap-[3px] overflow-hidden rounded-full">
+                            {% for d in donut %}
+                                <span style="width: {{ d.of_budget }}%; background: {{ d.color }}"></span>
+                            {% endfor %}
+                            <span class="flex-1 bg-(--canvas)"></span>
+                        </div>
+                        <ul class="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-[13px]">
+                            {% for b in budgets|slice:":4" %}
+                                <li class="flex min-w-0 items-center gap-2"><span class="size-2 shrink-0 rounded-full"
+      style="background: {{ b.color }}"></span><span class="min-w-0 flex-1 truncate text-(--ink-2)">{{ b.name }}</span><span class="num font-semibold {% if b.over %}text-(--neg){% endif %}">{{ b.pct_raw }}%</span></li>
+                            {% endfor %}
+                        </ul>
+                    </a>
+                    <a href="#" class="card flex flex-col p-4">
+                        <p class="label">Emergency Fund</p>
+                        <div class="relative mx-auto mt-3 w-full max-w-[128px]">
+                            <svg viewBox="0 0 100 56"
+                                 class="w-full overflow-visible"
+                                 aria-hidden="true">
+                                <path d="M10 50 A40 40 0 0 1 90 50" fill="none" stroke="var(--canvas)" stroke-width="10" stroke-linecap="round" />
+                                <path d="M10 50 A40 40 0 0 1 90 50" fill="none" stroke="var(--pos)" stroke-width="10" stroke-linecap="round" stroke-dasharray="87.96 125.66" />
+                            </svg>
+                            <p class="absolute inset-x-0 bottom-0 text-center text-[22px] font-bold leading-6 tracking-tight">4.2</p>
+                        </div>
+                        <p class="mt-2 text-center text-[13px] text-(--ink-2)">of 6 months</p>
+                    </a>
+                    <a href="#" class="card flex flex-col p-4">
+                        <p class="label">Savings rate</p>
+                        <p class="num mt-1 text-[26px] font-bold leading-8 tracking-tight">{{ month.savings_rate }}<span class="text-[15px] font-semibold text-(--ink-3)">%</span></p>
+                        <div class="relative mt-auto flex h-[44px] items-end gap-[5px] pt-2">
+                            <span class="absolute inset-x-0 border-t border-dashed border-(--ink-3)/50"
+                                  style="bottom: 75%"></span>
+                            {% for c in cashflow %}
+                                <span class="flex-1 rounded-[4px] {% if forloop.last %}bg-(--accent){% else %}bg-(--accent)/15{% endif %}"
+                                      style="height: {% widthratio c.rate 40 100 %}%"></span>
+                            {% endfor %}
+                        </div>
+                        <p class="mt-2 text-[12px] text-(--ink-3)">Target 30% and up</p>
+                    </a>
+                    <section class="card col-span-2 p-5">
+                        <div class="flex items-baseline justify-between">
+                            <p class="label">Coming up in October</p>
+                            <p class="num text-[13px] font-semibold">₹{{ upcoming_total.whole }}</p>
+                        </div>
+                        <ul class="mt-2 divide-y divide-(--line)">
+                            {% for u in upcoming|slice:":4" %}
+                                <li class="flex items-center gap-3 py-2.5">
+                                    <span class="grid w-10 shrink-0 text-center leading-none"><span class="text-[17px] font-bold {% if u.urgent %}text-(--neg){% endif %}">{{ u.day }}</span><span class="mt-1 text-[11px] font-semibold text-(--ink-3)">{{ u.dow }}</span></span>
+                                    <div class="min-w-0 flex-1">
+                                        <p class="truncate text-[14px] font-semibold leading-5">{{ u.name }}</p>
+                                        <p class="truncate text-[12px] leading-4 text-(--ink-3)">{{ u.note }}</p>
+                                    </div>
+                                    <p class="num shrink-0 text-[14px] font-semibold"><span class="cur">₹</span>{{ u.money.whole }}</p>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </section>
+                    <a href="#" class="card flex flex-col p-4">
+                        <p class="label">Investments</p>
+                        <p class="num mt-1 text-[22px] font-bold leading-7 tracking-tight"><span class="cur">₹</span>24.54 L</p>
+                        <p class="text-[13px] font-semibold text-(--pos)">+14.8% in 1 year</p>
+                        <div class="mt-auto pt-4">
+                            <div class="flex h-2 gap-[3px] overflow-hidden rounded-full">
+                                <span class="bg-(--accent)" style="width: 41%"></span><span class="bg-(--accent)/35" style="width: 53%"></span><span class="flex-1 bg-[#D4A21A]"></span>
+                            </div>
+                            <p class="mt-2 text-[12px] text-(--ink-3)">Equity 41% · target 60%</p>
+                        </div>
+                    </a>
+                    <a href="#" class="card flex flex-col p-4">
+                        <p class="label">Top goal</p>
+                        <div class="mt-3 flex items-center gap-3">
+                            <div class="relative size-12 shrink-0">
+                                <svg viewBox="0 0 40 40" class="size-full -rotate-90">
+                                    <circle cx="20" cy="20" r="16" fill="none" stroke="var(--canvas)" stroke-width="5" /><circle cx="20" cy="20" r="16" fill="none" stroke="var(--pos)" stroke-width="5" stroke-linecap="round" stroke-dasharray="38.2 100.5" />
+                                </svg>
+                                <span class="absolute inset-0 grid place-items-center text-(--ink-2)"><i data-lucide="plane"
+   class="size-[18px]"></i></span>
+                            </div>
+                            <p class="num text-[22px] font-bold tracking-tight">38%</p>
+                        </div>
+                        <p class="mt-auto pt-3 text-[14px] font-semibold leading-5">Europe trip</p>
+                        <p class="text-[12px] text-(--ink-3)">₹1.14 L of ₹3 L · May 2027</p>
+                    </a>
+                </div>
+            </div>
+            <aside class="mt-8 px-5 lg:sticky lg:top-6 lg:mt-6 lg:px-0">
+                <section class="card p-4 lg:p-5">
+                    <div class="flex items-center justify-between px-1">
+                        <div>
+                            <h2 class="text-[17px] font-bold tracking-tight">September</h2>
+                            <p class="text-[13px] text-(--ink-2)">₹{{ month.spent.whole }} spent</p>
+                        </div>
+                        <div class="flex gap-1.5">
+                            <button type="button"
+                                    class="grid size-9 place-items-center rounded-full bg-(--canvas) text-(--ink-2)"
+                                    aria-label="Previous month">
+                                <i data-lucide="chevron-left" class="size-[18px]"></i>
+                            </button>
+                            <button type="button"
+                                    class="grid size-9 place-items-center rounded-full bg-(--canvas) text-(--ink-3)"
+                                    aria-label="Next month"
+                                    disabled>
+                                <i data-lucide="chevron-right" class="size-[18px]"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="cal mt-4 text-center text-[11px] font-semibold text-(--ink-3)">{% for w in "MTWTFSS" %}<span>{{ w }}</span>{% endfor %}</div>
+                    <div class="cal mt-2" role="group" aria-label="Days of September">
+                        {% for week in weeks %}
+                            {% for c in week %}
+                                {% if c.out %}
+                                    <span class="day text-(--ink-3)/60"><span class="text-[13px] font-semibold">{{ c.n }}</span>{% if c.due %}<span class="today-dot bg-(--ink-3)!"></span>{% endif %}</span>
+                                {% else %}
+                                    <button type="button"
+                                            data-day="{{ c.n }}"
+                                            aria-pressed="{% if c.today %}true{% else %}false{% endif %}"
+                                            class="day l{{ c.level }}"
+                                            aria-label="{{ c.weekday }} {{ c.n }} September, {{ c.spent.text }} spent">
+                                        <span class="flex items-center justify-between"><span class="text-[13px] font-bold">{{ c.n }}</span>{% if c.today %}<span class="today-dot"></span>{% elif c.income %}<span class="today-dot bg-(--pos)!"></span>{% endif %}</span>
+                                        <span class="day-amt">{{ c.short }}</span>
+                                    </button>
+                                {% endif %}
+                            {% endfor %}
+                        {% endfor %}
+                    </div>
+                    <div class="mt-3 flex items-center justify-between px-1 text-[11px] font-medium text-(--ink-3)">
+                        <span class="flex items-center gap-1">Less<span class="size-2.5 rounded-[3px] l0"></span><span class="size-2.5 rounded-[3px] l1"></span><span class="size-2.5 rounded-[3px] l2"></span><span class="size-2.5 rounded-[3px] l3"></span><span class="size-2.5 rounded-[3px] l4"></span>More</span>
+                        <span class="flex items-center gap-1"><span class="today-dot bg-(--pos)!"></span>Payday</span>
+                    </div>
+                </section>
+                <section class="card mt-3 px-5 pb-2 pt-4">
+                    {% for week in weeks %}
+                        {% for c in week %}
+                            {% if not c.out %}
+                                <div data-day-list="{{ c.n }}" {% if not c.today %}hidden{% endif %}>
+                                    <div class="flex items-baseline justify-between">
+                                        <h3 class="text-[15px] font-bold">{% if c.today %}Today{% else %}{{ c.weekday }} {{ c.n }}{% endif %}</h3>
+                                        <p class="num text-[13px] text-(--ink-2)">{% if c.count %}₹{{ c.spent.whole }} spent{% endif %}</p>
+                                    </div>
+                                    {% if c.count or c.today %}
+                                        <ul {% if c.today %}id="feed-today"{% endif %}
+                                            class="divide-y divide-(--line)">
+                                            {% for t in c.rows %}
+                                                {% include "prototype_ui/partials/row_i.html" %}
+                                            {% endfor %}
+                                        </ul>
+                                    {% else %}
+                                        <p class="py-6 text-center text-[14px] text-(--ink-3)">Nothing spent. A no-spend day.</p>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    {% endfor %}
+                </section>
+            </aside>
+        </div>
+    </div>
+    <nav class="fixed inset-x-0 bottom-0 z-40 border-t border-(--line) bg-(--surface)/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl lg:hidden">
+        <div class="grid h-[62px] grid-cols-5 items-center text-[10px] font-semibold text-(--ink-3)">
+            <a href="#"
+               class="flex flex-col items-center gap-1 text-(--ink)"><i data-lucide="house"
+   class="size-[22px]"></i>Home</a>
+            <a href="#"
+               class="flex flex-col items-center gap-1"><i data-lucide="wallet-cards"
+   class="size-[22px]"></i>Accounts</a>
+            <div class="flex justify-center">
+                <button type="button"
+                        data-compose
+                        class="grid size-[52px] -translate-y-3 place-items-center rounded-full bg-(--accent) text-white shadow-[0_0_0_6px_var(--canvas),0_10px_24px_-8px_var(--accent)] transition-transform active:scale-95"
+                        aria-label="New expense">
+                    <i data-lucide="plus" class="size-6"></i>
+                </button>
+            </div>
+            <a href="#"
+               class="flex flex-col items-center gap-1"><i data-lucide="target"
+   class="size-[22px]"></i>Goals</a>
+            <a href="#"
+               class="flex flex-col items-center gap-1"><i data-lucide="compass"
+   class="size-[22px]"></i>Plan</a>
+        </div>
+    </nav>
+{% endblock %}
+{% block script %}
+    <script>
+    (() => {
+        const select = (n) => {
+            document.querySelectorAll("[data-day]").forEach((b) => b.setAttribute("aria-pressed", b.dataset.day == n));
+            document.querySelectorAll("[data-day-list]").forEach((l) => (l.hidden = l.dataset.dayList != n));
+        };
+        document.querySelectorAll("[data-day]").forEach((b) => b.addEventListener("click", () => select(b.dataset.day)));
+        document.body.addEventListener("txnAdded", () => select(30));
+    })();
+    </script>
+{% endblock %}

@@ -1,0 +1,11 @@
+<li class="relative flex items-center gap-3 py-2.5 pl-4 pr-4 {% if t.new %}row-new{% endif %}"
+    data-kind="{% if t.amount.pos %}in{% else %}out{% endif %}">
+    <span class="rail" aria-hidden="true"></span>
+    <span class="relative z-10 grid size-9 shrink-0 place-items-center rounded-full bg-(--surface) ring-4 ring-(--canvas)"
+          style="--c: {{ t.color }}"><span class="tile size-9 rounded-full"><i data-lucide="{{ t.icon }}" class="size-[17px]"></i></span></span>
+    <div class="min-w-0 flex-1">
+        <p class="truncate text-[15px] font-medium leading-5">{{ t.payee }}</p>
+        <p class="truncate text-[13px] leading-5 text-(--ink-3)">{{ t.time }} · {{ t.category }} · {{ t.paid_from }}</p>
+    </div>
+    <p class="num display shrink-0 text-[16px] font-semibold {% if t.amount.pos %}text-(--pos){% endif %}">{% if t.amount.pos %}+{% endif %}<span class="cur">₹</span>{{ t.amount.whole }}{% if t.amount.paise != "00" %}<span class="paise">.{{ t.amount.paise }}</span>{% endif %}</p>
+</li>

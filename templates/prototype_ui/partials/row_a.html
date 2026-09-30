@@ -1,0 +1,11 @@
+<li class="flex items-center gap-3 px-4 py-3 {% if t.new %}row-new{% endif %}">
+    <span class="tile size-10" style="--c: {{ t.color }}"><i data-lucide="{{ t.icon }}" class="size-[18px]"></i></span>
+    <div class="min-w-0 flex-1">
+        <p class="truncate text-[15px] font-medium leading-5">{{ t.payee }}</p>
+        <p class="truncate text-[13px] leading-5 text-(--ink-3)">{{ t.category }} · {{ t.time }}</p>
+    </div>
+    <div class="text-right">
+        <p class="num text-[15px] font-semibold leading-5 {% if t.amount.pos %}text-(--pos){% endif %}">{{ t.amount.sign }}<span class="cur">₹</span>{{ t.amount.whole }}</p>
+        <p class="truncate text-[12px] leading-5 text-(--ink-3)">{{ t.paid_from }}</p>
+    </div>
+</li>

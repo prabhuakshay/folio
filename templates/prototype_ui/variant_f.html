@@ -1,0 +1,378 @@
+{% extends "prototype_ui/base.html" %}
+{# PROTOTYPE F — Month: the home screen is the month, set like a paper planner. Graphite spend heatmap, a highlighter marks today, condensed numerals for every figure. Tap a day for its transactions; October's scheduled payments sit below. #}
+{% block theme_color %}#F2F3F1{% endblock %}
+{% block style %}
+    :root {
+    --canvas: #F2F3F1;
+    --surface: #FFFFFF;
+    --line: #E3E5E1;
+    --ink: #16181C;
+    --ink-2: #585C63;
+    --ink-3: #9A9EA5;
+    --accent: #16181C;
+    --accent-soft: #EEF7C8;
+    --on-accent: #FFFFFF;
+    --hl: #D7F25A;
+    --pos: #1E8A5B;
+    --neg: #E0452B;
+    --radius: 22px;
+    --shadow: 0 1px 0 rgb(22 24 28 / .03), 0 12px 32px -16px rgb(22 24 28 / .16);
+    --display: "Bricolage Grotesque", var(--font);
+    }
+    body { font-family: "Hanken Grotesk", ui-sans-serif, system-ui, sans-serif; letter-spacing: -0.003em; }
+    .fig { font-family: var(--display); font-stretch: 75%; font-weight: 700; font-optical-sizing: auto; letter-spacing: -0.01em; }
+    .fig .cur { opacity: .55; font-weight: 600; }
+    .masthead { font-family: var(--display); font-stretch: 75%; font-weight: 800; letter-spacing: -0.02em; }
+    .hl { background: linear-gradient(transparent 55%, var(--hl) 55%, var(--hl) 92%, transparent 92%); padding: 0 .08em; }
+    .cal { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; }
+    .cell { position: relative; aspect-ratio: 1 / 1.14; border-radius: 12px; display: flex; flex-direction: column; justify-content: space-between; padding: 6px 6px 6px 7px; text-align: left; background: var(--heat, var(--canvas)); color: var(--ink); transition: transform .22s var(--ease-sheet), background-color .25s, box-shadow .25s, color .2s; }
+    .cell:active { transform: scale(.93); }
+    .cell .d { font-family: var(--display); font-stretch: 75%; font-weight: 700; font-size: 17px; line-height: 1; letter-spacing: -0.01em; }
+    .cell .a { font-size: 9.5px; font-weight: 600; line-height: 1; opacity: .6; white-space: nowrap; }
+    .cell[data-l="1"] { --heat: color-mix(in srgb, var(--ink) 5%, var(--surface)); }
+    .cell[data-l="2"] { --heat: color-mix(in srgb, var(--ink) 12%, var(--surface)); }
+    .cell[data-l="3"] { --heat: color-mix(in srgb, var(--ink) 26%, var(--surface)); }
+    .cell[data-l="4"] { --heat: color-mix(in srgb, var(--ink) 58%, var(--surface)); color: #fff; }
+    .cell[data-l="4"] .a { opacity: .75; }
+    .cell.today .d { background: var(--hl); color: var(--ink); border-radius: 4px; padding: 1px 3px 0; margin: -1px -3px 0; align-self: flex-start; }
+    .cell[aria-pressed="true"] { --heat: var(--ink); color: #fff; box-shadow: 0 0 0 2px var(--surface), 0 0 0 3.5px var(--ink), 0 14px 24px -10px rgb(22 24 28 / .7); transform: translateY(-2px); }
+    .cell[aria-pressed="true"] .a { opacity: .75; }
+    .cell.out { background: transparent; color: var(--ink-3); pointer-events: none; }
+    .cell.out .d { font-weight: 500; opacity: .6; }
+    .cell .dots { position: absolute; right: 6px; top: 7px; display: flex; gap: 3px; }
+    .cell .dot { width: 5px; height: 5px; border-radius: 50%; }
+    .cell .dot.in { background: var(--pos); }
+    .cell .dot.due { box-shadow: inset 0 0 0 1.5px currentColor; opacity: .7; }
+    .cell[aria-pressed="true"] .dot.in, .cell[data-l="4"] .dot.in { background: var(--hl); }
+    @media (min-width: 1024px) {
+    .cal { gap: 8px; }
+    .cell { aspect-ratio: 1 / .84; border-radius: 14px; padding: 10px 11px; }
+    .cell .d { font-size: 24px; }
+    .cell .a { font-size: 12px; }
+    .cell .dots { right: 10px; top: 11px; }
+    .cell .dot { width: 6px; height: 6px; }
+    }
+    .swatch { width: 11px; height: 11px; border-radius: 3px; }
+    .pace { position: absolute; top: -5px; bottom: -5px; width: 3px; border-radius: 2px; background: var(--hl); box-shadow: 0 0 0 1.5px var(--ink); }
+    .glass { background: color-mix(in srgb, var(--surface) 86%, transparent); backdrop-filter: saturate(1.6) blur(20px); -webkit-backdrop-filter: saturate(1.6) blur(20px); }
+    .tab-active { position: relative; color: var(--ink); }
+    .tab-active::after { content: ""; position: absolute; bottom: -7px; left: 50%; width: 14px; height: 3px; margin-left: -7px; border-radius: 2px; background: var(--hl); box-shadow: 0 0 0 1px color-mix(in srgb, var(--ink) 15%, transparent); }
+    .swap { animation: swap .32s var(--ease-sheet); }
+    @keyframes swap { from { opacity: 0; transform: translateY(6px); } }
+    #c-amount { font-family: var(--display); font-stretch: 75%; font-weight: 700; font-size: 32px; letter-spacing: -0.01em; }
+    #composer .tok[style*="--accent"] { background: var(--hl); color: var(--ink); }
+{% endblock %}
+{% block body %}
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&family=Hanken+Grotesk:wght@400..700&display=swap"
+          rel="stylesheet">
+    <div class="mx-auto w-full max-w-[1120px] px-4 pb-32 pt-[max(1rem,env(safe-area-inset-top))] lg:px-8 lg:pb-12 lg:pt-8">
+        <header class="flex items-center gap-2">
+            <div class="flex items-center rounded-full bg-(--surface) p-1 shadow-(--shadow)">
+                <button type="button"
+                        class="grid size-8 place-items-center rounded-full text-(--ink-2) hover:bg-(--canvas)"
+                        aria-label="Previous month">
+                    <i data-lucide="chevron-left" class="size-[18px]"></i>
+                </button>
+                <button type="button"
+                        class="grid size-8 place-items-center rounded-full text-(--ink-3)/60"
+                        aria-label="Next month"
+                        disabled>
+                    <i data-lucide="chevron-right" class="size-[18px]"></i>
+                </button>
+            </div>
+            <button type="button"
+                    data-compose
+                    class="ml-auto hidden h-10 items-center gap-2 rounded-full bg-(--ink) px-4 text-[14px] font-semibold text-white lg:inline-flex"><i data-lucide="plus" class="size-4 text-(--hl)"></i>New expense</button>
+            <button type="button"
+                    class="ml-auto grid size-10 place-items-center rounded-full bg-(--surface) text-(--ink-2) shadow-(--shadow) lg:ml-2"
+                    aria-label="Search">
+                <i data-lucide="search" class="size-[18px]"></i>
+            </button>
+            <span class="grid size-10 place-items-center rounded-full bg-(--ink) text-[13px] font-bold text-(--hl)">AP</span>
+        </header>
+        <div class="mt-6 lg:grid lg:grid-cols-[1fr_400px] lg:items-start lg:gap-10">
+            <div class="min-w-0">
+                <h1 class="masthead px-0.5 text-[52px] leading-[0.9] lg:text-[72px]">September<span class="ml-2 align-top text-[18px] font-semibold tracking-normal text-(--ink-3) lg:text-[22px]">2026</span></h1>
+                <section class="mt-6 px-0.5">
+                    <div class="flex items-end justify-between gap-4">
+                        <div>
+                            <p class="text-[13px] font-medium text-(--ink-2)">Left to spend</p>
+                            <p class="fig text-[46px] leading-[48px] tracking-[-0.02em]"><span class="cur">₹</span>{{ month.left.whole }}</p>
+                        </div>
+                        <div class="pb-1 text-right text-[13px] leading-5">
+                            <p><span class="fig text-[16px]">₹{{ month.spent.whole }}</span> <span class="text-(--ink-3)">spent</span></p>
+                            <p class="text-(--ink-3)">of ₹{{ month.budget.whole }} · {{ month.days_left }} day left</p>
+                        </div>
+                    </div>
+                    <div class="relative mt-4 h-[7px] rounded-full bg-(--ink)/8">
+                        <div class="h-full rounded-full bg-(--ink)"
+                             style="width: {{ month.pct }}%"></div>
+                        <span class="pace"
+                              style="left: calc(96.7% - 1.5px)"
+                              title="Where spending should be by today"></span>
+                    </div>
+                    <p class="mt-2.5 text-[12px] text-(--ink-3)">You're <span class="font-semibold text-(--ink)">₹7,110 under pace</span> for the month.</p>
+                </section>
+                <section class="card mt-6 p-3 lg:p-5">
+                    <div class="cal mb-1.5 text-[11px] font-semibold text-(--ink-3)">
+                        {% for d in "MTWTFSS" %}<span class="pl-[7px] {% if forloop.counter > 5 %}opacity-60{% endif %}">{{ d }}</span>{% endfor %}
+                    </div>
+                    <div id="cal"
+                         class="cal"
+                         role="grid"
+                         aria-label="September spending by day"></div>
+                    <div class="mt-3.5 flex items-center justify-between px-1 text-[11px] text-(--ink-3)">
+                        <div class="flex items-center gap-1">
+                            Less
+                            <span class="swatch ml-1 bg-(--canvas)"></span>
+                            <span class="swatch"
+                                  style="background: color-mix(in srgb, var(--ink) 5%, var(--surface));
+                                         box-shadow: inset 0 0 0 1px var(--line)"></span>
+                            <span class="swatch"
+                                  style="background: color-mix(in srgb, var(--ink) 12%, var(--surface))"></span>
+                            <span class="swatch"
+                                  style="background: color-mix(in srgb, var(--ink) 26%, var(--surface))"></span>
+                            <span class="swatch mr-1"
+                                  style="background: color-mix(in srgb, var(--ink) 58%, var(--surface))"></span>
+                            More
+                        </div>
+                        <div class="flex items-center gap-2.5">
+                            <span class="flex items-center gap-1"><span class="size-[6px] rounded-full bg-(--pos)"></span>Income</span>
+                            <span class="flex items-center gap-1"><span class="size-[6px] rounded-full shadow-[inset_0_0_0_1.5px_var(--ink-3)]"></span>Scheduled</span>
+                        </div>
+                    </div>
+                </section>
+                <dl class="mt-3 grid grid-cols-3 divide-x divide-(--line) rounded-(--radius) bg-(--surface)/55 py-3.5 text-center shadow-[inset_0_0_0_1px_var(--line)]">
+                    <div>
+                        <dt class="text-[11px] font-medium text-(--ink-3)">Daily average</dt>
+                        <dd class="fig mt-0.5 text-[20px]">
+                            ₹1,213
+                        </dd>
+                    </div>
+                    <div>
+                        <dt class="text-[11px] font-medium text-(--ink-3)">Biggest day</dt>
+                        <dd class="fig mt-0.5 text-[20px]">
+                            ₹4,120 <span class="text-[12px] font-semibold text-(--ink-3)">6 Sep</span>
+                        </dd>
+                    </div>
+                    <div>
+                        <dt class="text-[11px] font-medium text-(--ink-3)">No-spend days</dt>
+                        <dd class="fig mt-0.5 text-[20px]">
+                            2
+                        </dd>
+                    </div>
+                </dl>
+                <a href="#"
+                   class="mt-3 flex items-center gap-3 rounded-(--radius) bg-(--ink) p-3 pr-4 text-white">
+                    <span class="grid size-9 place-items-center rounded-[12px] bg-(--hl) text-(--ink)"><i data-lucide="shield-plus"
+   class="size-[18px]"></i></span>
+                    <span class="min-w-0 flex-1 leading-tight"><span class="block text-[11px] font-medium text-white/55">Next step · {{ stage_index }} of {{ stages|length }}</span><span class="block truncate text-[14px] font-semibold">Top up your term cover to ₹2.10 Cr</span></span>
+                    <i data-lucide="arrow-up-right" class="size-[18px] text-(--hl)"></i>
+                </a>
+            </div>
+            <div class="mt-6 min-w-0 lg:mt-[88px]">
+                <section id="day-panel" class="card px-5 pb-2 pt-5">
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="min-w-0">
+                            <p class="flex items-center gap-2"><span id="day-title" class="fig truncate text-[22px] leading-7">Wednesday 30</span><span id="day-badge"
+      class="rounded-full bg-(--hl) px-2 py-0.5 text-[11px] font-bold text-(--ink)">Today</span></p>
+                            <p id="day-sub" class="text-[13px] text-(--ink-3)">3 transactions</p>
+                        </div>
+                        <div class="shrink-0 text-right">
+                            <p class="text-[11px] font-medium text-(--ink-3)" id="day-total-label">Spent</p>
+                            <p id="day-total" class="fig text-[22px] leading-7"></p>
+                        </div>
+                    </div>
+                    <div class="mt-1.5">
+                        {% regroup transactions by day as days %}
+                        {% for d in days|slice:":3" %}
+                            <ul {% if forloop.first %}id="feed-today"{% endif %}
+                                data-day-list="{% if forloop.counter == 1 %}30{% elif forloop.counter == 2 %}29{% else %}28{% endif %}"
+                                class="divide-y divide-(--line) {% if not forloop.first %}hidden{% endif %}">
+                                {% for t in d.list %}
+                                    {% include "prototype_ui/partials/row_f.html" %}
+                                {% endfor %}
+                            </ul>
+                        {% endfor %}
+                        <ul id="day-generated" class="hidden divide-y divide-(--line)">
+                        </ul>
+                        <div id="day-empty" class="hidden py-9 text-center">
+                            <span class="mx-auto grid size-11 place-items-center rounded-full bg-(--hl) text-(--ink)"><i data-lucide="leaf" class="size-5"></i></span>
+                            <p class="mt-3 text-[15px] font-semibold">A no-spend day</p>
+                            <p class="text-[13px] text-(--ink-3)">Nothing went out.</p>
+                        </div>
+                    </div>
+                </section>
+                <section class="mt-7">
+                    <div class="flex items-baseline justify-between px-1">
+                        <h2 class="text-[15px] font-bold">Coming up in October</h2>
+                        <span class="text-[13px] text-(--ink-3)"><span class="fig text-[15px] text-(--ink)">₹91,989</span> scheduled</span>
+                    </div>
+                    <ol class="card mt-3 divide-y divide-(--line) px-4">
+                        <li class="flex items-center gap-3.5 py-3">
+                            <div class="w-9 shrink-0 text-center leading-none"><span class="fig block text-[24px]">2</span><span class="text-[10px] font-semibold text-(--ink-3)">Fri</span></div>
+                            <div class="min-w-0 flex-1">
+                                <p class="truncate text-[14px] font-semibold">Airtel broadband</p>
+                                <p class="truncate text-[12px] text-(--ink-3)">Autopay from HDFC Savings</p>
+                            </div>
+                            <p class="fig text-[17px]">₹1,179</p>
+                        </li>
+                        <li class="flex items-center gap-3.5 py-3">
+                            <div class="w-9 shrink-0 text-center leading-none"><span class="fig block text-[24px]">5</span><span class="text-[10px] font-semibold text-(--ink-3)">Mon</span></div>
+                            <div class="min-w-0 flex-1">
+                                <p class="truncate text-[14px] font-semibold">Parag Parikh SIP</p>
+                                <p class="truncate text-[12px] text-(--ink-3)">Retirement Goal</p>
+                            </div>
+                            <p class="fig text-[17px]">₹10,000</p>
+                        </li>
+                        <li class="flex items-center gap-3.5 py-3">
+                            <div class="w-9 shrink-0 text-center leading-none"><span class="fig block text-[24px] text-(--neg)">12</span><span class="text-[10px] font-semibold text-(--neg)">Mon</span></div>
+                            <div class="min-w-0 flex-1">
+                                <p class="truncate text-[14px] font-semibold">ICICI card bill</p>
+                                <p class="truncate text-[12px] text-(--neg)">Pay in full to keep stage 1</p>
+                            </div>
+                            <p class="fig text-[17px]">₹23,410</p>
+                        </li>
+                        <li class="flex items-center gap-3.5 py-3">
+                            <div class="w-9 shrink-0 text-center leading-none"><span class="fig block text-[24px]">18</span><span class="text-[10px] font-semibold text-(--ink-3)">Sun</span></div>
+                            <div class="min-w-0 flex-1">
+                                <p class="truncate text-[14px] font-semibold">Star Health renewal</p>
+                                <p class="truncate text-[12px] text-(--ink-3)">Family floater, ₹10 L cover</p>
+                            </div>
+                            <p class="fig text-[17px]">₹18,900</p>
+                        </li>
+                        <li class="flex items-center gap-3.5 py-3">
+                            <div class="w-9 shrink-0 text-center leading-none"><span class="fig block text-[24px]">28</span><span class="text-[10px] font-semibold text-(--ink-3)">Wed</span></div>
+                            <div class="min-w-0 flex-1">
+                                <p class="truncate text-[14px] font-semibold">SBI Home loan EMI</p>
+                                <p class="truncate text-[12px] text-(--ink-3)">₹27,100 principal · ₹11,400 interest</p>
+                            </div>
+                            <p class="fig text-[17px]">₹38,500</p>
+                        </li>
+                    </ol>
+                </section>
+            </div>
+        </div>
+    </div>
+    <nav class="glass fixed inset-x-0 bottom-0 z-40 border-t border-(--line) pb-[env(safe-area-inset-bottom)] lg:hidden">
+        <div class="grid h-[64px] grid-cols-5 items-center text-[10px] font-semibold text-(--ink-3)">
+            <a href="#" class="flex flex-col items-center gap-1"><span class="tab-active"><i data-lucide="calendar-days" class="size-[22px]"></i></span><span class="text-(--ink)">Month</span></a>
+            <a href="#"
+               class="flex flex-col items-center gap-1"><i data-lucide="wallet"
+   class="size-[22px]"></i>Accounts</a>
+            <div class="flex justify-center">
+                <button type="button"
+                        data-compose
+                        class="grid size-[52px] place-items-center rounded-[18px] bg-(--ink) text-(--hl) shadow-[0_10px_24px_-8px_rgb(22_24_28/.6)] transition-transform active:scale-95"
+                        aria-label="New expense">
+                    <i data-lucide="plus" class="size-6"></i>
+                </button>
+            </div>
+            <a href="#"
+               class="flex flex-col items-center gap-1"><i data-lucide="target"
+   class="size-[22px]"></i>Goals</a>
+            <a href="#"
+               class="flex flex-col items-center gap-1"><i data-lucide="compass"
+   class="size-[22px]"></i>Plan</a>
+        </div>
+    </nav>
+{% endblock %}
+{% block script %}
+    <script>
+    (() => {
+        const CATS = {{ categories_json|safe }};
+        const DAYS = {"1":[{"p":"Zepto","c":"Groceries","a":642},{"p":"Uber","c":"Transport","a":238}],"2":[{"p":"Blue Tokai","c":"Dining out","a":420}],"3":[{"p":"BigBasket","c":"Groceries","a":1860}],"4":[{"p":"Apollo Pharmacy","c":"Health","a":540},{"p":"Rapido","c":"Transport","a":96}],"5":[{"p":"Toit, Indiranagar","c":"Dining out","a":1480},{"p":"Uber","c":"Transport","a":412}],"6":[{"p":"Myntra","c":"Shopping","a":2890},{"p":"Swiggy","c":"Dining out","a":1230}],"7":[{"p":"Namma Metro","c":"Transport","a":60},{"p":"Zepto","c":"Groceries","a":418}],"8":[{"p":"HP Petrol","c":"Fuel","a":1500}],"9":[{"p":"Swiggy","c":"Dining out","a":512}],"10":[],"11":[{"p":"Zepto","c":"Groceries","a":736},{"p":"Uber","c":"Transport","a":264}],"12":[{"p":"DMart","c":"Groceries","a":2140},{"p":"Starbucks","c":"Dining out","a":480}],"13":[{"p":"Truffles","c":"Dining out","a":1640}],"14":[{"p":"Airtel","c":"Utilities","a":1179}],"15":[{"p":"Blinkit","c":"Groceries","a":388}],"16":[{"p":"Swiggy","c":"Dining out","a":624},{"p":"Rapido","c":"Transport","a":112}],"17":[{"p":"HP Petrol","c":"Fuel","a":1500}],"18":[{"p":"Zepto","c":"Groceries","a":512}],"19":[{"p":"Swiggy","c":"Dining out","a":380}],"20":[{"p":"BigBasket","c":"Groceries","a":1742}],"21":[{"p":"Namma Metro","c":"Transport","a":60}],"22":[{"p":"Jio","c":"Utilities","a":821},{"p":"Zepto","c":"Groceries","a":290}],"23":[],"24":[{"p":"Swiggy","c":"Dining out","a":548}],"25":[{"p":"Apollo Pharmacy","c":"Health","a":360},{"p":"Uber","c":"Transport","a":138}],"26":[{"p":"HP Petrol","c":"Fuel","a":1500},{"p":"Zomato","c":"Dining out","a":486}],"27":[{"p":"Zepto","c":"Groceries","a":1257}],"28":[]};
+        const TODAY = 30;
+        const spend = {};
+        for (let n = 1; n <= 30; n++) spend[n] = (DAYS[n] || []).reduce((s, x) => s + x.a, 0);
+        spend[29] = 4003;
+        spend[30] = [...document.querySelectorAll("#feed-today .fig")].reduce((s, el) => s + (el.textContent.includes("+") ? 0 : parseFloat(el.textContent.replace(/[^\d.]/g, "")) || 0), 0);
+        spend[28] = 0;
+        const INCOME = { 28: true };
+        const DUE = { 28: true, 32: true };
+        const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+        const level = (v) => (v <= 0 ? 0 : v < 700 ? 1 : v < 1500 ? 2 : v < 2800 ? 3 : 4);
+        const short = (v) => (v <= 0 ? "" : v >= 1000 ? `${(v / 1000).toFixed(1).replace(/\.0$/, "")}k` : Math.round(v).toString());
+        const money = (n) => {
+            const [w, p] = Number(n).toFixed(2).split(".");
+            return `<span class="cur">₹</span>${Number(w).toLocaleString("en-IN")}${p !== "00" ? `<span class="paise">.${p}</span>` : ""}`;
+        };
+
+        const cal = document.getElementById("cal");
+        const cells = [];
+        const addCell = (n, out) => {
+            const b = document.createElement("button");
+            b.type = "button";
+            b.className = `cell${out ? " out" : ""}${!out && n === TODAY ? " today" : ""}`;
+            const key = out && n < 10 ? n + 30 : n;
+            const dots = `${!out && INCOME[n] ? '<span class="dot in"></span>' : ""}${DUE[key] && !(out && n > 10) ? '<span class="dot due"></span>' : ""}`;
+            b.innerHTML = `<span class="d">${n}</span>${dots ? `<span class="dots">${dots}</span>` : ""}<span class="a">${out ? "" : short(spend[n])}</span>`;
+            if (!out) {
+                b.dataset.l = level(spend[n]);
+                b.setAttribute("aria-pressed", "false");
+                b.setAttribute("aria-label", `${n} September, spent ₹${Math.round(spend[n]).toLocaleString("en-IN")}`);
+                b.addEventListener("click", () => select(n));
+                cells[n] = b;
+            } else {
+                b.tabIndex = -1;
+                b.setAttribute("aria-hidden", "true");
+            }
+            cal.appendChild(b);
+        };
+        addCell(31, true);
+        for (let n = 1; n <= 30; n++) addCell(n, false);
+        for (let n = 1; n <= 4; n++) addCell(n, true);
+
+        const $ = (id) => document.getElementById(id);
+        const rowHTML = (x) => {
+            const [icon, color] = CATS[x.c] || ["receipt", "#5B6475"];
+            return `<li class="flex items-center gap-3 py-3">
+                <span class="tile size-10 rounded-[14px]" style="--c: ${color}"><i data-lucide="${icon}" class="size-[18px]"></i></span>
+                <div class="min-w-0 flex-1"><p class="truncate text-[15px] font-semibold leading-5">${x.p}</p><p class="truncate text-[13px] leading-5 text-(--ink-3)">${x.c}</p></div>
+                <p class="fig text-[19px] leading-6">−${money(x.a)}</p></li>`;
+        };
+
+        const select = (n) => {
+            cells.forEach((c, i) => c && c.setAttribute("aria-pressed", i === n));
+            $("day-title").textContent = `${WEEKDAYS[new Date(2026, 8, n).getDay()]} ${n}`;
+            const badge = $("day-badge");
+            badge.textContent = n === TODAY ? "Today" : "Yesterday";
+            badge.classList.toggle("hidden", n < TODAY - 1);
+            document.querySelectorAll("[data-day-list]").forEach((ul) => ul.classList.add("hidden"));
+            $("day-generated").classList.add("hidden");
+            $("day-empty").classList.add("hidden");
+            const server = document.querySelector(`[data-day-list="${n}"]`);
+            let shown, count;
+            if (server) {
+                shown = server; count = server.children.length;
+            } else if ((DAYS[n] || []).length) {
+                $("day-generated").innerHTML = DAYS[n].map(rowHTML).join("");
+                shown = $("day-generated"); count = DAYS[n].length;
+            } else {
+                shown = $("day-empty"); count = 0;
+            }
+            shown.classList.remove("hidden", "swap"); void shown.offsetWidth; shown.classList.add("swap");
+            $("day-sub").textContent = count ? `${count} transaction${count > 1 ? "s" : ""}` : "No transactions";
+            if (n === 28) {
+                $("day-total-label").innerHTML = `<span class="text-(--pos)">+₹1,42,800 in</span> · out`;
+                $("day-total").innerHTML = money(48500);
+            } else {
+                $("day-total-label").textContent = "Spent";
+                $("day-total").innerHTML = spend[n] ? money(spend[n]) : money(0);
+            }
+            lucide.createIcons();
+        };
+        select(TODAY);
+
+        let pendingSelect = false;
+        document.body.addEventListener("txnAdded", (e) => {
+            spend[TODAY] += parseFloat(e.detail.amount.replace(/[^\d.]/g, "")) || 0;
+            cells[TODAY].dataset.l = level(spend[TODAY]);
+            cells[TODAY].querySelector(".a").textContent = short(spend[TODAY]);
+            pendingSelect = true;
+        });
+        document.body.addEventListener("htmx:afterSettle", () => { if (pendingSelect) { pendingSelect = false; select(TODAY); } });
+    })();
+    </script>
+{% endblock %}

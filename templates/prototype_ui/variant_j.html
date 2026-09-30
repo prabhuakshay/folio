@@ -1,0 +1,446 @@
+{% extends "prototype_ui/base.html" %}
+{# PROTOTYPE J — Focus refined: H's four swipeable pages and poster figures, plus accounts and an at-a-glance grid on Overview, F's calendar on Spend, and Goals (not the doctrine ladder) as the fourth page. #}
+{% block theme_color %}#FFFFFF{% endblock %}
+{% block style %}
+    :root {
+    --canvas: #FFFFFF;
+    --surface: #FFFFFF;
+    --well: #F4F4F6;
+    --line: #EAEAED;
+    --ink: #000000;
+    --ink-2: #55555E;
+    --ink-3: #8D8D97;
+    --accent: #2F5BFF;
+    --accent-soft: #EEF2FF;
+    --on-accent: #FFFFFF;
+    --pos: #0A8754;
+    --neg: #D63A2F;
+    }
+    body { font-family: "Archivo", ui-sans-serif, system-ui, sans-serif; font-variation-settings: "wdth" 100; letter-spacing: 0; }
+    .wordmark { font-variation-settings: "wdth" 125; font-weight: 800; letter-spacing: -0.02em; }
+    .pager, .page { scrollbar-width: none; }
+    .pager { overscroll-behavior-x: contain; }
+    .pager::-webkit-scrollbar, .page::-webkit-scrollbar { display: none; }
+    .figure { font-size: clamp(72px, 24vw, 104px); line-height: .9; font-weight: 700; font-variation-settings: "wdth" 62; letter-spacing: -0.01em; }
+    .figure .cur { font-size: .36em; vertical-align: 1.2em; margin-right: .12em; opacity: 1; font-weight: 600; font-variation-settings: "wdth" 100; }
+    .stat { font-weight: 700; font-variation-settings: "wdth" 62; line-height: 1; letter-spacing: -0.005em; }
+    .stat .cur { font-size: .5em; vertical-align: .55em; margin-right: .08em; opacity: 1; font-weight: 600; font-variation-settings: "wdth" 100; }
+    .display { font-weight: 700; font-variation-settings: "wdth" 62; letter-spacing: -0.005em; }
+    @media (min-width: 1024px) { .figure { font-size: 76px; } }
+    .kicker { font-size: 13px; font-weight: 500; color: var(--ink-2); }
+    .tab[aria-selected="true"] { color: var(--ink); }
+    .dot { transition: width .3s var(--ease-sheet), background-color .3s; }
+    .dot[aria-current="true"] { width: 18px; background: var(--ink); }
+    #composer .tok { color: color-mix(in srgb, var(--c) 72%, black); }
+    .cal { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+    .day { aspect-ratio: 1; border-radius: 10px; display: flex; flex-direction: column; justify-content: space-between; padding: 5px 6px; text-align: left; transition: background-color .15s, color .15s; }
+    .l0 { background: var(--well); }
+    .l1 { background: rgb(0 0 0 / .08); }
+    .l2 { background: rgb(0 0 0 / .17); }
+    .l3 { background: rgb(0 0 0 / .32); }
+    .l4 { background: rgb(0 0 0 / .72); color: #fff; }
+    .day[aria-pressed="true"] { background: var(--accent); color: #fff; }
+    .day-n { font-size: 13px; font-weight: 600; line-height: 1; }
+    .day-amt { font-size: 10px; font-weight: 500; line-height: 1; opacity: .6; }
+    .mark { width: 4px; height: 4px; border-radius: 99px; background: currentColor; }
+{% endblock %}
+{% block body %}
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..800&display=swap"
+          rel="stylesheet">
+    <div class="flex h-dvh flex-col overflow-hidden">
+        <header class="shrink-0 px-6 pt-[max(1rem,env(safe-area-inset-top))] lg:px-10 lg:pt-6">
+            <div class="flex items-center gap-3">
+                <p class="wordmark text-[18px]">FOLIO</p>
+                <p class="text-[13px] text-(--ink-3)">{{ today|date:"D, j M" }}</p>
+                <button type="button"
+                        data-compose
+                        class="ml-auto hidden h-9 items-center gap-2 rounded-full bg-(--ink) px-4 text-[14px] font-medium text-white lg:inline-flex"><i data-lucide="plus" class="size-4"></i>New expense</button>
+                <span class="ml-auto grid size-9 place-items-center rounded-full bg-(--ink) text-[12px] font-semibold text-white lg:ml-0">AP</span>
+            </div>
+            <div class="relative mt-6 flex gap-7 text-[15px] font-medium text-(--ink-3) xl:hidden"
+                 role="tablist"
+                 aria-label="Pages">
+                <button type="button"
+                        role="tab"
+                        class="tab pb-3 transition-colors"
+                        aria-selected="true"
+                        data-tab="0">Overview</button>
+                <button type="button"
+                        role="tab"
+                        class="tab pb-3 transition-colors"
+                        aria-selected="false"
+                        data-tab="1">Spend</button>
+                <button type="button"
+                        role="tab"
+                        class="tab pb-3 transition-colors"
+                        aria-selected="false"
+                        data-tab="2">Invest</button>
+                <button type="button"
+                        role="tab"
+                        class="tab pb-3 transition-colors"
+                        aria-selected="false"
+                        data-tab="3">Goals</button>
+                <span class="absolute inset-x-0 bottom-0 h-px bg-(--line)"></span>
+                <span id="tab-bar"
+                      class="absolute bottom-0 left-0 h-[2px] rounded-full bg-(--ink)"
+                      style="width: 64px"></span>
+            </div>
+            <div class="mt-5 hidden h-px bg-(--line) xl:block"></div>
+        </header>
+        <div id="pager"
+             class="pager flex min-h-0 flex-1 snap-x snap-mandatory overflow-x-auto">
+            {# ———— Overview ———— #}
+            <section class="page w-full shrink-0 snap-start overflow-y-auto px-6 pb-40 pt-8 lg:w-1/2 lg:px-10 lg:pb-12 xl:w-1/4 xl:border-r xl:border-(--line) xl:px-8"
+                     aria-label="Overview">
+                <p class="kicker">Net worth</p>
+                <p class="figure num mt-3"><span class="cur">₹</span>{{ net_worth.whole }}</p>
+                <p class="mt-4 max-w-[30ch] text-[16px] leading-6 text-(--ink-2)">Up ₹97,871 in September, mostly from markets and your monthly SIP.</p>
+                <div class="relative -ml-6 mr-2 mt-9 h-[150px] lg:-ml-10 xl:-ml-8">
+                    <svg viewBox="0 0 {{ chart.w }} {{ chart.h }}"
+                         preserveAspectRatio="none"
+                         class="absolute inset-0 size-full overflow-visible"
+                         role="img"
+                         aria-label="Net worth over the last year">
+                        <defs><linearGradient id="j-fill" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#000" stop-opacity=".06" /><stop offset="1" stop-color="#000" stop-opacity="0" /></linearGradient></defs>
+                        <path d="{{ chart.area }}" fill="url(#j-fill)" />
+                        <path d="{{ chart.line }}" fill="none" stroke="var(--ink)" stroke-width="1.75" vector-effect="non-scaling-stroke" stroke-linecap="round" />
+                    </svg>
+                    <span class="absolute size-3 -translate-1/2 rounded-full bg-(--accent) shadow-[0_0_0_3px_#fff]"
+                          style="left: calc({{ chart.end_x }} / {{ chart.w }} * 100%);
+                                 top: calc({{ chart.end_y }} / {{ chart.h }} * 100%)"></span>
+                </div>
+                <div class="mt-2 flex justify-between text-[11px] text-(--ink-3)">{% for m in chart_months %}<span>{{ m }}</span>{% endfor %}</div>
+                <div class="mt-10 flex items-baseline justify-between">
+                    <h2 class="kicker">Accounts</h2>
+                    <a href="#"
+                       class="text-[13px] font-medium underline decoration-(--line) underline-offset-4">All 11</a>
+                </div>
+                <div class="hide-scrollbar -mx-6 mt-3 flex snap-x gap-2.5 overflow-x-auto scroll-px-6 px-6 lg:-mx-10 lg:scroll-px-10 lg:px-10 xl:mx-0 xl:grid xl:grid-cols-2 xl:px-0">
+                    {% for c in cards %}
+                        <article class="flex h-[132px] w-[196px] shrink-0 snap-start flex-col rounded-[20px] {% if forloop.first %}bg-(--ink) text-white{% else %}bg-(--well){% endif %} p-4 xl:w-auto">
+                            <div class="flex items-center gap-2">
+                                <span class="grid size-6 place-items-center rounded-full text-white"
+                                      style="background: {{ c.to }}"><i data-lucide="{{ c.icon }}" class="size-3.5"></i></span>
+                                <p class="truncate text-[13px] font-medium">{{ c.name }}</p>
+                            </div>
+                            <p class="stat num mt-auto text-[30px]">{% if c.balance.neg %}−{% endif %}<span class="cur">₹</span>{{ c.balance.whole }}</p>
+                            <p class="mt-1.5 truncate text-[12px] {% if forloop.first %}text-white/60{% else %}text-(--ink-3){% endif %}">{{ c.foot }}</p>
+                        </article>
+                    {% endfor %}
+                </div>
+                <h2 class="kicker mt-10">At a glance</h2>
+                <div class="mt-3 grid grid-cols-2 border-t border-(--line)">
+                    <div class="border-b border-r border-(--line) py-4 pr-4">
+                        <p class="text-[13px] text-(--ink-2)">Emergency Fund</p>
+                        <p class="stat num mt-2 text-[40px]">4.2<span class="ml-1 text-[15px] font-medium text-(--ink-3)"
+      style="font-variation-settings: 'wdth' 100">of 6 mo</span></p>
+                        <div class="mt-3 flex gap-1">
+                            {% for i in "123456" %}
+                                <span class="h-1 flex-1 rounded-full {% if forloop.counter <= 4 %}bg-(--ink){% else %}bg-(--line){% endif %}"></span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="border-b border-(--line) py-4 pl-4">
+                        <p class="text-[13px] text-(--ink-2)">Savings rate</p>
+                        <p class="stat num mt-2 text-[40px]">{{ month.savings_rate }}<span class="text-[22px]">%</span></p>
+                        <div class="mt-3 flex h-4 items-end gap-1">
+                            {% for c in cashflow %}
+                                <span class="flex-1 rounded-[2px] {% if forloop.last %}bg-(--ink){% else %}bg-(--line){% endif %}"
+                                      style="height: {% widthratio c.rate 40 100 %}%"></span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="border-b border-r border-(--line) py-4 pr-4">
+                        <p class="text-[13px] text-(--ink-2)">Cash on hand</p>
+                        <p class="stat num mt-2 text-[40px]"><span class="cur">₹</span>2.30<span class="ml-1 text-[20px]">L</span></p>
+                        <p class="mt-2 text-[12px] text-(--ink-3)">HDFC, SBI and cash</p>
+                    </div>
+                    <div class="border-b border-(--line) py-4 pl-4">
+                        <p class="text-[13px] text-(--ink-2)">Card bill due</p>
+                        <p class="stat num mt-2 text-[40px]"><span class="cur">₹</span>23,410</p>
+                        <p class="mt-2 text-[12px] font-medium text-(--neg)">12 Oct · pay in full</p>
+                    </div>
+                </div>
+                <h2 class="kicker mt-10">What changed this month</h2>
+                <ul class="mt-1 divide-y divide-(--line)">
+                    <li class="flex items-baseline justify-between py-3"><span class="text-[15px]">Investments</span><span class="num text-[15px] font-medium text-(--pos)">+₹71,240</span></li>
+                    <li class="flex items-baseline justify-between py-3"><span class="text-[15px]">Cash and bank</span><span class="num text-[15px] font-medium text-(--pos)">+₹38,110</span></li>
+                    <li class="flex items-baseline justify-between py-3"><span class="text-[15px]">Home loan repaid</span><span class="num text-[15px] font-medium text-(--pos)">+₹11,480</span></li>
+                    <li class="flex items-baseline justify-between py-3"><span class="text-[15px]">Credit card balance</span><span class="num text-[15px] font-medium">−₹22,959</span></li>
+                </ul>
+            </section>
+            {# ———— Spend ———— #}
+            <section class="page w-full shrink-0 snap-start overflow-y-auto px-6 pb-40 pt-8 lg:w-1/2 lg:px-10 lg:pb-12 xl:w-1/4 xl:border-r xl:border-(--line) xl:px-8"
+                     aria-label="Spend">
+                <p class="kicker">Left to spend in {{ month.name }}</p>
+                <p class="figure num mt-3"><span class="cur">₹</span>{{ month.left.whole }}</p>
+                <p class="mt-4 max-w-[30ch] text-[16px] leading-6 text-(--ink-2)">₹{{ month.spent.whole }} of ₹{{ month.budget.whole }} spent, {{ month.days_left }}&nbsp;day to go. You're spending slower than the month is passing.</p>
+                <div class="mt-7">
+                    <div class="relative h-2 rounded-full bg-(--line)">
+                        <span class="absolute inset-y-0 left-0 rounded-full bg-(--ink)"
+                              style="width: {{ month.pct }}%"></span>
+                        <span class="absolute -top-1.5 h-5 w-[3px] rounded-full bg-(--accent)"
+                              style="left: 97%"></span>
+                    </div>
+                    <div class="mt-2.5 flex justify-between text-[12px] text-(--ink-3)"><span>{{ month.pct }}% of budget</span><span class="text-(--ink-2)">97% of month</span></div>
+                </div>
+                <div class="mt-10 flex items-baseline justify-between">
+                    <h2 class="kicker">Day by day</h2>
+                    <span class="flex items-center gap-1 text-[11px] text-(--ink-3)">Less<span class="size-2.5 rounded-[3px] l0"></span><span class="size-2.5 rounded-[3px] l1"></span><span class="size-2.5 rounded-[3px] l2"></span><span class="size-2.5 rounded-[3px] l3"></span><span class="size-2.5 rounded-[3px] l4"></span>More</span>
+                </div>
+                <div class="cal mt-4 text-center text-[11px] font-medium text-(--ink-3)">{% for w in "MTWTFSS" %}<span>{{ w }}</span>{% endfor %}</div>
+                <div class="cal mt-2" role="group" aria-label="Days of September">
+                    {% for week in weeks %}
+                        {% for c in week %}
+                            {% if c.out %}
+                                <span class="day text-(--ink-3)/50"><span class="day-n">{{ c.n }}</span></span>
+                            {% else %}
+                                <button type="button"
+                                        data-day="{{ c.n }}"
+                                        aria-pressed="{% if c.today %}true{% else %}false{% endif %}"
+                                        class="day l{{ c.level }}"
+                                        aria-label="{{ c.weekday }} {{ c.n }} September, {{ c.spent.text }} spent">
+                                    <span class="flex items-center justify-between"><span class="day-n">{{ c.n }}</span>{% if c.income %}<span class="mark text-(--pos)"></span>{% endif %}</span>
+                                    <span class="day-amt">{{ c.short }}</span>
+                                </button>
+                            {% endif %}
+                        {% endfor %}
+                    {% endfor %}
+                </div>
+                <div class="mt-6">
+                    {% for week in weeks %}
+                        {% for c in week %}
+                            {% if not c.out %}
+                                <div data-day-list="{{ c.n }}" {% if not c.today %}hidden{% endif %}>
+                                    <div class="flex items-baseline justify-between border-b border-(--line) pb-2.5">
+                                        <h3 class="text-[15px] font-semibold">{% if c.today %}Today{% else %}{{ c.weekday }} {{ c.n }}{% endif %}</h3>
+                                        <p class="num text-[13px] text-(--ink-2)">{% if c.count %}₹{{ c.spent.whole }} spent{% endif %}</p>
+                                    </div>
+                                    {% if c.count or c.today %}
+                                        <ul {% if c.today %}id="feed-today"{% endif %}
+                                            class="scroll-mt-16 divide-y divide-(--line)">
+                                            {% for t in c.rows %}
+                                                {% include "prototype_ui/partials/row_j.html" %}
+                                            {% endfor %}
+                                        </ul>
+                                    {% else %}
+                                        <p class="py-8 text-center text-[14px] text-(--ink-3)">No spending. A no-spend day.</p>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    {% endfor %}
+                </div>
+                <h2 class="kicker mt-10">By category</h2>
+                <ul class="mt-1">
+                    {% for b in budgets %}
+                        <li class="py-3">
+                            <div class="flex items-baseline justify-between text-[15px]">
+                                <span>{{ b.name }}</span>
+                                <span class="num {% if b.over %}font-medium text-(--neg){% endif %}">₹{{ b.spent.whole }}<span class="text-(--ink-3)"> / {{ b.budget.whole }}</span></span>
+                            </div>
+                            <div class="mt-2 h-1 overflow-hidden rounded-full bg-(--line)">
+                                <div class="h-full rounded-full {% if b.over %}bg-(--neg){% else %}bg-(--ink){% endif %}"
+                                     style="width: {{ b.pct }}%"></div>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </section>
+            {# ———— Invest ———— #}
+            <section class="page w-full shrink-0 snap-start overflow-y-auto px-6 pb-40 pt-8 lg:w-1/2 lg:px-10 lg:pb-12 xl:w-1/4 xl:border-r xl:border-(--line) xl:px-8"
+                     aria-label="Invest">
+                <p class="kicker">Investments</p>
+                <p class="figure num mt-3"><span class="cur">₹</span>24,53,651</p>
+                <p class="mt-4 max-w-[30ch] text-[16px] leading-6 text-(--ink-2)">Growing at 11.8% a year, and ₹4,91,651 more than you put in.</p>
+                <h2 class="kicker mt-10">Allocation against target</h2>
+                <div class="mt-4 space-y-5">
+                    <div>
+                        <div class="flex items-baseline justify-between text-[15px]"><span class="flex items-center gap-2"><span class="size-2 rounded-full bg-(--ink)"></span>Equity</span><span class="num">41% <span class="text-(--ink-3)">→ 60%</span></span></div>
+                        <div class="relative mt-2 h-1.5 rounded-full bg-(--line)">
+                            <span class="absolute inset-y-0 left-0 rounded-full bg-(--ink)"
+                                  style="width: 41%"></span><span class="absolute -top-1 h-3.5 w-[3px] rounded-full bg-(--accent)"
+      style="left: 60%"></span>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex items-baseline justify-between text-[15px]"><span class="flex items-center gap-2"><span class="size-2 rounded-full bg-[#A3A3AD]"></span>Debt</span><span class="num">53% <span class="text-(--ink-3)">→ 30%</span></span></div>
+                        <div class="relative mt-2 h-1.5 rounded-full bg-(--line)">
+                            <span class="absolute inset-y-0 left-0 rounded-full bg-[#A3A3AD]"
+                                  style="width: 53%"></span><span class="absolute -top-1 h-3.5 w-[3px] rounded-full bg-(--accent)"
+      style="left: 30%"></span>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex items-baseline justify-between text-[15px]"><span class="flex items-center gap-2"><span class="size-2 rounded-full bg-[#C08A1E]"></span>Gold</span><span class="num">6% <span class="text-(--ink-3)">→ 10%</span></span></div>
+                        <div class="relative mt-2 h-1.5 rounded-full bg-(--line)">
+                            <span class="absolute inset-y-0 left-0 rounded-full bg-[#C08A1E]"
+                                  style="width: 6%"></span><span class="absolute -top-1 h-3.5 w-[3px] rounded-full bg-(--accent)"
+      style="left: 10%"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-6 flex gap-3 rounded-[20px] bg-(--well) p-4 text-[14px] leading-5">
+                    <i data-lucide="scale" class="mt-0.5 size-[18px] shrink-0"></i>
+                    <p class="text-(--ink-2)"><span class="font-semibold text-(--ink)">Equity is 19% under target.</span> Send new SIPs to equity until it's back in range. No need to sell anything.</p>
+                </div>
+                <h2 class="kicker mt-10">Holdings</h2>
+                <ul class="mt-1 divide-y divide-(--line)">
+                    <li class="flex items-center justify-between py-3.5">
+                        <div>
+                            <p class="text-[15px]">Parag Parikh Flexi Cap</p>
+                            <p class="text-[13px] text-(--ink-3)">Equity · Mutual fund</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="num text-[15px] font-medium">₹6,12,450</p>
+                            <p class="num text-[13px] text-(--pos)">17.9% XIRR</p>
+                        </div>
+                    </li>
+                    <li class="flex items-center justify-between py-3.5">
+                        <div>
+                            <p class="text-[15px]">UTI Nifty 50 Index</p>
+                            <p class="text-[13px] text-(--ink-3)">Equity · Index fund</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="num text-[15px] font-medium">₹4,03,901</p>
+                            <p class="num text-[13px] text-(--pos)">14.2% XIRR</p>
+                        </div>
+                    </li>
+                    <li class="flex items-center justify-between py-3.5">
+                        <div>
+                            <p class="text-[15px]">EPF</p>
+                            <p class="text-[13px] text-(--ink-3)">Debt · 8.25% declared</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="num text-[15px] font-medium">₹7,85,300</p>
+                            <p class="num text-[13px] text-(--ink-3)">8.3%</p>
+                        </div>
+                    </li>
+                    <li class="flex items-center justify-between py-3.5">
+                        <div>
+                            <p class="text-[15px]">PPF</p>
+                            <p class="text-[13px] text-(--ink-3)">Debt · 7.1%</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="num text-[15px] font-medium">₹5,10,000</p>
+                            <p class="num text-[13px] text-(--ink-3)">7.1%</p>
+                        </div>
+                    </li>
+                    <li class="flex items-center justify-between py-3.5">
+                        <div>
+                            <p class="text-[15px]">SGB 2023-24 Series III</p>
+                            <p class="text-[13px] text-(--ink-3)">Gold · Bond</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="num text-[15px] font-medium">₹1,42,000</p>
+                            <p class="num text-[13px] text-(--pos)">21.4% XIRR</p>
+                        </div>
+                    </li>
+                </ul>
+            </section>
+            {# ———— Goals ———— #}
+            <section class="page w-full shrink-0 snap-start overflow-y-auto px-6 pb-40 pt-8 lg:w-1/2 lg:px-10 lg:pb-12 xl:w-1/4 xl:px-8"
+                     aria-label="Goals">
+                <p class="kicker">Set aside for your Goals</p>
+                <p class="figure num mt-3"><span class="cur">₹</span>22,60,000</p>
+                <p class="mt-4 max-w-[30ch] text-[16px] leading-6 text-(--ink-2)">Across 3 Goals. Retirement is on track; Europe trip needs ₹15,700 a month.</p>
+                {% if current_stage %}
+                    <div class="mt-8 rounded-[20px] bg-(--accent-soft) p-5">
+                        <p class="text-[13px] font-medium text-(--accent)">Before Goals · step {{ stage_index }} of {{ stages|length }}</p>
+                        <p class="display mt-1.5 text-[30px] leading-[1.02]">Protect your family first</p>
+                        <p class="mt-2 text-[14px] leading-5 text-(--ink-2)">{{ current_stage.detail }}. Until it's closed, surplus goes here before any Goal.</p>
+                        <div class="mt-4 flex items-center gap-4">
+                            <a href="#"
+                               class="inline-flex h-10 items-center gap-2 rounded-full bg-(--ink) px-4 text-[14px] font-medium text-white">Compare term plans</a>
+                            <a href="#"
+                               class="text-[14px] font-medium text-(--ink-2) underline decoration-(--ink-3)/40 underline-offset-4">All steps</a>
+                        </div>
+                    </div>
+                {% endif %}
+                <ul class="mt-6 divide-y divide-(--line)">
+                    {% for g in goals %}
+                        <li class="py-5">
+                            <div class="flex items-baseline justify-between gap-3"><span class="text-[17px] font-semibold">{{ g.name }}</span><span class="text-[13px] text-(--ink-3)">{{ g.date }}</span></div>
+                            <div class="mt-3 flex items-end justify-between gap-3">
+                                <p class="stat num text-[36px]">{{ g.pct }}<span class="text-[20px]">%</span></p>
+                                <p class="num pb-1 text-[13px]">{{ g.have }} <span class="text-(--ink-3)">of {{ g.target }}</span></p>
+                            </div>
+                            <div class="mt-3 h-1.5 overflow-hidden rounded-full bg-(--line)">
+                                <div class="h-full rounded-full bg-(--ink)" style="width: {{ g.pct }}%"></div>
+                            </div>
+                            <p class="mt-2 text-[13px] text-(--ink-3)">{{ g.note }}</p>
+                        </li>
+                    {% endfor %}
+                </ul>
+                <div class="mt-2 flex items-center justify-between rounded-[20px] bg-(--well) px-5 py-4 text-[14px]">
+                    <span class="text-(--ink-2)">Not earmarked to any Goal</span><span class="num font-semibold">₹1.93 L</span>
+                </div>
+            </section>
+        </div>
+    </div>
+    <nav class="fixed inset-x-0 bottom-0 z-40 border-t border-(--line) bg-white/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl lg:hidden">
+        <div class="grid h-[64px] grid-cols-3 items-center px-6">
+            <div class="flex items-center gap-1.5" aria-hidden="true">
+                {% for i in "0123" %}
+                    <span class="dot h-1.5 w-1.5 rounded-full bg-(--ink-3)/40"
+                          data-dot="{{ i }}"
+                          {% if forloop.first %}aria-current="true"{% endif %}></span>
+                {% endfor %}
+            </div>
+            <div class="flex justify-center">
+                <button type="button"
+                        data-compose
+                        class="grid size-[54px] place-items-center rounded-full bg-(--accent) text-white shadow-[0_10px_24px_-10px_rgb(47_91_255/.9)] transition-transform active:scale-95"
+                        aria-label="New expense">
+                    <i data-lucide="plus" class="size-6"></i>
+                </button>
+            </div>
+            <div class="flex justify-end gap-1">
+                <button type="button"
+                        class="grid size-10 place-items-center rounded-full text-(--ink-2)"
+                        aria-label="Search">
+                    <i data-lucide="search" class="size-5"></i>
+                </button>
+                <button type="button"
+                        class="grid size-10 place-items-center rounded-full text-(--ink-2)"
+                        aria-label="Notifications">
+                    <i data-lucide="bell" class="size-5"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+{% endblock %}
+{% block script %}
+    <script>
+    (() => {
+        const pager = document.getElementById("pager");
+        const tabs = [...document.querySelectorAll("[data-tab]")];
+        const dots = [...document.querySelectorAll("[data-dot]")];
+        const bar = document.getElementById("tab-bar");
+        const pageWidth = () => pager.querySelector(".page").getBoundingClientRect().width;
+        const measure = (el) => { const r = document.createRange(); r.selectNodeContents(el); return r.getBoundingClientRect().width; };
+        const sync = () => {
+            const progress = Math.min(pager.scrollLeft / pageWidth(), tabs.length - 1);
+            const index = Math.round(progress);
+            const a = tabs[Math.floor(progress)], b = tabs[Math.ceil(progress)], f = progress - Math.floor(progress);
+            bar.style.transform = `translateX(${a.offsetLeft + (b.offsetLeft - a.offsetLeft) * f}px)`;
+            bar.style.width = `${measure(a) + (measure(b) - measure(a)) * f}px`;
+            tabs.forEach((t, i) => t.setAttribute("aria-selected", i === index));
+            dots.forEach((d, i) => d.setAttribute("aria-current", i === index));
+        };
+        const go = (i) => pager.scrollTo({ left: i * pageWidth(), behavior: "smooth" });
+        pager.addEventListener("scroll", () => requestAnimationFrame(sync), { passive: true });
+        addEventListener("resize", sync);
+        tabs.forEach((t) => t.addEventListener("click", () => go(+t.dataset.tab)));
+
+        const select = (n) => {
+            document.querySelectorAll("[data-day]").forEach((b) => b.setAttribute("aria-pressed", b.dataset.day == n));
+            document.querySelectorAll("[data-day-list]").forEach((l) => (l.hidden = l.dataset.dayList != n));
+        };
+        document.querySelectorAll("[data-day]").forEach((b) => b.addEventListener("click", () => select(b.dataset.day)));
+        document.body.addEventListener("txnAdded", () => { select(30); go(1); });
+        document.body.addEventListener("htmx:afterSettle", () => document.getElementById("feed-today").scrollIntoView({ behavior: "smooth", block: "center" }));
+        sync();
+    })();
+    </script>
+{% endblock %}

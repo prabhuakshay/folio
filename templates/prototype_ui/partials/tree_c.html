@@ -1,0 +1,17 @@
+{% for g in account_groups %}
+    <details open class="group py-1">
+        <summary class="flex items-center gap-1 cursor-pointer list-none text-sm font-medium py-1">
+            <i data-lucide="chevron-right"
+               class="size-4 text-(--muted) transition-transform group-open:rotate-90"></i>
+            <span class="flex-1">{{ g.name }}</span><span>{{ g.total }}</span>
+        </summary>
+        <ul class="ml-5 border-l border-(--line)">
+            {% for a in g.rows %}
+                <li class="flex items-center gap-2 pl-3 py-1 text-sm">
+                    <span class="flex-1 truncate">{{ a.name }}</span>
+                    <span class="{% if a.neg %}text-(--neg){% else %}text-(--muted){% endif %}">{{ a.short }}</span>
+                </li>
+            {% endfor %}
+        </ul>
+    </details>
+{% endfor %}

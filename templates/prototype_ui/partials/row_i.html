@@ -1,0 +1,10 @@
+<li class="flex items-center gap-3 py-3 {% if t.new %}row-new{% endif %}">
+    <span class="grid size-10 shrink-0 place-items-center rounded-full"
+          style="background: color-mix(in srgb, {{ t.color }} 12%, var(--surface));
+                 color: {{ t.color }}"><i data-lucide="{{ t.icon }}" class="size-[18px]"></i></span>
+    <div class="min-w-0 flex-1">
+        <p class="truncate text-[15px] font-semibold leading-5">{{ t.payee }}</p>
+        <p class="truncate text-[13px] leading-5 text-(--ink-3)">{{ t.category }}{% if t.paid_from %} · {{ t.paid_from }}{% endif %}</p>
+    </div>
+    <p class="num shrink-0 text-[15px] font-semibold {% if t.amount.pos %}text-(--pos){% endif %}">{% if t.amount.pos %}+{% endif %}<span class="cur">₹</span>{{ t.amount.whole }}</p>
+</li>

@@ -1,0 +1,350 @@
+{# PROTOTYPE — smart quick-add shared by every variant. Type "450 swiggy card"; Folio parses amount, category, paid-from, payee and day. #}
+<style>
+    #composer .sheet { transform: translateY(100%); transition: transform .44s var(--ease-sheet); bottom: var(--kb, 0px); }
+    #composer.is-open .sheet { transform: none; }
+    #composer [data-backdrop] { opacity: 0; transition: opacity .3s; }
+    #composer.is-open [data-backdrop] { opacity: 1; }
+    @media (min-width: 1024px) {
+        #composer .sheet { transform: translate(-50%, 16px) scale(.98); opacity: 0; transition: transform .28s var(--ease-sheet), opacity .2s; }
+        #composer.is-open .sheet { transform: translate(-50%, 0); opacity: 1; }
+    }
+    #composer {
+        --field: color-mix(in srgb, var(--ink) 4.5%, var(--surface));
+        --field-edge: color-mix(in srgb, var(--ink) 7%, transparent);
+        --field-focus: color-mix(in srgb, var(--ink) 30%, transparent);
+        --field-halo: color-mix(in srgb, var(--ink) 6%, transparent);
+    }
+    #composer .pick { background: var(--field); color: var(--ink-2); transition: background-color .15s, color .15s; }
+    #composer .pick .pick-icon { background: color-mix(in srgb, var(--c) 14%, var(--surface)); color: var(--c); }
+    #composer .pick[aria-pressed="true"] { background: var(--ink); color: var(--surface); }
+    #composer .pick[aria-pressed="true"] .pick-icon { background: rgb(255 255 255 / .16); color: var(--surface); }
+    #composer .tok { border-radius: 4px; color: var(--c); background: color-mix(in srgb, var(--c) 13%, transparent); }
+    #composer .well { background: var(--field); box-shadow: inset 0 0 0 1px var(--field-edge); transition: background-color .15s, box-shadow .15s; }
+    #composer .well:focus-within { background: var(--surface); box-shadow: inset 0 0 0 1px var(--field-focus), 0 0 0 4px var(--field-halo); }
+    #c-input:focus-visible { outline: none; }
+    #c-input, #c-mirror { font-size: 20px; line-height: 28px; padding: 14px 16px; letter-spacing: -0.01em; }
+</style>
+<div id="composer"
+     class="fixed inset-0 z-[60] invisible"
+     aria-hidden="true">
+    <div data-backdrop
+         class="absolute inset-0 bg-black/45 backdrop-blur-[2px]"></div>
+    <form class="sheet absolute inset-x-0 top-[max(.75rem,env(safe-area-inset-top))] flex flex-col overflow-y-auto bg-(--surface) text-(--ink) rounded-t-[28px] lg:top-[14vh] lg:bottom-auto! lg:inset-x-auto lg:left-1/2 lg:w-[560px] lg:max-h-[76vh] lg:rounded-[28px] lg:shadow-2xl"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="c-title"
+          hx-post="{% url 'prototype-ui-add' %}"
+          hx-target="#feed-today"
+          hx-swap="afterbegin">
+        <input type="hidden" name="variant" value="{{ variant }}">
+        <input type="hidden" name="amount"><input type="hidden" name="account"><input type="hidden" name="paid_from"><input type="hidden" name="payee"><input type="hidden" name="day">
+        <div class="pt-2 lg:hidden">
+            <div class="mx-auto h-[5px] w-9 rounded-full bg-(--line)"></div>
+        </div>
+        <div class="flex items-center justify-between px-5 pt-3 lg:pt-5">
+            <h2 id="c-title" class="text-[17px] font-semibold tracking-tight">New expense</h2>
+            <button type="button"
+                    data-close
+                    class="grid size-8 place-items-center rounded-full bg-(--field) text-(--ink-2)"
+                    aria-label="Close">
+                <i data-lucide="x" class="size-[17px]"></i>
+            </button>
+        </div>
+        <div class="px-5 pt-4">
+            <div class="well relative rounded-2xl">
+                <div id="c-mirror"
+                     aria-hidden="true"
+                     class="absolute inset-0 whitespace-pre overflow-hidden pointer-events-none"></div>
+                <input id="c-input"
+                       class="relative block w-full bg-transparent text-transparent caret-(--ink) outline-none placeholder:text-(--ink-3)"
+                       placeholder="450 swiggy card"
+                       autocomplete="off"
+                       autocapitalize="off"
+                       autocorrect="off"
+                       spellcheck="false"
+                       enterkeyhint="done"
+                       aria-label="Describe the expense">
+            </div>
+            <div id="c-recent"
+                 class="mt-3 flex items-center gap-2 overflow-x-auto hide-scrollbar -mx-5 px-5 text-[13px]">
+                <span class="shrink-0 text-(--ink-3)">Recent</span>
+                <button type="button"
+                        data-fill="swiggy "
+                        class="shrink-0 rounded-full bg-(--field) px-3 py-1.5 text-(--ink-2)">Swiggy</button>
+                <button type="button"
+                        data-fill="bigbasket "
+                        class="shrink-0 rounded-full bg-(--field) px-3 py-1.5 text-(--ink-2)">BigBasket</button>
+                <button type="button"
+                        data-fill="uber "
+                        class="shrink-0 rounded-full bg-(--field) px-3 py-1.5 text-(--ink-2)">Uber</button>
+                <button type="button"
+                        data-fill="zepto "
+                        class="shrink-0 rounded-full bg-(--field) px-3 py-1.5 text-(--ink-2)">Zepto</button>
+                <button type="button"
+                        data-fill="petrol "
+                        class="shrink-0 rounded-full bg-(--field) px-3 py-1.5 text-(--ink-2)">Petrol</button>
+            </div>
+        </div>
+        <div class="px-5 pt-4">
+            <div class="rounded-2xl bg-(--field) p-4">
+                <div class="flex items-center gap-3">
+                    <span id="c-tile"
+                          class="tile size-11"
+                          style="--c: var(--ink-3)"><i data-lucide="receipt-indian-rupee"
+   class="size-5"></i></span>
+                    <div class="min-w-0 flex-1">
+                        <p id="c-payee" class="truncate font-medium text-(--ink-3)">Paid to</p>
+                        <p id="c-meta" class="truncate text-[13px] text-(--ink-3)">Today</p>
+                        <p id="c-source" class="truncate text-[12px] text-(--ink-3)"></p>
+                    </div>
+                    <p id="c-amount"
+                       class="num text-[24px] font-semibold text-(--ink-3)"><span class="cur">₹</span>0</p>
+                </div>
+                <div id="c-effect"
+                     class="hidden mt-3.5 pt-3.5 border-t border-(--surface) text-[13px]"></div>
+            </div>
+        </div>
+        <div class="pt-5">
+            <p class="px-5 text-[13px] font-medium text-(--ink-2)">Category</p>
+            <div class="mt-2 flex gap-2 overflow-x-auto hide-scrollbar px-5 pb-1 lg:flex-wrap lg:overflow-visible">
+                {% for c in categories %}
+                    <button type="button"
+                            data-cat="{{ c.name }}"
+                            aria-pressed="false"
+                            class="pick shrink-0 inline-flex h-9 items-center gap-1.5 rounded-full pl-1.5 pr-3.5 text-[14px] font-medium"
+                            style="--c: {{ c.color }}">
+                        <span class="pick-icon grid size-6 place-items-center rounded-full"><i data-lucide="{{ c.icon }}"
+   class="size-3.5"></i></span>{{ c.name }}
+                    </button>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="pt-4">
+            <p class="px-5 text-[13px] font-medium text-(--ink-2)">Paid from</p>
+            <div class="mt-2 flex gap-2 overflow-x-auto hide-scrollbar px-5 pb-1 lg:flex-wrap lg:overflow-visible">
+                {% for a in paid_from %}
+                    <button type="button"
+                            data-src="{{ a.name }}"
+                            aria-pressed="false"
+                            class="pick shrink-0 inline-flex h-9 items-center gap-2 rounded-full pl-1.5 pr-3.5 text-[14px] font-medium"
+                            style="--c: {{ a.color }}">
+                        <span class="pick-icon grid size-6 place-items-center rounded-full"><i data-lucide="{{ a.icon }}"
+   class="size-3.5"></i></span>{{ a.name }}
+                    </button>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="mt-auto px-5 pt-6 pb-[max(1.25rem,env(safe-area-inset-bottom))] lg:mt-0">
+            <button id="c-submit"
+                    disabled
+                    class="h-[52px] w-full rounded-2xl bg-(--accent) font-semibold text-(--on-accent) transition-opacity disabled:opacity-30">Add expense</button>
+            <p class="mt-3 hidden text-center text-[12px] text-(--ink-3) lg:block">Press Enter to add · Esc to close</p>
+        </div>
+    </form>
+</div>
+<div id="c-toast"
+     role="status"
+     class="fixed left-1/2 bottom-[calc(6.5rem+env(safe-area-inset-bottom))] lg:bottom-8 z-[70] -translate-x-1/2 translate-y-3 opacity-0 pointer-events-none flex items-center gap-3 whitespace-nowrap rounded-full bg-(--ink) py-2.5 pl-3 pr-4 text-[14px] text-(--surface) shadow-xl transition duration-300">
+    <span class="grid size-6 place-items-center rounded-full bg-(--pos) text-white"><i data-lucide="check"
+   class="size-3.5"></i></span>
+    <span id="c-toast-text"></span>
+    <button type="button" class="font-semibold opacity-70">Undo</button>
+</div>
+<script>
+    (() => {
+        const CATS = {{ categories_json|safe }};
+        const BUDGETS = {{ budgets_json|safe }};
+        const MERCHANTS = {
+            swiggy: ["Swiggy", "Dining out"], zomato: ["Zomato", "Dining out"], starbucks: ["Starbucks", "Dining out"],
+            bigbasket: ["BigBasket", "Groceries"], zepto: ["Zepto", "Groceries"], blinkit: ["Blinkit", "Groceries"], dmart: ["DMart", "Groceries"],
+            uber: ["Uber", "Transport"], ola: ["Ola", "Transport"], rapido: ["Rapido", "Transport"], metro: ["Namma Metro", "Transport"],
+            bescom: ["BESCOM", "Utilities"], airtel: ["Airtel", "Utilities"], jio: ["Jio", "Utilities"],
+            amazon: ["Amazon", "Shopping"], myntra: ["Myntra", "Shopping"], flipkart: ["Flipkart", "Shopping"],
+            apollo: ["Apollo Pharmacy", "Health"], ikea: ["IKEA", "Household"], urbancompany: ["Urban Company", "Household"],
+        };
+        const WORDS = {
+            grocery: "Groceries", groceries: "Groceries", vegetables: "Groceries", veggies: "Groceries", milk: "Groceries",
+            food: "Dining out", dinner: "Dining out", lunch: "Dining out", breakfast: "Dining out", coffee: "Dining out", chai: "Dining out",
+            petrol: "Fuel", diesel: "Fuel", fuel: "Fuel", cab: "Transport", auto: "Transport", taxi: "Transport", parking: "Transport", toll: "Transport",
+            electricity: "Utilities", recharge: "Utilities", broadband: "Utilities", gas: "Utilities", water: "Utilities",
+            clothes: "Shopping", shoes: "Shopping", gift: "Shopping", medicine: "Health", medicines: "Health", doctor: "Health", pharmacy: "Health", gym: "Health",
+            maid: "Household", cleaning: "Household", repair: "Household", furniture: "Household",
+        };
+        const SOURCES = {
+            hdfc: "HDFC Savings", upi: "HDFC Savings", gpay: "HDFC Savings", phonepe: "HDFC Savings", paytm: "HDFC Savings", bank: "HDFC Savings",
+            icici: "ICICI Amazon Pay", card: "ICICI Amazon Pay", credit: "ICICI Amazon Pay", cash: "Cash",
+        };
+        const SOURCE_COLOR = { "HDFC Savings": "#004C8F", "ICICI Amazon Pay": "#B02A30", Cash: "#0B9B6A" };
+        const DAYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+        const FILLERS = ["on", "at", "for", "from", "via", "to", "rs", "inr", "paid", "spent", "with", "by"];
+
+        const root = document.getElementById("composer");
+        const form = root.querySelector("form");
+        const input = document.getElementById("c-input");
+        const mirror = document.getElementById("c-mirror");
+        const submit = document.getElementById("c-submit");
+        let overrides = {};
+        let lastFocus = null;
+
+        const inr = (n) => Math.round(n).toLocaleString("en-IN");
+        const money = (n) => {
+            const [w, p] = Number(n).toFixed(2).split(".");
+            return `<span class="cur">₹</span>${Number(w).toLocaleString("en-IN")}${p !== "00" ? `<span class="paise">.${p}</span>` : ""}`;
+        };
+        const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+        const title = (s) => s.replace(/\b\w/g, (c) => c.toUpperCase());
+        const dayLabel = (w) => {
+            if (w === "today") return "Today";
+            if (w === "yesterday" || w === "yday") return "Yesterday";
+            const i = DAYS.indexOf(w.slice(0, 3));
+            if (i < 0) return null;
+            const d = new Date();
+            const back = (d.getDay() - i + 7) % 7 || 7;
+            d.setDate(d.getDate() - back);
+            return back === 1 ? "Yesterday" : d.toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" });
+        };
+
+        const parse = (text) => {
+            const out = { amount: null, category: null, source: null, day: null, payee: [], merchant: null, tokens: [] };
+            for (const m of text.matchAll(/\S+/g)) {
+                const raw = m[0];
+                const w = raw.toLowerCase().replace(/[.,]$/, "");
+                const tok = (kind, color) => out.tokens.push({ start: m.index, end: m.index + raw.length, kind, color });
+                const amt = w.match(/^(?:₹|rs\.?)?(\d[\d,]*(?:\.\d{1,2})?)(k)?$/);
+                if (out.amount === null && amt) {
+                    out.amount = parseFloat(amt[1].replace(/,/g, "")) * (amt[2] ? 1000 : 1);
+                    tok("amount", "var(--accent)");
+                } else if (!out.merchant && MERCHANTS[w]) {
+                    out.merchant = MERCHANTS[w][0];
+                    out.category = out.category || MERCHANTS[w][1];
+                    tok("merchant", CATS[MERCHANTS[w][1]][1]);
+                } else if (!out.source && SOURCES[w]) {
+                    out.source = SOURCES[w];
+                    tok("source", SOURCE_COLOR[SOURCES[w]]);
+                } else if (!out.day && dayLabel(w)) {
+                    out.day = dayLabel(w);
+                    tok("day", "var(--ink-2)");
+                } else if (!out.category && (WORDS[w] || (w.length >= 3 && Object.keys(CATS).find((c) => c.toLowerCase().startsWith(w))))) {
+                    out.category = WORDS[w] || Object.keys(CATS).find((c) => c.toLowerCase().startsWith(w));
+                    tok("category", CATS[out.category][1]);
+                } else if (!FILLERS.includes(w)) {
+                    out.payee.push(raw);
+                }
+            }
+            return out;
+        };
+
+        const renderMirror = (text, tokens) => {
+            let html = "", at = 0;
+            for (const t of tokens) {
+                html += esc(text.slice(at, t.start)) + `<span class="tok" style="--c:${t.color}">${esc(text.slice(t.start, t.end))}</span>`;
+                at = t.end;
+            }
+            mirror.innerHTML = `<span style="color: var(--ink)">${html + esc(text.slice(at))}</span>`;
+            mirror.scrollLeft = input.scrollLeft;
+        };
+
+        const update = () => {
+            const text = input.value;
+            const p = parse(text);
+            const category = overrides.category || p.category;
+            const source = overrides.source || p.source || "HDFC Savings";
+            const day = p.day || "Today";
+            const payee = p.merchant || (p.payee.length ? title(p.payee.join(" ")) : "") || category || "";
+            renderMirror(text, p.tokens);
+            document.getElementById("c-recent").classList.toggle("hidden", !!text.trim());
+
+            const tile = document.getElementById("c-tile");
+            const [icon, color] = category ? CATS[category] : ["receipt-indian-rupee", "var(--ink-3)"];
+            tile.style.setProperty("--c", color);
+            tile.innerHTML = `<i data-lucide="${icon}" class="size-5"></i>`;
+            const payeeEl = document.getElementById("c-payee");
+            payeeEl.textContent = payee || "Paid to";
+            payeeEl.classList.toggle("text-(--ink-3)", !payee);
+            document.getElementById("c-meta").innerHTML = [category || `<span class="text-(--ink-3)">Pick a category</span>`, day].join(" · ");
+            document.getElementById("c-source").textContent = `from ${source}`;
+            document.getElementById("c-meta").classList.toggle("text-(--ink-2)", !!category);
+            const amountEl = document.getElementById("c-amount");
+            amountEl.innerHTML = money(p.amount || 0);
+            amountEl.classList.toggle("text-(--ink-3)", !p.amount);
+
+            const effect = document.getElementById("c-effect");
+            if (category && p.amount && BUDGETS[category]) {
+                const [spent, budget] = BUDGETS[category];
+                const after = spent + p.amount;
+                const over = after > budget;
+                const pct = Math.min(100, (after / budget) * 100);
+                const was = Math.min(100, (spent / budget) * 100);
+                effect.innerHTML =
+                    `<div class="flex justify-between"><span class="text-(--ink-2)">${category} in September</span><span class="num ${over ? "text-(--neg) font-medium" : ""}">₹${inr(after)} <span class="text-(--ink-3)">/ ₹${inr(budget)}</span></span></div>` +
+                    `<div class="relative mt-2 h-1.5 overflow-hidden rounded-full bg-(--field)"><div class="absolute inset-y-0 left-0 rounded-full ${over ? "bg-(--neg)" : ""}" style="width:${pct}%; ${over ? "" : `background:${color}`}"></div><div class="absolute inset-y-0 left-0 rounded-full bg-(--ink)/15" style="width:${was}%"></div></div>` +
+                    `<p class="mt-2 ${over ? "text-(--neg)" : "text-(--ink-3)"}">${over ? `Puts ${category} ₹${inr(after - budget)} over budget` : `₹${inr(budget - after)} left after this`}</p>`;
+                effect.classList.remove("hidden");
+            } else {
+                effect.classList.add("hidden");
+            }
+
+            root.querySelectorAll("[data-cat]").forEach((b) => b.setAttribute("aria-pressed", b.dataset.cat === category));
+            root.querySelectorAll("[data-src]").forEach((b) => b.setAttribute("aria-pressed", b.dataset.src === source));
+            form.amount.value = p.amount || "";
+            form.account.value = category || "";
+            form.paid_from.value = source;
+            form.payee.value = payee;
+            form.day.value = day;
+            submit.disabled = !(p.amount && category);
+            submit.innerHTML = p.amount && category ? `Add ₹${Number(p.amount).toLocaleString("en-IN")} to ${category}` : "Add expense";
+            lucide.createIcons();
+        };
+
+        const open = () => {
+            lastFocus = document.activeElement;
+            input.value = "";
+            overrides = {};
+            update();
+            root.classList.remove("invisible");
+            root.setAttribute("aria-hidden", "false");
+            document.body.dataset.sheet = "1";
+            document.documentElement.style.overflow = "hidden";
+            requestAnimationFrame(() => root.classList.add("is-open"));
+            setTimeout(() => input.focus(), 60);
+        };
+        const close = () => {
+            root.classList.remove("is-open");
+            root.setAttribute("aria-hidden", "true");
+            delete document.body.dataset.sheet;
+            document.documentElement.style.overflow = "";
+            setTimeout(() => root.classList.add("invisible"), 440);
+            lastFocus?.focus?.();
+        };
+        window.openComposer = open;
+
+        document.addEventListener("click", (e) => { if (e.target.closest("[data-compose]")) open(); });
+        root.querySelector("[data-close]").addEventListener("click", close);
+        root.querySelector("[data-backdrop]").addEventListener("click", close);
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape" && root.classList.contains("is-open")) close();
+            if ((e.key === "n" || e.key === "/") && !root.classList.contains("is-open") && !e.target.closest("input, textarea")) { e.preventDefault(); open(); }
+        });
+        input.addEventListener("input", update);
+        input.addEventListener("scroll", () => (mirror.scrollLeft = input.scrollLeft));
+        input.addEventListener("keyup", () => (mirror.scrollLeft = input.scrollLeft));
+        root.querySelectorAll("[data-fill]").forEach((b) => b.addEventListener("click", () => { input.value = b.dataset.fill; update(); input.focus(); }));
+        root.querySelectorAll("[data-cat]").forEach((b) => b.addEventListener("click", () => { overrides.category = b.dataset.cat; update(); }));
+        root.querySelectorAll("[data-src]").forEach((b) => b.addEventListener("click", () => { overrides.source = b.dataset.src; update(); }));
+
+        if (window.visualViewport) {
+            const kb = () => root.style.setProperty("--kb", `${Math.max(0, innerHeight - visualViewport.height - visualViewport.offsetTop)}px`);
+            visualViewport.addEventListener("resize", kb);
+            visualViewport.addEventListener("scroll", kb);
+        }
+
+        document.body.addEventListener("txnAdded", (e) => {
+            close();
+            const toast = document.getElementById("c-toast");
+            document.getElementById("c-toast-text").textContent = `Added ${e.detail.amount} to ${e.detail.category}`;
+            toast.classList.remove("opacity-0", "translate-y-3");
+            toast.classList.add("pointer-events-auto");
+            setTimeout(() => { toast.classList.add("opacity-0", "translate-y-3"); toast.classList.remove("pointer-events-auto"); }, 2800);
+        });
+    })();
+</script>

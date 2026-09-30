@@ -1,0 +1,172 @@
+{% extends "prototype_ui/base.html" %}
+{# PROTOTYPE C — Evergreen: calm and plan-first. The doctrine ladder is the hero, the month reads as one sentence, Goals show as rings, activity last. #}
+{% block style %}
+    .step-line { position: absolute; left: 15px; top: 34px; bottom: -6px; width: 2px; border-radius: 2px; background: var(--line); }
+    .step-line.done { background: color-mix(in srgb, var(--pos) 45%, transparent); }
+    .hero-band { background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 7%, var(--canvas)), var(--canvas)); }
+{% endblock %}
+{% block body %}
+    <div class="hero-band">
+        <header class="mx-auto flex max-w-[1120px] items-center gap-3 px-5 pt-[max(1rem,env(safe-area-inset-top))] lg:px-8 lg:pt-6">
+            <span class="grid size-9 place-items-center rounded-xl bg-(--accent) text-white"><i data-lucide="sprout"
+   class="size-5"></i></span>
+            <span class="text-[17px] font-semibold tracking-tight">Folio</span>
+            <nav class="ml-8 hidden items-center gap-6 text-[14px] text-(--ink-2) lg:flex">
+                <a href="#"
+                   class="font-semibold text-(--ink)">Today</a><a href="#">Money</a><a href="#">Goals</a><a href="#">Plan</a>
+            </nav>
+            <button type="button"
+                    data-compose
+                    class="ml-auto hidden h-10 items-center gap-2 rounded-xl bg-(--accent) px-4 text-[14px] font-semibold text-white lg:inline-flex"><i data-lucide="plus" class="size-4"></i>New expense</button>
+            <button type="button"
+                    class="ml-auto grid size-10 place-items-center rounded-full text-(--ink-2) lg:ml-0"
+                    aria-label="Notifications">
+                <i data-lucide="bell" class="size-5"></i>
+            </button>
+            <span class="grid size-9 place-items-center rounded-full bg-(--accent-soft) text-[13px] font-semibold text-(--accent)">AP</span>
+        </header>
+        <section class="mx-auto max-w-[1120px] px-5 pb-2 pt-7 lg:px-8 lg:pt-10">
+            <p class="text-[15px] text-(--ink-2)">Good evening, Akshay</p>
+            <h1 class="mt-1.5 max-w-xl lg:max-w-none text-[29px] font-semibold leading-[35px] tracking-[-0.025em] lg:text-[40px] lg:leading-[46px]">Next, make sure your family is protected.</h1>
+        </section>
+    </div>
+    <main class="mx-auto max-w-[1120px] px-4 pb-32 pt-4 lg:grid lg:grid-cols-[400px_1fr] lg:gap-6 lg:px-8 lg:pb-12">
+        <div class="space-y-4 lg:sticky lg:top-6 lg:self-start">
+            <section class="card p-5">
+                <div class="flex items-baseline justify-between">
+                    <h2 class="text-[15px] font-semibold">Your plan</h2>
+                    <span class="text-[13px] text-(--ink-3)">Step {{ stage_index }} of {{ stages|length }}</span>
+                </div>
+                <ol class="mt-4">
+                    {% for s in stages %}
+                        <li class="relative flex gap-3.5 {% if not forloop.last %}pb-5{% endif %}">
+                            {% if not forloop.last %}
+                                <span class="step-line {% if s.met %}done{% endif %}"></span>
+                            {% endif %}
+                            {% if s.met %}
+                                <span class="relative grid size-8 shrink-0 place-items-center rounded-full bg-(--pos) text-white"><i data-lucide="check" class="size-4"></i></span>
+                            {% elif s.current %}
+                                <span class="relative grid size-8 shrink-0 place-items-center rounded-full bg-(--surface) text-[13px] font-semibold text-(--accent) ring-2 ring-(--accent) shadow-[0_0_0_5px_var(--accent-soft)]">{{ forloop.counter }}</span>
+                            {% else %}
+                                <span class="relative grid size-8 shrink-0 place-items-center rounded-full bg-(--canvas) text-[13px] font-medium text-(--ink-3)">{{ forloop.counter }}</span>
+                            {% endif %}
+                            <div class="min-w-0 flex-1 pt-1">
+                                <p class="text-[15px] leading-6 {% if s.current %}font-semibold{% elif s.met %}text-(--ink-2){% else %}text-(--ink-3){% endif %}">{{ s.name }}</p>
+                                {% if s.current %}
+                                    <p class="mt-0.5 text-[13px] leading-5 text-(--ink-2)">{{ s.detail }}. Your surplus goes here first.</p>
+                                    <div class="mt-3 flex gap-2">
+                                        <a href="#"
+                                           class="inline-flex h-9 items-center gap-1.5 rounded-full bg-(--accent) px-4 text-[13px] font-semibold text-white">See term plans</a>
+                                        <a href="#"
+                                           class="inline-flex h-9 items-center rounded-full px-3 text-[13px] font-medium text-(--ink-2) ring-1 ring-inset ring-(--line)">Why this matters</a>
+                                    </div>
+                                {% else %}
+                                    <p class="text-[13px] leading-5 text-(--ink-3)">{{ s.detail }}</p>
+                                {% endif %}
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ol>
+            </section>
+            <section class="card flex items-center gap-4 p-5">
+                <div class="min-w-0 flex-1">
+                    <p class="text-[13px] text-(--ink-2)">Net worth</p>
+                    <p class="num mt-0.5 text-[24px] font-semibold tracking-tight"><span class="cur">₹</span>{{ net_worth.whole }}</p>
+                    <p class="mt-0.5 text-[13px] font-medium text-(--pos)">{{ nw_change.text }} this month</p>
+                </div>
+                <svg viewBox="0 0 {{ chart_sm.w }} {{ chart_sm.h }}"
+                     preserveAspectRatio="none"
+                     class="h-14 w-28 overflow-visible"
+                     aria-hidden="true">
+                    <defs><linearGradient id="c-fill" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="var(--pos)" stop-opacity=".2" /><stop offset="1" stop-color="var(--pos)" stop-opacity="0" /></linearGradient></defs>
+                    <path d="{{ chart_sm.area }}" fill="url(#c-fill)" />
+                    <path d="{{ chart_sm.line }}" fill="none" stroke="var(--pos)" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linecap="round" />
+                </svg>
+            </section>
+        </div>
+        <div class="mt-4 space-y-4 lg:mt-0">
+            <section class="card p-5">
+                <p class="text-[13px] text-(--ink-2)">{{ month.name }} · {{ month.days_left }} day to go</p>
+                <p class="mt-1 text-[22px] font-semibold leading-7 tracking-tight"><span class="num"><span class="cur">₹</span>{{ month.left.whole }}</span> left to spend</p>
+                <p class="mt-1 text-[13px] text-(--ink-3)">₹{{ month.spent.whole }} of ₹{{ month.budget.whole }} spent</p>
+                <div class="mt-4 flex h-3 gap-[3px] overflow-hidden rounded-full">
+                    {% for d in donut %}
+                        <span class="h-full first:rounded-l-full"
+                              style="width: {{ d.of_budget }}%;
+                                     background: {{ d.color }}"></span>
+                    {% endfor %}
+                    <span class="h-full flex-1 rounded-r-full bg-(--canvas)"></span>
+                </div>
+                <ul class="mt-4 grid grid-cols-2 gap-x-4 gap-y-2.5 text-[13px] lg:grid-cols-4 lg:gap-x-6">
+                    {% for b in budgets|slice:":4" %}
+                        <li class="flex items-center gap-2"><span class="size-2 shrink-0 rounded-full"
+      style="background: {{ b.color }}"></span><span class="flex-1 truncate text-(--ink-2)">{{ b.name }}</span><span class="num font-medium {% if b.over %}text-(--neg){% endif %}">{{ b.pct_raw }}%</span></li>
+                    {% endfor %}
+                </ul>
+            </section>
+            <section>
+                <div class="flex items-baseline justify-between px-1">
+                    <h2 class="text-[15px] font-semibold">Goals</h2>
+                    <a href="#" class="text-[13px] font-medium text-(--accent)">All goals</a>
+                </div>
+                <div class="hide-scrollbar -mx-4 mt-3 flex snap-x gap-3 overflow-x-auto scroll-px-4 px-4 pb-1 lg:mx-0 lg:grid lg:grid-cols-3 lg:px-0">
+                    {% for g in goals %}
+                        <article class="card w-[168px] shrink-0 snap-start p-4 lg:w-auto">
+                            <div class="relative size-14">
+                                <svg viewBox="0 0 40 40" class="size-full -rotate-90">
+                                    <circle cx="20" cy="20" r="17" fill="none" stroke="var(--canvas)" stroke-width="4" />
+                                    <circle cx="20" cy="20" r="17" fill="none" stroke="var(--pos)" stroke-width="4" stroke-linecap="round" stroke-dasharray="{% widthratio g.pct 100 106.8 %} 106.8" />
+                                </svg>
+                                <span class="absolute inset-0 grid place-items-center text-(--ink-2)"><i data-lucide="{{ g.icon }}"
+   class="size-5"></i></span>
+                            </div>
+                            <p class="mt-3 text-[15px] font-semibold leading-5">{{ g.name }}</p>
+                            <p class="text-[13px] text-(--ink-3)">{{ g.date }}</p>
+                            <p class="num mt-2 text-[14px] font-medium">{{ g.have }} <span class="text-(--ink-3)">/ {{ g.target }}</span></p>
+                        </article>
+                    {% endfor %}
+                </div>
+            </section>
+            <section class="card px-5 pb-2 pt-5">
+                <div class="flex items-baseline justify-between">
+                    <h2 class="text-[15px] font-semibold">Recent</h2>
+                    <a href="#" class="text-[13px] font-medium text-(--accent)">All activity</a>
+                </div>
+                {% regroup transactions by day as days %}
+                {% for d in days %}
+                    <h3 class="mt-4 text-[12px] font-medium text-(--ink-3)">{{ d.grouper }}</h3>
+                    <ul {% if forloop.first %}id="feed-today"{% endif %}
+                        class="divide-y divide-(--line)">
+                        {% for t in d.list %}
+                            {% include "prototype_ui/partials/row_c.html" %}
+                        {% endfor %}
+                    </ul>
+                {% endfor %}
+            </section>
+        </div>
+    </main>
+    <nav class="fixed inset-x-0 bottom-0 z-40 border-t border-(--line) bg-(--surface)/92 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl lg:hidden">
+        <div class="grid h-[62px] grid-cols-5 items-center text-[10px] font-medium text-(--ink-3)">
+            <a href="#"
+               class="flex flex-col items-center gap-1 text-(--accent)"><i data-lucide="sun"
+   class="size-[22px]"></i>Today</a>
+            <a href="#"
+               class="flex flex-col items-center gap-1"><i data-lucide="wallet"
+   class="size-[22px]"></i>Money</a>
+            <div class="flex justify-center">
+                <button type="button"
+                        data-compose
+                        class="grid size-12 place-items-center rounded-[16px] bg-(--accent) text-white shadow-[0_8px_20px_-6px_color-mix(in_srgb,var(--accent)_70%,transparent)] transition-transform active:scale-95"
+                        aria-label="New expense">
+                    <i data-lucide="plus" class="size-6"></i>
+                </button>
+            </div>
+            <a href="#"
+               class="flex flex-col items-center gap-1"><i data-lucide="target"
+   class="size-[22px]"></i>Goals</a>
+            <a href="#"
+               class="flex flex-col items-center gap-1"><i data-lucide="compass"
+   class="size-[22px]"></i>Plan</a>
+        </div>
+    </nav>
+{% endblock %}

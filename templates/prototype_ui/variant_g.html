@@ -1,0 +1,303 @@
+{% extends "prototype_ui/base.html" %}
+{# PROTOTYPE G — Bento: the home screen is a grid of widget tiles of different sizes, each with its own visual. Monochrome ink UI; colour comes only from data. #}
+{% block theme_color %}#EEEEEC{% endblock %}
+{% block style %}
+    :root {
+    --font: "Archivo", ui-sans-serif, system-ui, sans-serif;
+    --canvas: #EEEEEC;
+    --line: #E4E4E0;
+    --ink: #15171B;
+    --ink-2: #55585F;
+    --ink-3: #8F9298;
+    --accent: #15171B;
+    --accent-soft: #E6E6E2;
+    --pos: #0E9F63;
+    --neg: #E5484D;
+    --radius: 26px;
+    --shadow: 0 1px 1px rgb(21 23 27 / .03), 0 10px 26px -14px rgb(21 23 27 / .14);
+    --signal: #FFBE1A;
+    }
+    body { font-family: var(--font); letter-spacing: -0.01em; }
+    h1, .w .num.font-bold { font-stretch: 116%; letter-spacing: -0.035em; }
+    .w.w-signal { background: var(--signal); color: var(--ink); box-shadow: 0 12px 30px -14px rgb(214 150 0 / .55); }
+    .w.w-signal .w-label { color: rgb(21 23 27 / .6); }
+    .bento { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: 168px; gap: 12px; grid-auto-flow: dense; }
+    @media (min-width: 1024px) { .bento { grid-template-columns: repeat(6, minmax(0, 1fr)); grid-auto-rows: 188px; gap: 16px; } }
+    .w { position: relative; display: flex; flex-direction: column; overflow: hidden; border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow); padding: 16px; }
+    .w-ink { background: var(--ink); color: #fff; box-shadow: 0 10px 30px -12px rgb(20 22 27 / .5); }
+    .w-label { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--ink-3); }
+    .w-ink .w-label { color: rgb(255 255 255 / .55); }
+    .w-label .lucide { width: 15px; height: 15px; }
+    a.w { transition: transform .2s var(--ease-sheet); }
+    a.w:active { transform: scale(.97); }
+    #feed-today > li:nth-child(n+5) { display: none; }
+    .nw-line { stroke-dasharray: 1400; stroke-dashoffset: 1400; animation: draw 1.2s .15s var(--ease-sheet) forwards; }
+    @keyframes draw { to { stroke-dashoffset: 0; } }
+    .dock { background: color-mix(in srgb, var(--ink) 92%, transparent); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
+{% endblock %}
+{% block body %}
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&display=swap"
+          rel="stylesheet">
+    <div class="mx-auto w-full max-w-[1200px] px-4 pb-36 pt-[max(1rem,env(safe-area-inset-top))] lg:px-8 lg:pb-12 lg:pt-7">
+        <header class="flex flex-wrap items-center gap-x-3 gap-y-1 lg:flex-nowrap lg:items-end">
+            <div class="order-last w-full lg:order-none lg:w-auto lg:flex-1">
+                <p class="hidden text-[13px] font-medium text-(--ink-3) lg:block">{{ today|date:"l, j F" }}</p>
+                <h1 class="text-[30px] font-bold leading-9 tracking-[-0.03em] lg:mt-0.5 lg:text-[34px]">Good evening, Akshay</h1>
+            </div>
+            <p class="flex-1 text-[13px] font-medium text-(--ink-3) lg:hidden">{{ today|date:"l, j F" }}</p>
+            <nav class="mr-3 hidden items-center gap-1 rounded-full bg-(--surface) p-1 text-[14px] font-semibold text-(--ink-2) shadow-(--shadow) lg:flex">
+                <a href="#" class="rounded-full bg-(--ink) px-4 py-1.5 text-white">Home</a><a href="#" class="rounded-full px-4 py-1.5">Accounts</a><a href="#" class="rounded-full px-4 py-1.5">Goals</a><a href="#" class="rounded-full px-4 py-1.5">Plan</a>
+            </nav>
+            <button type="button"
+                    data-compose
+                    class="hidden h-10 items-center gap-2 rounded-full bg-(--ink) px-4 text-[14px] font-semibold text-white lg:inline-flex"><i data-lucide="plus" class="size-4"></i>New expense</button>
+            <button type="button"
+                    class="mb-0.5 h-8 rounded-full bg-(--surface) px-3.5 text-[13px] font-semibold text-(--ink-2) shadow-(--shadow) lg:hidden">Edit</button>
+            <span class="mb-0.5 grid size-9 place-items-center rounded-full bg-(--ink) text-[12px] font-bold text-white">AP</span>
+        </header>
+        <div class="bento mt-5 lg:mt-7">
+            {# Net worth — the anchor tile, inverted #}
+            <a href="#"
+               class="w w-ink col-span-2 lg:col-span-3 lg:row-span-2 lg:p-6">
+                <div class="w-label"><i data-lucide="landmark"></i>Net worth</div>
+                <p class="num mt-2 text-[32px] font-bold leading-9 tracking-[-0.035em] lg:text-[48px] lg:leading-[54px]"><span class="cur">₹</span>{{ net_worth.whole }}<span class="paise">.{{ net_worth.paise }}</span></p>
+                <p class="mt-1.5 flex items-center gap-1.5 text-[13px] font-semibold text-[#4BE3A0]"><i data-lucide="trending-up" class="size-3.5"></i>{{ nw_change.text }}<span class="font-medium text-white/50">· {{ nw_change_pct }}% this month</span></p>
+                <svg viewBox="0 0 {{ chart_sm.w }} {{ chart_sm.h }}"
+                     preserveAspectRatio="none"
+                     class="absolute inset-x-0 bottom-0 h-[64px] w-full lg:hidden"
+                     aria-hidden="true">
+                    <defs><linearGradient id="g-fill" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".16" /><stop offset="1" stop-color="#fff" stop-opacity="0" /></linearGradient></defs>
+                    <path d="{{ chart_sm.area }}" fill="url(#g-fill)" />
+                    <path class="nw-line" d="{{ chart_sm.line }}" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" vector-effect="non-scaling-stroke" />
+                </svg>
+                <div class="relative mt-auto hidden h-[190px] lg:block">
+                    <svg viewBox="0 0 {{ chart.w }} {{ chart.h }}"
+                         preserveAspectRatio="none"
+                         class="absolute inset-0 size-full overflow-visible"
+                         aria-hidden="true">
+                        <defs><linearGradient id="g-fill-lg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".14" /><stop offset="1" stop-color="#fff" stop-opacity="0" /></linearGradient></defs>
+                        <path d="{{ chart.area }}" fill="url(#g-fill-lg)" />
+                        <path class="nw-line" d="{{ chart.line }}" fill="none" stroke="#fff" stroke-width="2.25" stroke-linecap="round" vector-effect="non-scaling-stroke" />
+                    </svg>
+                </div>
+                <div class="mt-3 hidden justify-between text-[11px] text-white/40 lg:flex">{% for m in chart_months %}<span>{{ m }}</span>{% endfor %}</div>
+            </a>
+            {# Doctrine — tall tile, the ladder #}
+            <a href="#" class="w w-signal row-span-2 lg:col-span-1">
+                <div class="w-label"><i data-lucide="shield-plus"></i>Next step</div>
+                <p class="mt-2 text-[17px] font-bold leading-[22px] tracking-tight">Top up term cover</p>
+                <p class="mt-1 text-[12px] leading-4 text-(--ink)/65">₹1 Cr of ₹2.1 Cr needed</p>
+                <ol class="my-3 flex flex-1 flex-col justify-center gap-[9px] lg:gap-[11px]">
+                    {% for s in stages %}
+                        <li class="flex items-center gap-2 text-[12px] leading-4 {% if s.current %}font-bold text-(--ink){% elif s.met %}text-(--ink)/75{% else %}text-(--ink)/45{% endif %}">
+                            {% if s.met %}
+                                <span class="grid size-4 shrink-0 place-items-center rounded-full bg-(--ink) text-white"><i data-lucide="check" class="size-2.5"></i></span>
+                            {% elif s.current %}
+                                <span class="size-4 shrink-0 rounded-full border-[5px] border-(--ink)"></span>
+                            {% else %}
+                                <span class="size-4 shrink-0 rounded-full border-[1.5px] border-dashed border-(--ink)/40"></span>
+                            {% endif %}
+                            <span class="truncate">{{ s.short }}</span>
+                        </li>
+                    {% endfor %}
+                </ol>
+                <span class="flex h-9 items-center justify-center gap-1.5 rounded-full bg-(--ink) text-[13px] font-semibold text-white">See plans<i data-lucide="arrow-right" class="size-3.5"></i></span>
+            </a>
+            {# Month budget — ring #}
+            <a href="#" class="w">
+                <div class="w-label"><i data-lucide="chart-pie"></i>{{ month.name|slice:":3" }} budget</div>
+                <div class="mt-auto flex items-end justify-between gap-2">
+                    <div class="min-w-0">
+                        <p class="num text-[20px] font-bold leading-6 tracking-tight"><span class="cur">₹</span>{{ month.left.whole }}</p>
+                        <p class="text-[12px] text-(--ink-3)">left · {{ month.days_left }} day</p>
+                    </div>
+                    <svg viewBox="0 0 88 88"
+                         class="size-[58px] shrink-0 -rotate-90"
+                         aria-hidden="true">
+                        <circle cx="44" cy="44" r="38" fill="none" stroke="var(--canvas)" stroke-width="10" />
+                        <circle cx="44" cy="44" r="38" fill="none" stroke="var(--ink)" stroke-width="10" stroke-linecap="round" stroke-dasharray="{% widthratio month.pct 100 238.76 %} 238.76" />
+                    </svg>
+                </div>
+                <p class="mt-2 text-[12px] text-(--ink-3)">{{ month.pct }}% of ₹{{ month.budget.short }} used</p>
+            </a>
+            {# Emergency Fund — half gauge #}
+            <a href="#" class="w">
+                <div class="w-label"><i data-lucide="life-buoy"></i>Emergency Fund</div>
+                <div class="relative mx-auto mt-auto w-[118px]">
+                    <svg viewBox="0 0 100 56"
+                         class="w-full overflow-visible"
+                         aria-hidden="true">
+                        <path d="M10 50 A40 40 0 0 1 90 50" fill="none" stroke="var(--canvas)" stroke-width="9" stroke-linecap="round" />
+                        <path d="M10 50 A40 40 0 0 1 90 50" fill="none" stroke="var(--pos)" stroke-width="9" stroke-linecap="round" stroke-dasharray="87.96 125.66" />
+                        <circle cx="15.36" cy="30" r="1.3" fill="var(--surface)" /><circle cx="30" cy="15.36" r="1.3" fill="var(--surface)" /><circle cx="50" cy="10" r="1.3" fill="var(--surface)" /><circle cx="70" cy="15.36" r="1.3" fill="var(--surface)" /><circle cx="84.64" cy="30" r="1.3" fill="var(--surface)" />
+                    </svg>
+                    <p class="absolute inset-x-0 bottom-0 text-center text-[22px] font-bold leading-6 tracking-tight">4.2</p>
+                </div>
+                <p class="mt-1.5 text-center text-[12px] text-(--ink-3)">of 6 months covered</p>
+            </a>
+            {# Savings rate — bars against target #}
+            <a href="#" class="w">
+                <div class="w-label"><i data-lucide="piggy-bank"></i>Savings rate</div>
+                <p class="num mt-1 text-[28px] font-bold leading-8 tracking-tight">{{ month.savings_rate }}<span class="text-[16px] text-(--ink-3)">%</span></p>
+                <div class="relative mt-auto flex h-[52px] items-end gap-[5px]">
+                    <span class="absolute inset-x-0 border-t border-dashed border-(--ink-3)/60"
+                          style="bottom: 75%"></span>
+                    {% for c in cashflow %}
+                        <span class="flex-1 rounded-[4px] {% if forloop.last %}bg-(--ink){% else %}bg-(--ink)/12{% endif %}"
+                              style="height: {% widthratio c.rate 40 100 %}%"
+                              title="{{ c.m }} {{ c.rate }}%"></span>
+                    {% endfor %}
+                </div>
+                <p class="mt-1.5 flex justify-between text-[11px] text-(--ink-3)"><span>{{ cashflow.0.m }}</span><span>Target 30%</span></p>
+            </a>
+            {# Cash on hand — stacked by account #}
+            <a href="#" class="w">
+                <div class="w-label"><i data-lucide="wallet"></i>Cash on hand</div>
+                <p class="num mt-1 text-[22px] font-bold leading-7 tracking-tight"><span class="cur">₹</span>2,29,630</p>
+                <div class="mt-auto flex h-2 gap-[3px] overflow-hidden rounded-full">
+                    <span style="width: 80.3%; background: #004C8F"></span><span style="width: 18.3%; background: #2A6FDB"></span><span class="flex-1" style="background: #0B9B6A"></span>
+                </div>
+                <ul class="mt-2.5 space-y-1 text-[12px] leading-4">
+                    <li class="flex justify-between"><span class="text-(--ink-2)">HDFC</span><span class="num font-semibold">1.84 L</span></li>
+                    <li class="flex justify-between"><span class="text-(--ink-2)">SBI</span><span class="num font-semibold">42,110</span></li>
+                </ul>
+            </a>
+            {# Latest activity — holds the quick-add feed #}
+            <section class="w col-span-2 row-span-2 lg:col-span-3 lg:row-span-2">
+                <div class="flex items-center justify-between">
+                    <div class="w-label"><i data-lucide="receipt-indian-rupee"></i>Latest</div>
+                    <a href="#" class="text-[13px] font-semibold text-(--ink-2)">All activity</a>
+                </div>
+                <ul id="feed-today" class="mt-2 divide-y divide-(--line)">
+                    {% for t in transactions|slice:":4" %}
+                        {% include "prototype_ui/partials/row_g.html" %}
+                    {% endfor %}
+                </ul>
+                <button type="button"
+                        data-compose
+                        class="mt-auto flex h-11 items-center justify-center gap-2 rounded-2xl bg-(--canvas) text-[14px] font-semibold text-(--ink-2)"><i data-lucide="plus" class="size-4"></i>Add an expense</button>
+            </section>
+            {# Upcoming — next 30 days of bills #}
+            <a href="#" class="w col-span-2 lg:col-span-2">
+                <div class="flex items-center justify-between">
+                    <div class="w-label"><i data-lucide="calendar-clock"></i>Due in 30 days</div>
+                    <p class="num text-[13px] font-bold">₹73,810</p>
+                </div>
+                <div class="mt-auto grid grid-cols-4 gap-2">
+                    <div class="rounded-2xl bg-(--canvas) px-2.5 py-2.5">
+                        <p class="text-[20px] font-bold leading-6">5</p>
+                        <p class="text-[11px] text-(--ink-3)">Oct</p>
+                        <p class="mt-1.5 truncate text-[12px] font-semibold">MF SIP</p>
+                        <p class="num text-[12px] text-(--ink-2)">10,000</p>
+                    </div>
+                    <div class="rounded-2xl bg-(--ink) px-2.5 py-2.5 text-white">
+                        <p class="text-[20px] font-bold leading-6">12</p>
+                        <p class="text-[11px] text-white/55">Oct</p>
+                        <p class="mt-1.5 truncate text-[12px] font-semibold">ICICI card</p>
+                        <p class="num text-[12px] text-white/70">23,410</p>
+                    </div>
+                    <div class="rounded-2xl bg-(--canvas) px-2.5 py-2.5">
+                        <p class="text-[20px] font-bold leading-6">18</p>
+                        <p class="text-[11px] text-(--ink-3)">Oct</p>
+                        <p class="mt-1.5 truncate text-[12px] font-semibold">BESCOM</p>
+                        <p class="num text-[12px] text-(--ink-2)">~1,900</p>
+                    </div>
+                    <div class="rounded-2xl bg-(--canvas) px-2.5 py-2.5">
+                        <p class="text-[20px] font-bold leading-6">28</p>
+                        <p class="text-[11px] text-(--ink-3)">Oct</p>
+                        <p class="mt-1.5 truncate text-[12px] font-semibold">Home EMI</p>
+                        <p class="num text-[12px] text-(--ink-2)">38,500</p>
+                    </div>
+                </div>
+            </a>
+            {# Portfolio — allocation split #}
+            <a href="#" class="w">
+                <div class="w-label"><i data-lucide="chart-line"></i>Investments</div>
+                <p class="num mt-1 text-[22px] font-bold leading-7 tracking-tight"><span class="cur">₹</span>24.54 L</p>
+                <p class="text-[12px] font-semibold text-(--pos)">+14.8% in 1 year</p>
+                <div class="mt-auto flex h-2 gap-[3px] overflow-hidden rounded-full">
+                    <span class="bg-(--ink)" style="width: 41%"></span><span class="bg-(--ink)/30" style="width: 53%"></span><span class="flex-1" style="background: #C9A227"></span>
+                </div>
+                <p class="mt-2 flex justify-between text-[11px] text-(--ink-3)"><span>Equity 41</span><span>Debt 53</span><span>Gold 6</span></p>
+            </a>
+            {# Top Goal — ring with icon #}
+            <a href="#" class="w">
+                <div class="w-label"><i data-lucide="target"></i>Top goal</div>
+                <div class="mt-auto flex items-center gap-3">
+                    <div class="relative size-[54px] shrink-0">
+                        <svg viewBox="0 0 70 70" class="size-full -rotate-90" aria-hidden="true">
+                            <circle cx="35" cy="35" r="30" fill="none" stroke="var(--canvas)" stroke-width="7" />
+                            <circle cx="35" cy="35" r="30" fill="none" stroke="var(--pos)" stroke-width="7" stroke-linecap="round" stroke-dasharray="71.6 188.5" />
+                        </svg>
+                        <span class="absolute inset-0 grid place-items-center text-(--ink-2)"><i data-lucide="plane"
+   class="size-5"></i></span>
+                    </div>
+                    <div class="min-w-0 leading-tight">
+                        <p class="text-[22px] font-bold tracking-tight">38%</p>
+                        <p class="text-[12px] text-(--ink-3)">by May 2027</p>
+                    </div>
+                </div>
+                <p class="mt-2.5 truncate text-[14px] font-semibold leading-4">Europe trip</p>
+                <p class="num truncate text-[12px] text-(--ink-3)">₹1.14 L of ₹3.00 L</p>
+            </a>
+            {# Spending mix — category columns #}
+            <a href="#" class="w">
+                <div class="w-label"><i data-lucide="chart-column"></i>Where it went</div>
+                <p class="mt-1 text-[13px] font-semibold leading-4">Groceries leads <span class="font-medium text-(--ink-3)">· 27%</span></p>
+                <div class="mt-auto flex h-[64px] items-end gap-1.5">
+                    {% for d in donut|slice:":5" %}
+                        <span class="flex-1 rounded-[5px]"
+                              style="height: {% widthratio d.pct 27 100 %}%;
+                                     background: {{ d.color }}"
+                              title="{{ d.name }} {{ d.pct }}%"></span>
+                    {% endfor %}
+                </div>
+                <div class="mt-2 flex gap-1.5">
+                    {% for d in donut|slice:":5" %}
+                        <span class="grid flex-1 place-items-center"
+                              style="color: {{ d.color }}"
+                              title="{{ d.name }}"><i data-lucide="{% cycle 'shopping-basket' 'shopping-bag' 'utensils' 'fuel' 'zap' %}"
+   class="size-3.5"></i></span>
+                    {% endfor %}
+                </div>
+            </a>
+            {# Credit card — inverted, reads like the card #}
+            <a href="#" class="w w-ink">
+                <div class="flex items-center justify-between">
+                    <div class="w-label"><i data-lucide="credit-card"></i>ICICI card</div>
+                    <span class="text-[11px] font-semibold text-white/45">XX9043</span>
+                </div>
+                <p class="num mt-1 text-[22px] font-bold leading-7 tracking-tight"><span class="cur">₹</span>23,410</p>
+                <p class="text-[12px] text-white/55">Due 12 Oct · pay in full</p>
+                <div class="mt-auto h-1.5 overflow-hidden rounded-full bg-white/12">
+                    <div class="h-full rounded-full bg-white" style="width: 23%"></div>
+                </div>
+                <p class="mt-2 text-[11px] text-white/45">23% of ₹1 L limit</p>
+            </a>
+        </div>
+    </div>
+    <nav class="dock fixed inset-x-6 bottom-[max(1rem,env(safe-area-inset-bottom))] z-40 flex h-[62px] items-center justify-around rounded-full px-2 text-white/50 shadow-[0_14px_36px_-10px_rgb(20_22_27/.55)] lg:hidden">
+        <a href="#"
+           class="grid size-11 place-items-center rounded-full text-white"
+           aria-label="Home"><i data-lucide="layout-grid"
+   class="size-[22px]"></i></a>
+        <a href="#"
+           class="grid size-11 place-items-center rounded-full"
+           aria-label="Accounts"><i data-lucide="wallet"
+   class="size-[22px]"></i></a>
+        <button type="button"
+                data-compose
+                class="grid size-12 place-items-center rounded-full bg-white text-(--ink) transition-transform active:scale-95"
+                aria-label="New expense">
+            <i data-lucide="plus" class="size-6"></i>
+        </button>
+        <a href="#"
+           class="grid size-11 place-items-center rounded-full"
+           aria-label="Goals"><i data-lucide="target"
+   class="size-[22px]"></i></a>
+        <a href="#"
+           class="grid size-11 place-items-center rounded-full"
+           aria-label="Plan"><i data-lucide="compass"
+   class="size-[22px]"></i></a>
+    </nav>
+{% endblock %}

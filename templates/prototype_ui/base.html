@@ -1,0 +1,126 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en-IN">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport"
+              content="width=device-width, initial-scale=1, viewport-fit=cover">
+        <meta name="theme-color"
+              content="{% block theme_color %}{{ tokens.canvas }}{% endblock %}">
+        <title>Folio · {{ variant_name }}</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family={{ tokens.font|urlencode }}:wght@400;500;600;700&display=swap"
+              rel="stylesheet">
+        <link rel="stylesheet" href="{% static 'css/app.css' %}">
+        <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+        <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+        <style>
+            :root {
+                --font: "{{ tokens.font }}", ui-sans-serif, system-ui, sans-serif;
+                --canvas: {{ tokens.canvas }};
+                --surface: {{ tokens.surface }};
+                --line: {{ tokens.line }};
+                --ink: {{ tokens.ink }};
+                --ink-2: {{ tokens.ink_2 }};
+                --ink-3: {{ tokens.ink_3 }};
+                --accent: {{ tokens.accent }};
+                --accent-soft: {{ tokens.accent_soft }};
+                --on-accent: {{ tokens.on_accent }};
+                --pos: {{ tokens.pos }};
+                --neg: {{ tokens.neg }};
+                --radius: {{ tokens.radius }};
+                --shadow: {{ tokens.shadow }};
+                --ease-sheet: cubic-bezier(.32, .72, 0, 1);
+            }
+            html { -webkit-tap-highlight-color: transparent; }
+            body { font-family: var(--font); letter-spacing: -0.005em; }
+            body[data-sheet] #proto-bar, body[data-sheet] #proto-state { display: none; }
+            .lucide { stroke-width: 1.75; }
+            .num { letter-spacing: -0.02em; }
+            .cur { font-size: .62em; font-weight: 500; margin-right: .06em; opacity: .7; vertical-align: .08em; }
+            .paise { font-size: .55em; font-weight: 500; opacity: .45; }
+            .card { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); }
+            .tile { display: grid; place-items: center; flex-shrink: 0; border-radius: 12px; background: color-mix(in srgb, var(--c) 13%, transparent); color: var(--c); }
+            .hide-scrollbar { scrollbar-width: none; }
+            .hide-scrollbar::-webkit-scrollbar { display: none; }
+            .row-new { animation: row-new 1.8s var(--ease-sheet); }
+            @keyframes row-new { from { background: color-mix(in srgb, var(--accent) 12%, transparent); } }
+            :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+            @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+            {% block style %}{% endblock %}
+        </style>
+    </head>
+    <body class="min-h-dvh bg-(--canvas) text-(--ink) antialiased"
+          hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+        {% block body %}{% endblock %}
+        {% include "prototype_ui/partials/composer.html" %}
+        {# PROTOTYPE switcher — not part of the design being judged #}
+        <div id="proto-bar"
+             class="fixed left-1/2 -translate-x-1/2 bottom-[calc(5.75rem+env(safe-area-inset-bottom))] lg:bottom-5 z-[100] flex items-center rounded-full bg-black/85 text-white text-[11px] shadow-2xl ring-1 ring-yellow-300/80 backdrop-blur"
+             style="font-family: ui-sans-serif, system-ui">
+            <button type="button"
+                    data-step="-1"
+                    class="px-2.5 py-1.5"
+                    aria-label="Previous variant">◀</button>
+            <button type="button"
+                    id="proto-state-toggle"
+                    class="py-1.5 font-semibold whitespace-nowrap">{{ variant }} · {{ variant_name }}</button>
+            <button type="button"
+                    data-step="1"
+                    class="px-2.5 py-1.5"
+                    aria-label="Next variant">▶</button>
+        </div>
+        <aside id="proto-state"
+               hidden
+               class="fixed left-1/2 -translate-x-1/2 bottom-[calc(8.5rem+env(safe-area-inset-bottom))] lg:bottom-16 z-[100] w-72 max-h-[70dvh] overflow-auto rounded-xl bg-black/90 text-white text-xs p-3 shadow-2xl ring-1 ring-yellow-300/80"
+               style="font-family: ui-sans-serif, system-ui">
+            <p class="font-semibold mb-2">Tokens · {{ variant_name }}</p>
+            <ul class="space-y-1">
+                {% for key, value in tokens.items %}
+                    {% if key != "shadow" %}
+                        <li class="flex items-center gap-2">
+                            {% if value|first == "#" %}
+                                <span class="size-3.5 rounded-sm ring-1 ring-white/40"
+                                      style="background: {{ value }}"></span>
+                            {% else %}
+                                <span class="size-3.5"></span>
+                            {% endif %}
+                            <span class="text-white/55 w-20">{{ key }}</span><span>{{ value }}</span>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+            </ul>
+            <p class="font-semibold mt-3 mb-1">Last Transaction</p>
+            <div id="proto-last" class="text-white/60">None yet. Tap + to add one.</div>
+        </aside>
+        <script>
+            (() => {
+                const keys = Object.keys({{ variants_json|safe }});
+                const current = "{{ variant }}";
+                const go = (step) => {
+                    const url = new URL(location.href);
+                    url.searchParams.set("variant", keys[(keys.indexOf(current) + step + keys.length) % keys.length]);
+                    location.replace(url);
+                };
+                document.querySelectorAll("#proto-bar [data-step]").forEach((b) => b.addEventListener("click", () => go(+b.dataset.step)));
+                document.addEventListener("keydown", (e) => {
+                    if (e.target.closest("input, textarea, select, [contenteditable]") || document.body.dataset.sheet) return;
+                    if (e.key === "ArrowLeft") go(-1);
+                    if (e.key === "ArrowRight") go(1);
+                });
+                const panel = document.getElementById("proto-state");
+                document.getElementById("proto-state-toggle").addEventListener("click", () => (panel.hidden = !panel.hidden));
+                document.body.addEventListener("txnAdded", (e) => {
+                    const d = e.detail;
+                    document.getElementById("proto-last").innerHTML =
+                        `<p class="text-white mb-1">${d.payee} · ${d.amount}</p>` +
+                        d.postings.map((p) => `<div class="flex justify-between gap-2"><span>${p.account}</span><span>${p.amount}</span></div>`).join("");
+                });
+                lucide.createIcons();
+                document.body.addEventListener("htmx:afterSettle", () => lucide.createIcons());
+            })();
+        </script>
+        {% block script %}{% endblock %}
+    </body>
+</html>
