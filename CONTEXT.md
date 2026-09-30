@@ -43,10 +43,13 @@ One leg of a Transaction: a signed INR amount (Dr +, Cr −) to one Account. A T
 _Avoid_: split, line item
 
 **Opening Balance**:
-A Transaction on an Account's start date that brings in its balance as of that day, against the Opening Balances Equity Account. Each Account has its own start date. For a Holding it is an opening position: units and cost.
+A Transaction on an Account's start date that brings in its balance as of that day, against the Opening Balances Equity Account. Each Account has its own start date. For a Holding it is an opening position of one or more **Opening Lots**.
+
+**Opening Lot**:
+Part of a Holding's opening position: units and cost with the date they were originally bought, which may be before the Holding's start date. Posted against Opening Balances on the start date, but its original date is what FIFO and XIRR use. An Opening Lot with units but no cost or date yet is **incomplete**: it counts toward units and value, is left out of XIRR and Realised Gains, and is flagged until completed.
 
 **Realised Gain**:
-The difference between a sale's proceeds and the FIFO cost of the units sold, posted to an Income Account.
+The difference between a sale's proceeds, net of sell charges, and the FIFO cost of the units sold, posted to an Income Account. A buy's charges are part of its cost.
 
 **Unrealised Gain**:
 The gap between Holdings' market value and their cost. Computed and shown under Equity on the balance sheet; never posted.
@@ -120,7 +123,7 @@ _Avoid_: allocation (reserved for Target Allocation)
 The portion of any Asset Account not Earmarked to a Goal. Allowed and visible, never forced.
 
 **Statement Importer**:
-A pluggable reader that turns one institution's statement format into Transactions. Each bank or card issuer is added as its own Importer.
+A pluggable reader that turns one institution's statement format into Transactions. Each bank or card issuer is added as its own Importer. A depository (NSDL/CDSL) CAS yields only a holdings snapshot: its first import seeds demat Holdings with incomplete Opening Lots, and later imports post nothing and only flag Holdings whose units differ.
 
 **Policy**:
 An insurance contract you record: its type, insurer, persons covered (you and/or Dependents), sum assured, cover dates, nominees and riders. Not an Account — cover is a promise, not money you own; a pure-protection premium posts to an Expense Account, while a value-bearing Policy (ULIP, endowment) links to the Holdings that carry its value and its whole premium goes to them at cost. It counts only from its cover start to its **cover until** date — its own, not derived from any premium Schedule, and rolled forward by its **renewal term** when a linked premium Occurrence is fulfilled near it. **Employer-provided** cover is shown but never counted by the Doctrine.
@@ -167,6 +170,7 @@ The assumed nominal pre-tax yearly return of an Asset Class, used to project Goa
 - An **Instrument** is split across one or more **Asset Classes**, the split summing to 100%
 - An Asset **Account** that isn't a **Holding** carries zero or one **Asset Class**
 - A **Holding** is in exactly one **Instrument** at one place held; an **Instrument** may have several **Holdings**
+- A **Holding**'s **Opening Balance** is made of one or more **Opening Lots**
 - An Asset **Account** is split between zero or more **Earmarks** and the **Unallocated** remainder
 - An **Earmark** ties one Asset **Account** to one **Goal**
 - A **Goal** names zero or one **Preferred Instrument** per **Asset Class**
