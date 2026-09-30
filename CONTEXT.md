@@ -22,6 +22,7 @@ A person who relies on your income or is under your health cover. Recorded in yo
 
 **Account**:
 A node in the Chart of Accounts that Postings hit. Every Account has one Account Type. A bank account, cash, a wallet, a loan, a credit card, a Holding, Groceries, Salary — all are Accounts.
+An Account may carry **aliases** — words that name it when typed (`card`, `gpay`, `cash`).
 An Account can be **closed** (zero balance required; hidden from pickers, history kept, reopenable; a Holding closes itself when its units reach zero and reopens on its next buy) or **deleted** (its Postings and sub-accounts moved to another Account first).
 _Avoid_: ledger, category, head
 
@@ -104,6 +105,10 @@ Take-home less outflow (as the Emergency Fund counts it), plus what Income Trans
 **Surplus to direct**:
 Money Folio won't count as spendable — income that arrived without a Schedule (a bonus, a refund) and spendable left at month end — shown with advice pointing at the current Stage. Never moved automatically.
 _Avoid_: windfall (as a term), rollover
+
+**Payee**:
+The counterparty a Transaction was with — Swiggy, your landlord, a friend. It remembers the Account its money last went to and was last paid from, so naming it again places the Transaction; your last correction wins. Named by its whole name or an alias, ignoring case. Folio seeds common Indian merchants; you add, rename, merge and repoint the rest.
+_Avoid_: merchant, vendor, description
 
 **Tag**:
 A free, flat label on a Transaction for spending that cuts across Accounts — a trip, a wedding. Used to filter and report; never drives the Budget.
@@ -202,6 +207,7 @@ The assumed nominal pre-tax yearly return of an Asset Class, used to project Goa
 - A **Liability** Account is a **Loan**, a **Card**, or neither (a bill owed)
 - A **Loan** may be owed to a **Card** (a purchase converted to EMI), whose instalments are billed onto that Card
 - A **Schedule**, **Loan**, **Card**, **Term Deposit**, **Provident Account** or Holding in a coupon-bearing **Instrument** expects zero or more **Occurrences**; a fulfilled **Occurrence** is linked to exactly one **Transaction**
+- A **Transaction** has zero or one **Payee**; a **Payee** points at zero or one Account it goes to and zero or one it is paid from
 - A **Budget** limit sits on one Expense **Account**, leaf or group
 - A **Goal** has exactly one **Target Allocation**
 - A **Target Allocation** is expressed over **Asset Classes**
