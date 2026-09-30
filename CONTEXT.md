@@ -123,7 +123,15 @@ _Avoid_: allocation (reserved for Target Allocation)
 The portion of any Asset Account not Earmarked to a Goal. Allowed and visible, never forced.
 
 **Statement Importer**:
-A pluggable reader that turns one institution's statement format into Transactions. Each bank or card issuer is added as its own Importer. A depository (NSDL/CDSL) CAS yields only a holdings snapshot: its first import seeds demat Holdings with incomplete Opening Lots, and later imports post nothing and only flag Holdings whose units differ.
+A pluggable reader for one institution's statement format. It only reports what the statement says — per source (a bank account, a card, an MF folio's scheme, a demat account's security), dated lines and optionally the opening and closing balance or units — and Folio turns that into Transactions. It recognises its own files and says how their password is formed; the password is never kept. Each bank or card issuer is added as its own Importer. A depository (NSDL/CDSL) CAS yields only a holdings snapshot: its first import seeds demat Holdings with incomplete Opening Lots, and later imports post nothing and only flag Holdings whose units differ.
+
+**Import**:
+One run of a Statement Importer over one uploaded statement. It is staged for preview — lines Folio proposes to post, lines it could not read, and any gap against the statement's closing balance or units — and posts only the lines you confirm, all at once. An unconfirmed Import is discarded after a week; a confirmed one is kept as a record and can be **undone**, removing what it posted so a later Import can bring it back.
+Folio remembers which Account each source maps to, and every line it has seen: a line already posted is never posted again, however the Transaction was edited since, and a line you unticked or whose Transaction you deleted is **dismissed** — offered again only greyed, for restoring. A line matching a Transaction you entered yourself is **linked** to it instead: the statement corrects its units, price and charges, and your Accounts and Tags stay. Lines dated before their Account's start date are covered by its Opening Balance and never posted. A closing balance or units that differ from the ledger stays flagged on the Account until a later Import agrees or you dismiss it.
+_Avoid_: sync, upload (as the term)
+
+**Funding Account**:
+The Account a unit source's cash comes from and returns to when the statement doesn't say — the bank Account behind an MF folio. A line dated before the funding Account's start date is funded from Opening Balances instead, since that money predates Folio.
 
 **Policy**:
 An insurance contract you record: its type, insurer, persons covered (you and/or Dependents), sum assured, cover dates, nominees and riders. Not an Account — cover is a promise, not money you own; a pure-protection premium posts to an Expense Account, while a value-bearing Policy (ULIP, endowment) links to the Holdings that carry its value and its whole premium goes to them at cost. It counts only from its cover start to its **cover until** date — its own, not derived from any premium Schedule, and rolled forward by its **renewal term** when a linked premium Occurrence is fulfilled near it. **Employer-provided** cover is shown but never counted by the Doctrine.
@@ -174,6 +182,7 @@ The assumed nominal pre-tax yearly return of an Asset Class, used to project Goa
 - An Asset **Account** is split between zero or more **Earmarks** and the **Unallocated** remainder
 - An **Earmark** ties one Asset **Account** to one **Goal**
 - A **Goal** names zero or one **Preferred Instrument** per **Asset Class**
+- An **Import** is made by one **Statement Importer** and posts or links zero or more **Transactions**; an imported **Transaction** may come from several lines (a purchase and its stamp duty, both legs of a switch)
 - A **Policy** has exactly one **Policy Type**, covers you and/or one or more **Dependents**, and links to zero or one premium **Schedule** and zero or more **Holdings**
 
 ## Flagged ambiguities
