@@ -1,0 +1,72 @@
+{% extends "prototype_ui/plan/shell.html" %}
+{# YZ · By source + Needs you — Z's decision cards on top, then Y's source cards holding only the routine lines. #}
+{% block header_title %}Preview{% endblock %}
+{% block page_style %}
+    [data-card][data-settled] .card-body { display: none; }
+    [data-card][data-settled] .settled { display: flex; }
+    .settled { display: none; }
+{% endblock %}
+{% block page %}
+    <p class="kicker mt-4">{{ statement.importer }} · {{ statement.period }}</p>
+    <h1 class="display mt-1 text-[36px] leading-none">{{ sources|length }} sources, {{ lines|length }} lines new to Folio</h1>
+    <p class="mt-3 text-[15px] text-(--ink-2)">{{ counts.total }} lines in the file. The rest are already in Folio or before an Account's start date. {{ statement.expires }}.</p>
+    <h2 class="display mt-10 text-[26px]">Needs you · {{ counts.decisions }}</h2>
+    {% include "prototype_ui/imports/needs_you.html" %}
+    <h2 class="display mt-12 text-[26px]">By source</h2>
+    {% for s in sources %}
+        <section class="mt-4 rounded-[24px] border border-(--line) p-5">
+            <div class="flex items-center gap-3">
+                <span class="grid size-10 shrink-0 place-items-center rounded-full text-[10px] font-bold text-white"
+                      style="background: {{ s.color }}">{{ s.mark }}</span>
+                <span class="min-w-0 flex-1">
+                    <span class="block text-[16px] font-semibold leading-5">{{ s.short }}</span>
+                    <span class="block text-[12px] text-(--ink-3)">{{ s.folio }} · {{ s.isin }}</span>
+                </span>
+                {% if not s.mapped and s.closing %}<span class="pill bg-(--accent-soft)! text-(--accent)!">New source</span>{% endif %}
+            </div>
+            {% if s.mapped %}
+                {% include "prototype_ui/imports/source_map.html" %}
+            {% elif s.closing %}
+                <p class="mt-3 text-[13px] text-(--ink-2)"
+                   data-unmapped="{{ s.key }}">Map it and choose its Funding Account in Needs you, above.</p>
+                <p class="mt-3 text-[13px] text-(--ink-2)"
+                   data-mapped="{{ s.key }}"
+                   hidden>New Holding · funded from <span class="font-medium text-(--ink)" data-funding-label="{{ s.key }}">funding Account</span></p>
+            {% endif %}
+            {% include "prototype_ui/imports/closing.html" %}
+            <ul class="mt-2 divide-y divide-(--line) border-t border-(--line)">
+                {% for l in s.rows %}
+                    {% if l.status == "tie" or l.status == "dismissed" or l.status == "error" %}
+                        <li class="flex items-center gap-2 py-3 text-[13px] text-(--ink-3)"><i data-lucide="arrow-up" class="size-4"></i>{{ l.type }} · {{ l.date }} — in Needs you</li>
+                    {% else %}
+                        {% include "prototype_ui/imports/line.html" with show_src=False %}
+                    {% endif %}
+                {% endfor %}
+            </ul>
+            {% if s.hidden %}
+                <details class="border-t border-(--line) pt-3 text-[13px] text-(--ink-3)">
+                    <summary class="flex items-center gap-1"><i data-lucide="chevron-right"
+   class="chev size-4 transition-transform"></i>{{ s.hidden }} more lines not posting</summary>
+                    <p class="mt-2 ml-5">{{ s.seen }} already in Folio (never posted twice) · {{ s.opening }} before {{ s.start }}, covered by the Opening Balance</p>
+                </details>
+            {% endif %}
+        </section>
+    {% endfor %}
+    <a href="{{ urls.index }}"
+       class="mt-6 flex h-11 items-center justify-center text-[14px] font-medium text-(--ink-2)">Discard this Import</a>
+    <div class="fixed inset-x-0 bottom-[calc(65px+env(safe-area-inset-bottom))] z-30 border-t border-(--line) bg-white/95 backdrop-blur-xl lg:bottom-0">
+        <div class="mx-auto flex max-w-xl items-center gap-3 px-6 py-3">
+            <p class="min-w-0 flex-1 text-[13px] leading-4 text-(--ink-2)">
+                <span class="font-semibold text-(--ink)"><span data-count-post>{{ counts.post }}</span> to post</span>, <span data-count-link>{{ counts.link }}</span> to link
+                <br>
+                <span class="text-(--ink-3)">All at once · undo any time</span>
+            </p>
+            <a href="{{ urls.posted }}"
+               class="flex h-11 items-center rounded-full bg-(--ink) px-5 text-[15px] font-medium text-white"
+               data-count-verb>Post</a>
+        </div>
+    </div>
+{% endblock %}
+{% block page_script %}
+    {% include "prototype_ui/imports/script.html" %}
+{% endblock %}

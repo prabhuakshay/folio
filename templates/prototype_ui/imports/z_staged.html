@@ -1,0 +1,45 @@
+{% extends "prototype_ui/plan/shell.html" %}
+{# Z · Exceptions first — the figure of what posts, one card per decision only you can make, the routine folded away. #}
+{% block header_title %}{{ statement.importer }}{% endblock %}
+{% block page_style %}
+    [data-card][data-settled] .card-body { display: none; }
+    [data-card][data-settled] .settled { display: flex; }
+    .settled { display: none; }
+{% endblock %}
+{% block page %}
+    <p class="kicker mt-4">{{ statement.period }}</p>
+    <p class="figure num mt-3"><span data-count-post>{{ counts.post }}</span></p>
+    <p class="mt-3 text-[16px] text-(--ink-2)">posting as new, <span data-count-link>{{ counts.link }}</span> linking to what you entered. {{ counts.decisions }} things need you first.</p>
+    <h2 class="display mt-10 text-[26px]">Needs you</h2>
+    {% include "prototype_ui/imports/needs_you.html" %}
+    <h2 class="display mt-10 text-[26px]">Routine</h2>
+    <details class="mt-2 border-y border-(--line)">
+        <summary class="flex items-center gap-2 py-3.5 text-[15px]"><i data-lucide="chevron-right" class="chev size-4 transition-transform"></i>Ready · the links, the SIPs and the new fund's lines</summary>
+        <ul class="divide-y divide-(--line) border-t border-(--line)">
+            {% for l in lines %}
+                {% if l.status == "match" or l.status == "fulfils" or l.status == "new" %}
+                    {% include "prototype_ui/imports/line.html" with show_src=True %}
+                {% endif %}
+            {% endfor %}
+        </ul>
+    </details>
+    <details class="border-b border-(--line)">
+        <summary class="flex items-center gap-2 py-3.5 text-[15px]"><i data-lucide="chevron-right" class="chev size-4 transition-transform"></i>Not posting · {{ counts.seen|add:counts.opening }} lines</summary>
+        <p class="pb-4 pl-6 text-[13px] leading-5 text-(--ink-2)">{{ counts.seen }} already in Folio — never posted twice, however you've edited them. {{ counts.opening }} dated before their Account's start date — covered by its Opening Balance.</p>
+    </details>
+    <details class="border-b border-(--line)">
+        <summary class="flex items-center gap-2 py-3.5 text-[15px]"><i data-lucide="chevron-right"
+   class="chev size-4 transition-transform"></i>Closing checks</summary>
+        <ul class="pb-4 pl-6">
+            {% for s in sources %}{% if s.closing %}<li class="pt-2"><p class="text-[14px]">{{ s.short }}</p>{% include "prototype_ui/imports/closing.html" %}</li>{% endif %}{% endfor %}
+        </ul>
+    </details>
+    <a href="{{ urls.posted }}"
+       class="mt-8 flex h-12 items-center justify-center rounded-full bg-(--ink) text-[15px] font-medium text-white"
+       data-count-verb>Post</a>
+    <a href="{{ urls.index }}"
+       class="mt-2 flex h-11 items-center justify-center text-[14px] font-medium text-(--ink-2)">Discard this Import</a>
+{% endblock %}
+{% block page_script %}
+    {% include "prototype_ui/imports/script.html" %}
+{% endblock %}

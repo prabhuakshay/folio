@@ -1,0 +1,83 @@
+{# PROTOTYPE — one staged line with its tick; show_src names its source (X's flat feed). #}
+<li data-row="{{ l.id }}"
+    data-f="{% if l.status == 'tie' or l.status == 'dismissed' or l.status == 'error' or l.blocked %}attention {% endif %}{% if l.status == 'new' or l.status == 'fulfils' %}new {% endif %}{% if l.status == 'match' %}link {% endif %}{% if l.status == 'dismissed' or l.status == 'error' %}off{% endif %}"
+    class="py-3.5">
+    <label data-fade class="flex items-start gap-3 transition-opacity">
+        {% if l.status == "error" %}
+            <span class="mt-0.5 grid size-5 shrink-0 place-items-center"><i data-lucide="circle-alert"
+   class="size-5 text-(--neg)"></i></span>
+        {% else %}
+            <input type="checkbox"
+                   class="mt-0.5 size-5 shrink-0 accent-black"
+                   data-line="{{ l.id }}"
+                   data-src="{{ l.src.key }}"
+                   data-kind="{% if l.status == 'match' %}link{% else %}post{% endif %}"
+                   {% if l.blocked %}data-needs-funding disabled{% endif %}
+                   {% if l.ticked %}checked{% endif %}>
+        {% endif %}
+        <span class="min-w-0 flex-1">
+            <span class="flex items-baseline justify-between gap-3">
+                <span class="truncate text-[15px]">{{ l.type }}{% if show_src %} · {{ l.src.short }}{% endif %}</span>
+                {% if l.m %}<span class="num shrink-0 text-[15px] font-medium">{{ l.m.text }}</span>{% endif %}
+            </span>
+            <span class="block text-[13px] text-(--ink-3)">{{ l.date }} · {{ l.detail }}</span>
+            <span class="mt-1.5 inline-flex items-center gap-1 text-[12px] font-medium {% if l.status == 'tie' or l.status == 'error' %}text-(--neg){% elif l.status == 'match' or l.status == 'fulfils' %}text-(--accent){% else %}text-(--ink-2){% endif %}">
+                <i data-lucide="{{ l.icon }}" class="size-3.5"></i>{{ l.label }}
+            </span>
+        </span>
+    </label>
+    {% if l.status == "match" %}
+        <p class="mt-2 ml-8 rounded-2xl bg-(--well) px-3.5 py-2.5 text-[13px] leading-5">
+            <span class="font-medium">{{ l.match }}</span>
+            <span class="block text-(--ink-2)">{{ l.match_note }}</span>
+            <a href="#"
+               class="mt-1 inline-block font-medium text-(--ink-2) underline">Link existing… or post as new</a>
+        </p>
+    {% elif l.status == "fulfils" %}
+        <p class="mt-2 ml-8 text-[13px] text-(--ink-2)">
+            Posts <span class="font-medium">{{ l.posting }}</span> and fulfils <span class="font-medium">{{ l.fulfils }}</span>.
+        </p>
+    {% elif l.status == "tie" %}
+        <fieldset class="mt-2 ml-8 space-y-1.5 rounded-2xl bg-(--well) px-3.5 py-3 text-[13px]">
+            <legend class="sr-only">Pick a match</legend>
+            <p class="text-(--ink-2)">Two of your Transactions fit equally. Which is this, or is it a new one?</p>
+            {% for d, name, off in l.candidates %}
+                <label class="flex items-center gap-2">
+                    <input type="radio"
+                           name="tie-{{ l.id }}"
+                           value="c{{ forloop.counter }}"
+                           data-tie="{{ l.id }}"
+                           class="accent-black">
+                    <span><span class="font-medium">{{ name }}</span> · {{ d }} <span class="text-(--ink-3)">({{ off }})</span></span>
+                </label>
+            {% endfor %}
+            <label class="flex items-center gap-2">
+                <input type="radio"
+                       name="tie-{{ l.id }}"
+                       value="new"
+                       data-tie="{{ l.id }}"
+                       class="accent-black">
+                <span class="font-medium">Post as new</span>
+            </label>
+        </fieldset>
+    {% elif l.status == "dismissed" %}
+        <p class="mt-2 ml-8 text-[13px] text-(--ink-2)">
+            {{ l.dismissed }}.
+            <a href="#"
+               data-restore="{{ l.id }}"
+               class="font-medium text-(--ink) underline">Restore</a>
+            <span data-restored="{{ l.id }}" hidden class="font-medium text-(--pos)">Restored — will post.</span>
+        </p>
+    {% elif l.status == "error" %}
+        <p class="mt-2 ml-8 rounded-2xl bg-(--well) px-3.5 py-2.5 text-[12px] leading-5">
+            <code class="block break-all text-(--ink-2)">{{ l.raw }}</code>
+            <span class="mt-1 block text-[13px] text-(--ink)">{{ l.reason }}</span>
+        </p>
+    {% elif l.note %}
+        <p class="mt-2 ml-8 text-[13px] text-(--ink-2)">{{ l.note }}</p>
+    {% endif %}
+    {% if l.blocked %}
+        <p class="mt-1 ml-8 text-[12px] text-(--ink-3)"
+           data-unmapped="{{ l.src.key }}">Waiting for a Funding Account for {{ l.src.short }}.</p>
+    {% endif %}
+</li>

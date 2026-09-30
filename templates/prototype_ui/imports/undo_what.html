@@ -1,0 +1,16 @@
+{# PROTOTYPE — what Undo does, spelt out before you commit to it. #}
+<ul class="space-y-2.5 text-[14px] leading-5">
+    <li class="flex gap-2.5"><i data-lucide="trash-2"
+   class="mt-0.5 size-4 shrink-0"></i><span>Deletes the <b>{{ h.posted }}</b> Transactions it posted.</span></li>
+    {% if h.linked %}<li class="flex gap-2.5"><i data-lucide="unlink" class="mt-0.5 size-4 shrink-0"></i><span>Unlinks the <b>{{ h.linked }}</b> of yours it linked — they stay, as they are now.</span></li>{% endif %}
+    {% for o in h.returns_due %}<li class="flex gap-2.5"><i data-lucide="repeat"
+   class="mt-0.5 size-4 shrink-0"></i><span>{{ o }} goes back to due.</span></li>{% endfor %}
+    {% for c in h.creates %}<li class="flex gap-2.5"><i data-lucide="minus-circle" class="mt-0.5 size-4 shrink-0"></i><span>Removes {{ c }} if nothing else uses it.</span></li>{% endfor %}
+    <li class="flex gap-2.5"><i data-lucide="rotate-ccw"
+   class="mt-0.5 size-4 shrink-0"></i><span>Forgets its lines, so a later Import can bring them back.</span></li>
+</ul>
+{% if h.edited %}
+    <p class="mt-4 rounded-2xl bg-[#FDECEA] px-3.5 py-3 text-[13px] leading-5 text-(--neg)">
+        <b>{{ h.edited }} of them were edited since.</b> <span class="text-(--ink-2)">Your edits go with them.</span>
+    </p>
+{% endif %}

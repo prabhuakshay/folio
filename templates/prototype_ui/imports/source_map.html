@@ -1,0 +1,35 @@
+{# PROTOTYPE — a source's mapping and Funding Account, confirmed once and remembered. #}
+{% if s.mapped %}
+    <dl class="mt-3 space-y-1.5 text-[13px]">
+        <div class="flex justify-between gap-3">
+            <dt class="text-(--ink-3)">Posts to</dt>
+            <dd class="text-right font-medium">
+                {{ s.account }} <span class="font-normal text-(--ink-3)">· remembered</span>
+            </dd>
+        </div>
+        <div class="flex justify-between gap-3">
+            <dt class="text-(--ink-3)">Funding Account</dt>
+            <dd class="text-right font-medium">
+                {{ s.funding }} <a href="#" class="ml-1 font-normal text-(--ink-2) underline">change</a>
+            </dd>
+        </div>
+    </dl>
+{% elif s.closing %}
+    <div class="mt-3 space-y-3 text-[13px]">
+        <div class="rounded-2xl bg-(--well) px-3.5 py-3">
+            <p class="font-medium">{{ s.proposal }}: {{ s.account }}</p>
+            <p class="mt-0.5 text-(--ink-2)">{{ s.instrument }}</p>
+            <p class="mt-0.5 text-(--ink-3)">Starts {{ s.start }} · <a href="#"
+    class="underline">map to an existing Holding instead</a></p>
+        </div>
+        <label class="block">
+            <span class="font-medium">Funding Account <span class="font-normal text-(--ink-3)">— where its purchases come from and redemptions go</span></span>
+            <select class="field mt-1.5" data-funding-for="{{ s.key }}">
+                <option value="">Choose…</option>
+                {% for c in funding_choices %}<option>{{ c }}</option>{% endfor %}
+            </select>
+        </label>
+    </div>
+{% else %}
+    <p class="mt-3 text-[13px] text-(--ink-2)">{{ s.proposal }}.</p>
+{% endif %}

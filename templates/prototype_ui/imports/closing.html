@@ -1,0 +1,24 @@
+{# PROTOTYPE — a source's closing units against the ledger after this Import. #}
+{% if s.closing %}
+    {% if s.closing.gap %}
+        <div data-gap
+             class="mt-3 rounded-2xl bg-[#FDECEA] px-3.5 py-3 text-[13px] leading-5">
+            <p class="font-semibold text-(--neg)">{{ s.closing.gap }}</p>
+            <p class="text-(--ink-2)">Statement {{ s.closing.statement }} units; Folio will have {{ s.closing.after }}. {{ s.closing.why }}</p>
+            <p class="mt-1 text-(--ink-3)">Left as is, it stays flagged on {{ s.account }} until a later Import agrees or you dismiss it.</p>
+        </div>
+        {% for l in s.rows %}
+            {% if l.status == "dismissed" %}
+                <p data-restored="{{ l.id }}"
+                   hidden
+                   class="mt-3 flex items-center gap-1.5 text-[13px] font-medium text-(--pos)">
+                    <i data-lucide="circle-check" class="size-4"></i>Closing units agree: {{ s.closing.statement }}
+                </p>
+            {% endif %}
+        {% endfor %}
+    {% else %}
+        <p class="mt-3 flex items-center gap-1.5 text-[13px] text-(--ink-2)">
+            <i data-lucide="circle-check" class="size-4 text-(--pos)"></i>Closing units agree: {{ s.closing.statement }}
+        </p>
+    {% endif %}
+{% endif %}

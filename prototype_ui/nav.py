@@ -262,6 +262,9 @@ def screen(request, key):
     if variant == "L" and key == "goal":
         slug = {"Emergency Fund": "ef", "Retirement": "retirement"}.get(name, "europe")
         return redirect(f"{reverse('prototype-goal', args=[slug])}?variant=U")
+    # Filled in by the "Import flow screens" prototype.
+    if variant == "L" and key == "imports":
+        return redirect(f"{reverse('prototype-imports')}?variant=YZ")
     parent = _parent(key, variant)
     ctx = _nav_context(variant)
     ctx.update(

@@ -1,0 +1,61 @@
+{% extends "prototype_ui/plan/shell.html" %}
+{# Z · Exceptions first — upload sits inline at the top; history is a timeline with Undo on each entry. #}
+{% block header_title %}Imports{% endblock %}
+{% block page %}
+    <h1 class="display mt-2 text-[40px] leading-none">Imports</h1>
+    <div class="mt-6 rounded-[24px] bg-(--well) p-5">
+        {% if not file %}
+            <a href="{{ urls.new }}&f=cams" class="flex items-center gap-3.5">
+                <span class="grid size-11 shrink-0 place-items-center rounded-full bg-(--ink) text-white"><i data-lucide="upload" class="size-5"></i></span>
+                <span class="min-w-0 flex-1">
+                    <span class="block text-[16px] font-semibold">Import a statement</span>
+                    <span class="block text-[13px] text-(--ink-2)">CAS PDF from CAMS, KFintech, NSDL or CDSL</span>
+                </span>
+            </a>
+            <p class="mt-3 text-[12px] text-(--ink-3)">
+                Prototype · pretend you chose:
+                {% for k, name, url in files %}<a href="{{ url }}"
+   class="underline">{{ k }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}
+            </p>
+        {% else %}
+            <div class="flex items-center justify-between gap-3">
+                <p class="text-[15px] font-semibold">Import a statement</p>
+                <a href="{{ urls.index }}"
+                   class="text-[13px] font-medium text-(--ink-2)">Cancel</a>
+            </div>
+            {% include "prototype_ui/imports/upload_body.html" %}
+        {% endif %}
+    </div>
+    <a href="{{ urls.staged }}" class="mt-6 block">
+        <p class="kicker">Staged · {{ statement.expires|lower }}</p>
+        <p class="mt-1 flex items-baseline gap-2">
+            <span class="stat text-[44px]">{{ counts.decisions }}</span>
+            <span class="text-[15px] text-(--ink-2)">things only you can decide in the {{ statement.importer }} ›</span>
+        </p>
+    </a>
+    {% if flags %}
+        {% for f in flags %}
+            <div class="mt-6 flex gap-3 border-l-2 border-(--neg) pl-4">
+                <div>
+                    <p class="text-[15px] font-medium">{{ f.account }}: {{ f.gap }}</p>
+                    <p class="text-[13px] text-(--ink-2)">Statement {{ f.statement }}, Folio {{ f.folio }} · {{ f.from }}</p>
+                    <p class="mt-1 text-[13px] font-medium"><a href="#" class="underline">Fix on the Account</a> <span class="mx-1 text-(--ink-3)">·</span> <a href="#" class="text-(--ink-2) underline">Dismiss</a></p>
+                </div>
+            </div>
+        {% endfor %}
+    {% endif %}
+    <h2 class="kicker mt-10">Timeline</h2>
+    <ol class="relative mt-3 ml-1.5 border-l border-(--line)">
+        {% for h in history %}
+            <li class="relative pb-6 pl-6">
+                <span class="absolute -left-[5px] top-1.5 size-2.5 rounded-full {% if h.state == 'undone' %}border border-(--ink-3) bg-white{% elif h.state == 'flagged' %}bg-(--neg){% else %}bg-(--ink){% endif %}"></span>
+                <p class="text-[13px] text-(--ink-3)">{{ h.when }}</p>
+                <a href="{{ h.url }}"
+                   class="block text-[15px] font-medium {% if h.state == 'undone' %}text-(--ink-3){% endif %}">{{ h.importer }}</a>
+                <p class="text-[13px] text-(--ink-2)">{{ h.line }}</p>
+                {% if h.posted %}<a href="{{ h.url }}&undo=1"
+   class="mt-1 inline-flex items-center gap-1 text-[13px] font-medium text-(--ink-2)"><i data-lucide="rotate-ccw" class="size-3.5"></i>Undo</a>{% endif %}
+            </li>
+        {% endfor %}
+    </ol>
+{% endblock %}

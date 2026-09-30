@@ -1,0 +1,28 @@
+{# PROTOTYPE — what one Import did, source by source, and the Transactions it made. #}
+{% if h.sources %}
+    <h2 class="kicker mt-8">{% if h.importer == "NSDL CAS" %}Holdings checked{% else %}Sources{% endif %}</h2>
+    <ul class="mt-1 divide-y divide-(--line)">
+        {% for name, what, check in h.sources %}
+            <li class="py-3">
+                <p class="text-[15px]">{{ name }}</p>
+                <p class="text-[13px] {% if 'flagged' in check or 'short' in check %}font-medium text-(--neg){% else %}text-(--ink-3){% endif %}">{{ what }} · {{ check }}</p>
+            </li>
+        {% endfor %}
+    </ul>
+{% endif %}
+{% if h.txns %}
+    <h2 class="kicker mt-8">Transactions</h2>
+    <ul class="mt-1 divide-y divide-(--line)">
+        {% for d, name, note, m in h.txns %}
+            <li class="flex items-baseline gap-3 py-3">
+                <span class="min-w-0 flex-1">
+                    <span class="block truncate text-[15px]">{{ name }}</span>
+                    <span class="block text-[13px] {% if 'edited' in note %}font-medium text-(--ink){% else %}text-(--ink-3){% endif %}">{{ d }} · {{ note }}</span>
+                </span>
+                <span class="num text-[15px]">{{ m.text }}</span>
+            </li>
+        {% endfor %}
+    </ul>
+    {% if h.posted > 5 %}<a href="#"
+   class="mt-2 block text-[14px] font-medium text-(--ink-2)">All {{ h.posted|add:h.linked }} in Activity ›</a>{% endif %}
+{% endif %}

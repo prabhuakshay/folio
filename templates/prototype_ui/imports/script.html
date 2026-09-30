@@ -1,0 +1,56 @@
+{# PROTOTYPE — in-memory ticking for the staged preview: counts, ties, Funding Account, restoring dismissed lines. #}
+<script>
+(() => {
+    const boxes = () => [...document.querySelectorAll("input[data-line]")];
+    const recount = () => {
+        const on = boxes().filter((b) => b.checked && !b.disabled);
+        const post = on.filter((b) => b.dataset.kind === "post").length;
+        const link = on.filter((b) => b.dataset.kind === "link").length;
+        document.querySelectorAll("[data-count-post]").forEach((e) => (e.textContent = post));
+        document.querySelectorAll("[data-count-link]").forEach((e) => (e.textContent = link));
+        document.querySelectorAll("[data-count-verb]").forEach((e) => (e.textContent = `Post ${post}${link ? ` · link ${link}` : ""}`));
+        document.querySelectorAll("[data-row]").forEach((r) => {
+            const b = document.querySelector(`input[data-line="${r.dataset.row}"]`);
+            r.querySelector("[data-fade]")?.classList.toggle("opacity-45", !!b && (!b.checked || b.disabled));
+        });
+        const last = document.getElementById("proto-last");
+        if (last) last.textContent = `post ${post}, link ${link}`;
+    };
+    const tick = (id, kind) => {
+        const b = document.querySelector(`input[data-line="${id}"]`);
+        if (!b) return;
+        b.disabled = false;
+        b.checked = true;
+        if (kind) b.dataset.kind = kind;
+    };
+    document.addEventListener("change", (e) => {
+        const t = e.target;
+        if (t.matches("input[data-tie]")) tick(t.dataset.tie, t.value === "new" ? "post" : "link");
+        if (t.matches("[data-funding-for]")) {
+            const src = t.dataset.fundingFor;
+            document.querySelectorAll(`input[data-src="${src}"][data-needs-funding]`).forEach((b) => { b.disabled = !t.value; b.checked = !!t.value; });
+            document.querySelectorAll(`[data-funding-label="${src}"]`).forEach((l) => (l.textContent = t.value || "funding Account"));
+            document.querySelectorAll(`[data-mapped="${src}"]`).forEach((l) => (l.hidden = !t.value));
+            document.querySelectorAll(`[data-unmapped="${src}"]`).forEach((l) => (l.hidden = !!t.value));
+        }
+        recount();
+    });
+    document.addEventListener("click", (e) => {
+        const r = e.target.closest("[data-restore]");
+        if (r) {
+            e.preventDefault();
+            tick(r.dataset.restore);
+            document.querySelectorAll(`[data-restored="${r.dataset.restore}"]`).forEach((x) => (x.hidden = false));
+            document.querySelectorAll(`[data-restore="${r.dataset.restore}"], [data-gap]`).forEach((x) => (x.hidden = true));
+            recount();
+        }
+        const d = e.target.closest("[data-done]");
+        if (d) {
+            e.preventDefault();
+            const card = d.closest("[data-card]");
+            if (card) card.dataset.settled = "";
+        }
+    });
+    recount();
+})();
+</script>

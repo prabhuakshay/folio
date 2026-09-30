@@ -1,0 +1,127 @@
+{% extends "prototype_ui/plan/shell.html" %}
+{# X · Steps — the preview in three steps: Sources, Lines, Post. #}
+{% block header_title %}{{ statement.importer }}{% endblock %}
+{% block page_style %}
+    [data-pane]:not([data-on]) { display: none; }
+    .stepper a[aria-current="step"] { color: var(--ink); }
+    .stepper a[aria-current="step"] .n { background: var(--ink); color: #fff; }
+    #feed[data-show] li[data-row] { display: none; }
+    #feed[data-show="attention"] li[data-f~="attention"], #feed[data-show="new"] li[data-f~="new"], #feed[data-show="link"] li[data-f~="link"], #feed[data-show="off"] li[data-f~="off"] { display: block; }
+    .chip[aria-pressed="true"] { background: var(--ink); color: #fff; }
+{% endblock %}
+{% block page %}
+    <p class="kicker mt-4">{{ statement.period }} · {{ statement.expires }}</p>
+    <nav class="stepper mt-4 grid grid-cols-3 gap-2 text-[13px] font-medium text-(--ink-3)">
+        {% for key, label, url in steps %}
+            <a href="{{ url }}"
+               data-step-link="{{ key }}"
+               class="flex items-center gap-2"
+               {% if step == key %}aria-current="step"{% endif %}>
+                <span class="n grid size-6 place-items-center rounded-full bg-(--well) text-[12px]">{{ forloop.counter }}</span>{{ label }}
+            </a>
+        {% endfor %}
+    </nav>
+    {# ——— 1 · Sources ——— #}
+    <section data-pane="sources" {% if step == "sources" %}data-on{% endif %}>
+        <h1 class="display mt-6 text-[34px] leading-none">{{ sources|length }} sources in this statement</h1>
+        <p class="mt-2 text-[15px] text-(--ink-2)">Confirm where each one posts. Folio remembers it for next time.</p>
+        <ul class="mt-4 divide-y divide-(--line)">
+            {% for s in sources %}
+                <li class="py-5">
+                    <div class="flex items-center gap-3">
+                        <span class="grid size-9 shrink-0 place-items-center rounded-full text-[10px] font-bold text-white"
+                              style="background: {{ s.color }}">{{ s.mark }}</span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block text-[15px] font-medium leading-5">{{ s.name }}</span>
+                            <span class="block text-[12px] text-(--ink-3)">{{ s.folio }} · {{ s.isin }}</span>
+                        </span>
+                        {% if not s.mapped and s.closing %}<span class="pill bg-(--accent-soft)! text-(--accent)!">New</span>{% endif %}
+                    </div>
+                    {% include "prototype_ui/imports/source_map.html" %}
+                </li>
+            {% endfor %}
+        </ul>
+        <button type="button"
+                data-go="lines"
+                class="mt-4 flex h-12 w-full items-center justify-center rounded-full bg-(--ink) text-[15px] font-medium text-white">Next: lines</button>
+    </section>
+    {# ——— 2 · Lines ——— #}
+    <section data-pane="lines" {% if step == "lines" %}data-on{% endif %}>
+        <h1 class="display mt-6 text-[34px] leading-none">{{ lines|length }} lines to look at</h1>
+        <p class="mt-2 text-[15px] text-(--ink-2)">
+            Of {{ counts.total }} in the file. {{ counts.seen }} are already in Folio and {{ counts.opening }} fall before their Account's start date, covered by its Opening Balance — both hidden.
+        </p>
+        <div class="hide-scrollbar -mx-6 mt-4 flex gap-2 overflow-x-auto px-6">
+            {% for key, label, url, on in chips %}
+                <button type="button"
+                        data-chip="{{ key }}"
+                        class="chip shrink-0 rounded-full bg-(--well) px-3.5 py-1.5 text-[13px] font-medium"
+                        aria-pressed="{% if on %}true{% else %}false{% endif %}">{{ label }}</button>
+            {% endfor %}
+        </div>
+        <ul id="feed"
+            class="mt-2 divide-y divide-(--line)"
+            {% if chip %}data-show="{{ chip }}"{% endif %}>
+            {% for l in lines %}
+                {% include "prototype_ui/imports/line.html" with show_src=True %}
+            {% endfor %}
+        </ul>
+        <button type="button"
+                data-go="post"
+                class="mt-4 flex h-12 w-full items-center justify-center rounded-full bg-(--ink) text-[15px] font-medium text-white">Next: review and post</button>
+    </section>
+    {# ——— 3 · Post ——— #}
+    <section data-pane="post" {% if step == "post" %}data-on{% endif %}>
+        <p class="kicker mt-6">Ready to post</p>
+        <p class="figure num mt-2"><span data-count-post>{{ counts.post }}</span></p>
+        <p class="mt-3 text-[16px] text-(--ink-2)">new Transactions, and <span data-count-link>{{ counts.link }}</span> of yours linked to the statement. All at once; you can undo the whole Import later.</p>
+        <h2 class="kicker mt-8">Closing checks</h2>
+        <ul class="mt-1 divide-y divide-(--line)">
+            {% for s in sources %}
+                {% if s.closing %}
+                    <li class="py-3.5">
+                        <p class="text-[15px]">{{ s.short }}</p>
+                        {% include "prototype_ui/imports/closing.html" %}
+                    </li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+        <h2 class="kicker mt-8">Also happens</h2>
+        <ul class="mt-2 space-y-2 text-[14px] text-(--ink-2)">
+            <li class="flex gap-2"><i data-lucide="repeat"
+   class="mt-0.5 size-4 shrink-0"></i>UTI Nifty SIP · 5 Sep is fulfilled</li>
+            <li class="flex gap-2" data-mapped="hdfcliq" hidden><i data-lucide="plus" class="mt-0.5 size-4 shrink-0"></i>HDFC Liquid Fund is created as a Holding under Mutual Funds</li>
+            <li class="flex gap-2" data-unmapped="hdfcliq"><i data-lucide="pause" class="mt-0.5 size-4 shrink-0"></i>HDFC Liquid Fund waits — it has no Funding Account yet</li>
+            <li class="flex gap-2"><i data-lucide="circle-alert"
+   class="mt-0.5 size-4 shrink-0"></i>{{ counts.errors }} line can't be read and won't post</li>
+        </ul>
+        <a href="{{ urls.posted }}"
+           class="mt-8 flex h-12 items-center justify-center rounded-full bg-(--ink) text-[15px] font-medium text-white"
+           data-count-verb>Post</a>
+        <a href="{{ urls.index }}"
+           class="mt-2 flex h-11 items-center justify-center text-[14px] font-medium text-(--ink-2)">Discard this Import</a>
+    </section>
+{% endblock %}
+{% block page_script %}
+    {% include "prototype_ui/imports/script.html" %}
+    <script>
+    (() => {
+        const show = (key) => {
+            document.querySelectorAll("[data-pane]").forEach((p) => p.toggleAttribute("data-on", p.dataset.pane === key));
+            document.querySelectorAll("[data-step-link]").forEach((a) => a.dataset.stepLink === key ? a.setAttribute("aria-current", "step") : a.removeAttribute("aria-current"));
+            const u = new URL(location.href); u.searchParams.set("step", key); history.replaceState(null, "", u);
+            scrollTo(0, 0);
+        };
+        document.addEventListener("click", (e) => {
+            const s = e.target.closest("[data-step-link], [data-go]");
+            if (s) { e.preventDefault(); show(s.dataset.stepLink || s.dataset.go); }
+            const c = e.target.closest("[data-chip]");
+            if (c) {
+                const feed = document.getElementById("feed");
+                c.dataset.chip ? (feed.dataset.show = c.dataset.chip) : delete feed.dataset.show;
+                document.querySelectorAll("button[data-chip]").forEach((b) => b.setAttribute("aria-pressed", b === c));
+            }
+        });
+    })();
+    </script>
+{% endblock %}

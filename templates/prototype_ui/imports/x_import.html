@@ -1,0 +1,32 @@
+{% extends "prototype_ui/plan/shell.html" %}
+{# X · Steps — a past Import is a record page; Undo is its own confirming step below. #}
+{% block header_title %}{{ h.importer }} · {{ h.when }}{% endblock %}
+{% block page %}
+    {% if h.state == "just" %}
+        <p class="mt-4 flex items-center gap-2 text-[15px] font-semibold text-(--pos)"><i data-lucide="circle-check"
+   class="size-5"></i>Posted</p>
+    {% endif %}
+    <p class="kicker mt-4">{{ h.importer }} · {{ h.period }}</p>
+    <h1 class="display mt-1 text-[34px] leading-none {% if h.state == 'undone' or undone %}text-(--ink-3) line-through{% endif %}">{{ h.line }}</h1>
+    {% if undone or h.state == "undone" %}
+        <p class="mt-4 rounded-2xl bg-(--well) px-4 py-3 text-[14px]">Undone. Everything it posted is gone; import the statement again to bring it back.</p>
+    {% elif h.state == "flagged" %}
+        <p class="mt-4 text-[15px] text-(--ink-2)">A holdings snapshot posts nothing. It only checks units against Folio.</p>
+    {% endif %}
+    {% include "prototype_ui/imports/import_body.html" %}
+    {% if h.posted and not undone and h.state != "undone" %}
+        {% if undo %}
+            <section class="mt-10 rounded-[24px] bg-(--well) p-5">
+                <h2 class="text-[17px] font-semibold">Undo this Import?</h2>
+                <div class="mt-3">{% include "prototype_ui/imports/undo_what.html" %}</div>
+                <a href="{{ undone_url }}"
+                   class="mt-5 flex h-12 items-center justify-center rounded-full bg-(--neg) text-[15px] font-medium text-white">Undo Import</a>
+                <a href="{{ self_url }}"
+                   class="mt-1 flex h-11 items-center justify-center text-[14px] font-medium text-(--ink-2)">Keep it</a>
+            </section>
+        {% else %}
+            <a href="{{ undo_url }}"
+               class="mt-10 flex h-12 items-center justify-center gap-2 rounded-full bg-(--well) text-[15px] font-medium"><i data-lucide="rotate-ccw" class="size-4"></i>Undo this Import</a>
+        {% endif %}
+    {% endif %}
+{% endblock %}

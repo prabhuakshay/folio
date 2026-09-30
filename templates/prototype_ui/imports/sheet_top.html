@@ -1,0 +1,6 @@
+{# PROTOTYPE — a server-opened bottom sheet; closing is a link back to the page under it. #}
+<a href="{{ close_url }}"
+   class="fixed inset-0 z-50 bg-black/35"
+   aria-label="Close"></a>
+<div class="fixed inset-x-0 bottom-0 z-[60] mx-auto max-h-[88dvh] max-w-xl overflow-auto rounded-t-[28px] bg-white px-6 pt-3 pb-[calc(1.5rem+env(safe-area-inset-bottom))] shadow-2xl">
+    <div class="mx-auto mb-4 h-1.5 w-10 rounded-full bg-(--line)"></div>

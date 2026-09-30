@@ -1,6 +1,6 @@
 from django.urls import path
 
-from prototype_ui import aa, goals, nav, plan, views
+from prototype_ui import aa, goals, imports, nav, plan, views
 
 urlpatterns = [
     path("", views.home, name="prototype-ui"),
@@ -14,11 +14,17 @@ urlpatterns = [
     path("plan/", plan.root, name="prototype-plan"),
     path("plan/budget/", plan.budget, name="prototype-plan-budget"),
     path("plan/recurring/", plan.recurring, name="prototype-plan-recurring"),
-    path("plan/occurrence/<slug:key>/", plan.occurrence, name="prototype-plan-occurrence"),
+    path(
+        "plan/occurrence/<slug:key>/", plan.occurrence, name="prototype-plan-occurrence"
+    ),
     path("plan/schedule/<slug:key>/", plan.schedule, name="prototype-plan-schedule"),
     path("plan/policies/", plan.policies, name="prototype-plan-policies"),
     path("plan/policies/<slug:key>/", plan.policy, name="prototype-plan-policy"),
     path("goals/<slug:key>/", goals.goal, name="prototype-goal"),
     path("goals/<slug:key>/earmarks/", goals.earmarks, name="prototype-goal-earmarks"),
     path("before-goals/", goals.before_goals, name="prototype-before-goals"),
+    path("imports/", imports.index, name="prototype-imports"),
+    path("imports/new/", imports.new, name="prototype-imports-new"),
+    path("imports/staged/", imports.staged, name="prototype-imports-staged"),
+    path("imports/<slug:key>/", imports.detail, name="prototype-import"),
 ]

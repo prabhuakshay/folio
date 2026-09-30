@@ -1,0 +1,57 @@
+{% extends "prototype_ui/plan/shell.html" %}
+{# Y · By source — a past Import is a record; Undo is behind "…" and confirms in a bottom sheet. #}
+{% block header_title %}{{ h.importer }}{% endblock %}
+{% block header_actions %}
+    {% if h.posted and not undone and h.state != "undone" %}
+        <a href="{{ undo_url }}"
+           class="grid size-10 place-items-center rounded-full"
+           aria-label="More"><i data-lucide="ellipsis"
+   class="size-5"></i></a>
+    {% endif %}
+{% endblock %}
+{% block page %}
+    <p class="kicker mt-4">{{ h.when }} · {{ h.period }}</p>
+    <h1 class="display mt-1 text-[36px] leading-none">{{ h.importer }}</h1>
+    {% if undone or h.state == "undone" %}
+        <p class="mt-3 flex items-center gap-2 text-[15px] font-medium text-(--ink-2)"><i data-lucide="rotate-ccw" class="size-4"></i>Undone — nothing it posted remains</p>
+    {% elif h.state == "just" %}
+        <p class="mt-3 flex items-center gap-2 text-[15px] font-medium text-(--pos)"><i data-lucide="circle-check"
+   class="size-4"></i>Posted just now</p>
+    {% endif %}
+    {% if not undone and h.state != "undone" %}
+        <dl class="tnum mt-6 grid grid-cols-3 gap-3 border-y border-(--line) py-4">
+            <div>
+                <dt class="kicker">Posted</dt>
+                <dd class="stat mt-1 text-[28px]">
+                    {{ h.posted }}
+                </dd>
+            </div>
+            <div>
+                <dt class="kicker">Linked</dt>
+                <dd class="stat mt-1 text-[28px]">
+                    {{ h.linked }}
+                </dd>
+            </div>
+            <div>
+                <dt class="kicker">Dismissed</dt>
+                <dd class="stat mt-1 text-[28px]">
+                    {{ h.dismissed }}
+                </dd>
+            </div>
+        </dl>
+        {% include "prototype_ui/imports/import_body.html" %}
+    {% endif %}
+{% endblock %}
+{% block sheets %}
+    {% if undo and not undone %}
+        {% include "prototype_ui/imports/sheet_top.html" with close_url=self_url %}
+        <h2 class="display text-[28px] leading-none">Undo this Import?</h2>
+        <p class="mt-2 text-[14px] text-(--ink-2)">{{ h.importer }} · {{ h.when }}</p>
+        <div class="mt-5">{% include "prototype_ui/imports/undo_what.html" %}</div>
+        <a href="{{ undone_url }}"
+           class="mt-6 flex h-12 items-center justify-center rounded-full bg-(--neg) text-[15px] font-medium text-white">Undo Import</a>
+        <a href="{{ self_url }}"
+           class="mt-1 flex h-11 items-center justify-center text-[14px] font-medium text-(--ink-2)">Cancel</a>
+        {% include "prototype_ui/imports/sheet_bottom.html" %}
+    {% endif %}
+{% endblock %}

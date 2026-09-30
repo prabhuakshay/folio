@@ -1,0 +1,86 @@
+{# PROTOTYPE — one card per decision only you can make: a new source, a tie, a dismissed line behind a mismatch, an unreadable line. #}
+{# ——— A new source ——— #}
+{% for s in new_sources %}
+    <section data-card class="mt-4 rounded-[24px] bg-(--well) p-5">
+        <p class="kicker">New source · {{ s.folio }}</p>
+        <p class="mt-1 text-[17px] font-semibold leading-6">{{ s.name }}</p>
+        <div class="card-body">
+            {% include "prototype_ui/imports/source_map.html" %}
+            <p class="mt-3 text-[13px] text-(--ink-2)">{{ s.rows|length }} lines wait on this. {% for l in s.rows %}{% if l.note %}{{ l.note }}{% endif %}{% endfor %}</p>
+            <button type="button"
+                    data-done
+                    class="mt-4 h-10 rounded-full bg-(--ink) px-4 text-[14px] font-medium text-white">Done</button>
+        </div>
+        <p class="settled mt-2 items-center gap-1.5 text-[14px] font-medium text-(--pos)"><i data-lucide="circle-check" class="size-4"></i>Mapped · its lines are in Ready</p>
+    </section>
+{% endfor %}
+{# ——— Lines only you can settle ——— #}
+{% for l in decisions %}
+    <section data-card
+             data-row="{{ l.id }}"
+             class="mt-4 rounded-[24px] bg-(--well) p-5">
+        {% if l.status != "error" %}
+            <input type="checkbox"
+                   hidden
+                   data-line="{{ l.id }}"
+                   data-src="{{ l.src.key }}"
+                   data-kind="post">
+        {% endif %}
+        <p class="kicker">{{ l.label }} · {{ l.src.short }}</p>
+        <p class="mt-1 flex items-baseline justify-between gap-3 text-[17px] font-semibold">
+            <span>{{ l.type }} · {{ l.date }}</span>{% if l.m %}<span class="num">{{ l.m.text }}</span>{% endif %}
+        </p>
+        <p class="text-[13px] text-(--ink-3)">{{ l.detail }}</p>
+        <div class="card-body">
+            {% if l.status == "tie" %}
+                <p class="mt-3 text-[14px] text-(--ink-2)">Two of your Transactions fit equally well. Which one is this?</p>
+                <div class="mt-3 space-y-2 text-[14px]">
+                    {% for d, name, off in l.candidates %}
+                        <label class="flex items-center gap-3 rounded-2xl bg-white px-4 py-3">
+                            <input type="radio"
+                                   name="tie-{{ l.id }}"
+                                   value="c{{ forloop.counter }}"
+                                   data-tie="{{ l.id }}"
+                                   class="accent-black">
+                            <span><span class="font-medium">{{ d }}</span> · {{ name }}<span class="block text-[12px] text-(--ink-3)">{{ off }}</span></span>
+                        </label>
+                    {% endfor %}
+                    <label class="flex items-center gap-3 rounded-2xl bg-white px-4 py-3">
+                        <input type="radio"
+                               name="tie-{{ l.id }}"
+                               value="new"
+                               data-tie="{{ l.id }}"
+                               class="accent-black">
+                        <span class="font-medium">Neither — post as new</span>
+                    </label>
+                </div>
+            {% elif l.status == "dismissed" %}
+                {% for s in mismatches %}
+                    {% if s is l.src %}
+                        <p class="mt-3 text-[14px] leading-5"><span class="font-semibold text-(--neg)">{{ s.short }} will be {{ s.closing.gap }}</span> against the statement ({{ s.closing.statement }}) — exactly this line.</p>
+                    {% endif %}
+                {% endfor %}
+                <p class="mt-1 text-[13px] text-(--ink-2)">{{ l.dismissed }}.</p>
+                <div class="mt-4 flex gap-2 text-[14px] font-medium">
+                    <button type="button"
+                            data-restore="{{ l.id }}"
+                            class="h-10 rounded-full bg-(--ink) px-4 text-white">Restore and post</button>
+                    <button type="button"
+                            data-done
+                            class="h-10 rounded-full px-4 text-(--ink-2)">Keep dismissed, flag it</button>
+                </div>
+                <p data-restored="{{ l.id }}"
+                   hidden
+                   class="mt-3 flex items-center gap-1.5 text-[14px] font-medium text-(--pos)"><i data-lucide="circle-check" class="size-4"></i>Restored — closing units now agree</p>
+            {% elif l.status == "error" %}
+                <code class="mt-3 block rounded-2xl bg-white px-3.5 py-2.5 text-[12px] break-all text-(--ink-2)">{{ l.raw }}</code>
+                <p class="mt-2 text-[14px]">{{ l.reason }}</p>
+                <button type="button"
+                        data-done
+                        class="mt-4 h-10 rounded-full bg-white px-4 text-[14px] font-medium">Got it</button>
+            {% endif %}
+        </div>
+        <p class="settled mt-2 items-center gap-1.5 text-[14px] font-medium text-(--ink-2)"><i data-lucide="check"
+   class="size-4"></i>Settled</p>
+    </section>
+{% endfor %}

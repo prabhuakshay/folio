@@ -1,0 +1,8 @@
+{% extends "prototype_ui/plan/shell.html" %}
+{# X · Steps — the upload is its own screen: pick, Folio names the Importer, then the password in place. #}
+{% block header_title %}Import a statement{% endblock %}
+{% block page %}
+    <p class="kicker mt-4">Step 0 of 3 · Unlock</p>
+    <h1 class="display mt-1 text-[36px] leading-none">Choose the file</h1>
+    {% include "prototype_ui/imports/upload_body.html" %}
+{% endblock %}
