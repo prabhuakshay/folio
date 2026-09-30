@@ -11,7 +11,7 @@ The ordered ladder of financial-health Stages Folio holds you to. Folio records 
 One rung of the Doctrine, met or not met, in fixed order: no revolving credit → starter emergency fund → protection (health and term life cover) → high-interest debt cleared → full Emergency Fund → Goals and Retirement. The **current Stage** is the lowest one not met; surplus advice always points there. A Stage judged on declared rather than measured figures is **provisional**.
 
 **Emergency Fund**:
-A system Goal, fixed at 100% cash and liquid debt, that must cover the trailing 6 months of outflow: Expense Postings (less tax and employee EPF) plus loan principal repaid. Cannot be deleted.
+A system Goal, fixed at 100% cash and liquid debt, that must cover the trailing 6 months of outflow: Expense Postings (less tax and employee EPF) plus loan principal repaid. Counts only what is Earmarked to it, and only Emergency-Fund-eligible Accounts and Instruments can be. Cannot be deleted.
 _Avoid_: rainy-day fund, buffer
 
 **Take-home**:
@@ -87,17 +87,17 @@ A free, flat label on a Transaction for spending that cuts across Accounts — a
 April to March — the default reporting period. Periods are never closed or locked; this is a personal finance app, not an accounting package.
 
 **Goal**:
-A named future need with a target amount and a target date (e.g. "Vacation 2027", "Retirement"). Each Goal has its own Target Allocation because its horizon sets its risk appetite.
+A named future need with a target amount in today's rupees, an inflation rate (general, medical or custom; 0% for a fixed nominal sum) and a target date (e.g. "Vacation 2027", "Retirement"). Each Goal has its own Target Allocation because its horizon sets its risk appetite. Goals sit in a **rank** you set; Retirement is always funded first. A Goal is **on track** when its projection (Earmarked value grown along its Glide Path plus future Occurrences of Schedules naming it) reaches its inflated target, otherwise **behind**; **unfunded** when Surplus runs out before its rank; **out of order** while it sits above the current Stage. You mark a Goal **reached** by hand, which releases its Earmarks; one past its date and not reached is flagged.
 _Avoid_: bucket, compartment, envelope
 
 **Asset Class**:
 A risk category money sits in — equity, debt, gold & silver, real estate, cash. The unit in which a Target Allocation is expressed; cash counts toward its debt side. Instruments carry a split across Asset Classes; an Asset Account that isn't a Holding carries at most one (none for things like money lent or a car, which count in Net Worth but in no allocation).
 
 **Target Allocation**:
-The desired split of a Goal's money across Asset Classes (e.g. 20:80 equity:debt for a one-year Goal). Drift from it is what rebalancing corrects.
+The desired split of a Goal's money across equity, debt and gold & silver (e.g. 20:80 equity:debt for a one-year Goal) — never below Asset Class. Real estate Earmarked to a Goal counts toward its progress but sits outside its Target Allocation. Drift from it is what rebalancing corrects.
 
 **Glide Path**:
-How a Goal's default Target Allocation de-risks as its date nears, following SEBI's Life Cycle Fund equity bands by years-to-goal. Retirement switches to a fixed decumulation mix once its date passes.
+How a Goal's default Target Allocation de-risks as its date nears, stepping down at the boundaries of SEBI's Life Cycle Fund equity bands by years-to-goal. An override is an offset from the band midpoint, carried across steps. Retirement switches to a fixed decumulation mix once its date passes.
 _Avoid_: ratio, mix
 
 **Instrument**:
@@ -113,11 +113,11 @@ Whether an Account or Instrument may count toward the Emergency Fund: savings, c
 The value of one unit of an Instrument on a date, from a feed or entered by hand. A Holding is valued at its Instrument's latest Price, carried forward; a Price older than the Instrument's staleness window is **stale** — flagged, never blanked.
 
 **Earmark**:
-Assignment of some units of a Holding to a Goal. A Holding may be split across several Goals by units, so each Goal's share moves with price.
+Assignment of part of an Asset Account to a Goal: units of a Holding (so the Goal's share moves with price), a fixed INR amount of a plain Account, or the **whole** Account, following all its future units or balance. A whole Earmark is exclusive; otherwise an Account may be split across several Goals, and its Earmarks never exceed its units or balance, and a Goal whose fixed-INR Earmark outruns the balance is **short**. Earmarks are current-only.
 _Avoid_: allocation (reserved for Target Allocation)
 
 **Unallocated**:
-The portion of any Holding not Earmarked to a Goal. Allowed and visible, never forced.
+The portion of any Asset Account not Earmarked to a Goal. Allowed and visible, never forced.
 
 **Statement Importer**:
 A pluggable reader that turns one institution's statement format into Transactions. Each bank or card issuer is added as its own Importer.
@@ -130,7 +130,20 @@ _Avoid_: insurance account, plan (the insurer's product name only)
 One of a fixed set, each with a fixed meaning for the Doctrine: term life and endowment/ULIP (life cover, counted only when you are the life assured), health base and health super top-up (health cover, a floater counting its full sum insured for each person covered; a top-up counts only where a person's counted base cover reaches its deductible); personal accident, critical illness, motor, home, travel and other are recorded but never counted.
 
 **Retirement**:
-A Goal like any other, with a projection calculator attached — not a separate subsystem.
+A system Goal like any other, with a projection calculator attached that sets its target — not a separate subsystem. Cannot be deleted.
+
+**Surplus**:
+Trailing monthly Take-home less trailing monthly outflow — the money Doctrine advice directs, to the current Stage and then down the Goal rank.
+
+**Drift**:
+How far a Goal's actual mix sits from its Target Allocation, per Asset Class in percentage points. Past the inner band Folio nudges you to rebalance — first by re-earmarking between Goals or from Unallocated, then by steering new money; past the outer band, or at a Glide Path step, it suggests switching or selling. Judged per Goal; Unallocated has no target and never drifts.
+_Avoid_: imbalance, deviation
+
+**Preferred Instrument**:
+The Instrument a Goal names for one Asset Class, so advice can say where new money goes. Advice only; never a target.
+
+**Expected Return**:
+The assumed nominal pre-tax yearly return of an Asset Class, used to project Goals. A Doctrine threshold with a default and a recommended band.
 
 ## Relationships
 
@@ -147,8 +160,9 @@ A Goal like any other, with a projection calculator attached — not a separate 
 - An **Instrument** is split across one or more **Asset Classes**, the split summing to 100%
 - An Asset **Account** that isn't a **Holding** carries zero or one **Asset Class**
 - A **Holding** is in exactly one **Instrument** at one place held; an **Instrument** may have several **Holdings**
-- A **Holding**'s units are split between zero or more **Earmarks** and the **Unallocated** remainder
-- An **Earmark** ties one **Holding** to one **Goal**
+- An Asset **Account** is split between zero or more **Earmarks** and the **Unallocated** remainder
+- An **Earmark** ties one Asset **Account** to one **Goal**
+- A **Goal** names zero or one **Preferred Instrument** per **Asset Class**
 - A **Policy** has exactly one **Policy Type**, covers you and/or one or more **Dependents**, and links to zero or one premium **Schedule** and zero or more **Holdings**
 
 ## Flagged ambiguities
