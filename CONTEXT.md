@@ -26,7 +26,7 @@ An Account can be **closed** (zero balance required; hidden from pickers, histor
 _Avoid_: ledger, category, head
 
 **Account Role**:
-A system purpose an Account serves so Folio can find it — Opening Balances, Realised Gains, Interest paid, Insurance premiums. A role-bearing Account can be deleted; Folio recreates it when the role is next needed, or the role is pointed at another Account.
+A system purpose an Account serves so Folio can find it — Opening Balances, Realised Gains, Interest paid, Bank charges & fees, Rewards & cashback, Insurance premiums. A role-bearing Account can be deleted; Folio recreates it when the role is next needed, or the role is pointed at another Account.
 
 **Account Type**:
 One of Asset, Liability, Equity, Income, Expense. Fixes which side of the balance sheet or income statement an Account reports on.
@@ -53,6 +53,14 @@ The gap between Holdings' market value and their cost. Computed and shown under 
 
 **Net Worth**:
 Assets at market value minus Liabilities.
+
+**Loan**:
+A Liability Account with an interest rate and optionally EMI terms (EMI amount and EMI day) — a bank loan, a purchase converted to EMI on a Card, money borrowed from family. Each EMI is split into principal (to the Loan) and interest; its end date follows from balance, rate and EMI. An EMI is **overdue** once its EMI day plus a grace period passes with no payment into the Loan since the previous EMI day. A joint Loan is recorded at your share only. A Loan closes itself when its balance reaches zero and reopens on its next Posting.
+_Avoid_: debt (means all Liabilities)
+
+**Card**:
+A revolving Liability Account with a billing cycle — a statement day, a due day and a credit limit. Credit cards and BNPL accounts are Cards. Its **statement amount due** is computed from the cycle's Postings, overridable per cycle; the Card is **paid in full** when payments into it between the statement day and the due day reach that amount. Closed only by hand.
+_Avoid_: credit card (as the term), revolving account
 
 **Financial Year**:
 April to March — the default reporting period. Periods are never closed or locked; this is a personal finance app, not an accounting package.
@@ -102,6 +110,8 @@ A Goal like any other, with a projection calculator attached — not a separate 
 - A **Posting** hits exactly one **Account**
 - An **Account** has exactly one **Account Type** and sits in the **Chart of Accounts**
 - An **Account** carries zero or more **Account Roles**; each role is held by at most one Account
+- A **Liability** Account is a **Loan**, a **Card**, or neither (a bill owed)
+- A **Loan** may be owed to a **Card** (a purchase converted to EMI), whose instalments are billed onto that Card
 - A **Goal** has exactly one **Target Allocation**
 - A **Target Allocation** is expressed over **Asset Classes**
 - An **Instrument** is split across one or more **Asset Classes**, the split summing to 100%
