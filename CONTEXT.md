@@ -65,12 +65,23 @@ _Avoid_: debt (means all Liabilities)
 A revolving Liability Account with a billing cycle — a statement day, a due day and a credit limit. Credit cards and BNPL accounts are Cards. Its **statement amount due** is computed from the cycle's Postings, overridable per cycle; the Card is **paid in full** when payments into it between the statement day and the due day reach that amount. Closed only by hand.
 _Avoid_: credit card (as the term), revolving account
 
+**Term Deposit**:
+An Asset Account of one kind — bank FD, post-office TD, RD, NSC, KVP, SCSS, POMIS or corporate FD — with a rate fixed for its term, a compounding frequency, a payout mode (cumulative, or paid out monthly, quarterly or yearly to a payout Account) and a maturity date. Its interest credits are Occurrences from its terms, pre-filled with the computed amount; an RD's monthly instalments are too. Its **maturity instruction** is to pay out (it then closes itself at zero) or renew, principal only or with interest, as the same Account under new terms. Goal projections grow it at its own rate until maturity.
+_Avoid_: FD (as the umbrella term), fixed income
+
+**Provident Account**:
+A PPF or EPF Account, whose interest rate is set by government notification for the whole scheme and credited once a year, dated 31 March. Its interest credit is an estimated Occurrence, pre-filled with the computed amount at the latest known rate, and not overdue until six months past its date. Goal projections grow it at that rate. A PPF Account is held to its rules: at most ₹1.5L and at least ₹500 deposited per Financial Year, maturity after 15 years, extendable in 5-year blocks.
+_Avoid_: retirement account (NPS is a Holding)
+
+**Accrued interest**:
+Interest a Term Deposit or Provident Account has earned since its last credit. Computed and shown on the Account; never posted, and counted in neither Net Worth, Goal progress nor the Emergency Fund until credited.
+
 **Schedule**:
-A rule that expects a Transaction to repeat — a template Transaction plus a recurrence (every N days, weeks, months or years, ending never, on a date or after N times). It may step up by a percentage or amount at intervals, its amount can be changed from an effective date, and it can be **paused** between two dates. Salary, rent, SIPs, subscriptions and premiums are Schedules. Loan EMIs and Card bills are not: their Occurrences come from the Loan's or Card's own terms. A Schedule is **fixed** (its Occurrences may post themselves on their date) or **estimated** (always confirmed, pre-filled with the last actual amount).
+A rule that expects a Transaction to repeat — a template Transaction plus a recurrence (every N days, weeks, months or years, ending never, on a date or after N times). It may step up by a percentage or amount at intervals, its amount can be changed from an effective date, and it can be **paused** between two dates. Salary, rent, SIPs, subscriptions and premiums are Schedules. Loan EMIs, Card bills and interest credits are not: their Occurrences come from the Loan's, Card's, Term Deposit's or Provident Account's own terms. A Schedule is **fixed** (its Occurrences may post themselves on their date) or **estimated** (always confirmed, pre-filled with the last actual amount).
 _Avoid_: recurring payment, standing instruction, mandate
 
 **Occurrence**:
-One dated instance a Schedule, Loan or Card expects. It is **due** until **fulfilled** — by confirming it (with the date and amount edited if needed) or by linking a Transaction already recorded — or **skipped**; past its date it is **overdue**, and it never expires on its own. It returns to due if its Transaction is unlinked, deleted or undone with its Import; only deleting an auto-posted one skips it. Auto-post holds back, leaving it due, when a Match already exists.
+One dated instance a Schedule, Loan, Card, Term Deposit or Provident Account expects. It is **due** until **fulfilled** — by confirming it (with the date and amount edited if needed) or by linking a Transaction already recorded — or **skipped**; past its date it is **overdue**, and it never expires on its own. It returns to due if its Transaction is unlinked, deleted or undone with its Import; only deleting an auto-posted one skips it. Auto-post holds back, leaving it due, when a Match already exists.
 
 **Budget**:
 A monthly pay-yourself-first plan: expected income, less the **savings** reserved (the savings-rate target or the scheduled savings, whichever is larger), less **committed** spend (Occurrences that hit Expense Accounts, and Loan EMIs), leaves **spendable**. Spend not from a fulfilled Occurrence is **discretionary** and draws spendable down. Optional **limits** on any Expense Account, monthly or yearly, apply from the month they are set and never roll over. A Budget month begins on a chosen month-start day.
@@ -110,7 +121,7 @@ One price series you can hold units of — a mutual fund plan and option, a list
 An Asset Account whose value can differ from its INR balance because it is revalued, by Feed or by hand; every other Asset Account (bank, cash, wallet, FD, RD, EPF, PPF, chit fund, money lent) is valued at its balance. A Holding is your position in one Instrument at one place held (an MF folio, a demat account, an NPS PRAN tier), built from its Postings (buys, sells, SIP instalments, dividends, interest credits); each Posting to a Holding carries units as well as an INR amount at cost. Value is units × latest Price — computed, never posted, so price moves create no Transactions. Return is XIRR.
 
 **Emergency-Fund eligible**:
-Whether an Account or Instrument may count toward the Emergency Fund: savings, cash, wallets, liquid and overnight funds, and FDs you mark as breakable. Nothing else can be made eligible.
+Whether an Account or Instrument may count toward the Emergency Fund: savings, cash, wallets, liquid and overnight funds, and bank FDs and post-office TDs you mark as breakable. Nothing else can be made eligible.
 
 **Price**:
 The value of one unit of an Instrument on a date, from a Feed or entered by hand — one per date, a hand-entered Price outranking an uploaded file and an uploaded file outranking an automatic fetch, and an ETF's exchange close outranking its AMFI NAV. A Holding is valued at its Instrument's latest Price, carried forward, and at cost until its Instrument has one; a Price older than the Instrument's staleness window is **stale** — flagged, never blanked. A transaction's price is not a Price.
@@ -179,7 +190,7 @@ The assumed nominal pre-tax yearly return of an Asset Class, used to project Goa
 - An **Account** carries zero or more **Account Roles**; each role is held by at most one Account
 - A **Liability** Account is a **Loan**, a **Card**, or neither (a bill owed)
 - A **Loan** may be owed to a **Card** (a purchase converted to EMI), whose instalments are billed onto that Card
-- A **Schedule**, **Loan** or **Card** expects zero or more **Occurrences**; a fulfilled **Occurrence** is linked to exactly one **Transaction**
+- A **Schedule**, **Loan**, **Card**, **Term Deposit** or **Provident Account** expects zero or more **Occurrences**; a fulfilled **Occurrence** is linked to exactly one **Transaction**
 - A **Budget** limit sits on one Expense **Account**, leaf or group
 - A **Goal** has exactly one **Target Allocation**
 - A **Target Allocation** is expressed over **Asset Classes**
