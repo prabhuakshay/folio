@@ -1,0 +1,111 @@
+{% extends "prototype_ui/plan/shell.html" %}
+{# S · What needs you — Due sorted by urgency, each Occurrence its own screen; Schedules as a monthly ledger by class. #}
+{% block header_title %}Recurring{% endblock %}
+{% block page %}
+    <nav class="mt-2 flex gap-6 border-b border-(--line) text-[15px] font-medium">
+        <a href="{{ urls.recurring }}"
+           class="-mb-px border-b-2 pb-2.5 {% if view != 'schedules' %}border-(--ink){% else %}border-transparent text-(--ink-3){% endif %}">Due</a>
+        <a href="{{ urls.schedules }}"
+           class="-mb-px border-b-2 pb-2.5 {% if view == 'schedules' %}border-(--ink){% else %}border-transparent text-(--ink-3){% endif %}">Schedules</a>
+    </nav>
+    {% if view == "schedules" %}
+        <p class="mt-5 text-[16px] text-(--ink-2)">{{ schedules|length }} Schedules. A typical month moves {{ monthly.in.text }} in and {{ monthly.net.text }} stays free.</p>
+        {% for g in sched_groups %}
+            <section class="mt-8">
+                <div class="flex items-baseline justify-between">
+                    <h2 class="display text-[22px]">{{ g.name }}</h2>
+                    <span class="tnum text-[13px] text-(--ink-3)">{{ g.total.text }} a month</span>
+                </div>
+                <ul class="mt-1 divide-y divide-(--line)">
+                    {% for s in g.items %}
+                        <li>
+                            <a href="{{ s.url }}" class="flex items-start gap-3 py-3">
+                                <span class="min-w-0 flex-1">
+                                    <span class="block truncate text-[15px]">{{ s.name }}
+                                        {% if s.paused %}<span class="pill ml-1">Paused</span>{% endif %}
+                                    </span>
+                                    <span class="block truncate text-[13px] {% if s.flag %}font-medium text-(--neg){% else %}text-(--ink-3){% endif %}">{% if s.flag %}Out of order · {% endif %}{% if s.paused %}{{ s.paused }}{% else %}{{ s.every }} · {{ s.mode }}{% endif %}</span>
+                                </span>
+                                <span class="tnum shrink-0 text-[15px] {% if s.cls == 'income' %}text-(--pos){% endif %}">{% if s.cls == 'income' %}+{% endif %}{{ s.tilde }}{{ s.money.text }}</span>
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </section>
+        {% endfor %}
+        <section class="mt-8">
+            <h2 class="display text-[22px]">From Account terms</h2>
+            <p class="text-[13px] text-(--ink-3)">Not Schedules: these come from the Loan, Card or deposit itself. Change them on the Account.</p>
+            <ul class="mt-1 divide-y divide-(--line)">
+                {% for name, how, icon, color in from_terms %}
+                    <li class="flex items-center gap-3 py-3">
+                        <span class="tile size-8 rounded-full" style="--c: {{ color }}"><i data-lucide="{{ icon }}" class="size-4"></i></span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block truncate text-[15px]">{{ name }}</span>
+                            <span class="block truncate text-[13px] text-(--ink-3)">{{ how }}</span>
+                        </span>
+                    </li>
+                {% endfor %}
+            </ul>
+        </section>
+        <table class="tnum mt-8 w-full text-[15px]">
+            <tbody>
+                <tr>
+                    <td class="py-1.5">In each month</td>
+                    <td class="text-right text-(--pos)">+{{ monthly.in.text }}</td>
+                </tr>
+                <tr>
+                    <td class="py-1.5">Savings</td>
+                    <td class="text-right">−{{ monthly.savings.text }}</td>
+                </tr>
+                <tr>
+                    <td class="py-1.5">Committed, with the EMI</td>
+                    <td class="text-right">−{{ monthly.committed.text }}</td>
+                </tr>
+                <tr class="border-t border-(--ink)">
+                    <td class="pt-3 font-semibold">Left each month</td>
+                    <td class="pt-3 text-right font-semibold">{{ monthly.net.text }}</td>
+                </tr>
+            </tbody>
+        </table>
+        <span class="mt-8 flex h-11 items-center justify-center gap-2 rounded-full bg-(--well) text-[14px] font-medium"><i data-lucide="plus" class="size-4"></i>New Schedule</span>
+    {% else %}
+        <p class="mt-5 text-[16px] text-(--ink-2)">{{ needs_you|length }} need you now. Tap one to confirm, link or skip it.</p>
+        {% for g in occ_groups %}
+            {% if g.items %}
+                <section class="mt-7">
+                    <h2 class="kicker {% if g.key == 'overdue' %}text-(--neg){% endif %}">{{ g.name }}</h2>
+                    <ul class="mt-1 divide-y divide-(--line)">
+                        {% for o in g.items %}
+                            <li>
+                                <a href="{{ o.url }}" class="flex items-center gap-3.5 py-3.5">
+                                    <span class="tile size-9 rounded-full" style="--c: {{ o.color }}"><i data-lucide="{{ o.icon }}" class="size-4"></i></span>
+                                    <span class="min-w-0 flex-1">
+                                        <span class="block truncate text-[15px]">{{ o.name }}</span>
+                                        <span class="block truncate text-[13px] {% if o.status == 'overdue' %}font-medium text-(--neg){% else %}text-(--ink-3){% endif %}">{{ o.date }}{% if o.late %} · {{ o.late }}{% endif %}{% if o.match %} · Match found{% endif %}</span>
+                                    </span>
+                                    <span class="tnum shrink-0 text-[15px] {% if o.cls == 'income' %}text-(--pos){% endif %}">{% if o.cls == 'income' %}+{% endif %}{{ o.tilde }}{{ o.money.text }}</span>
+                                    <i data-lucide="chevron-right" class="size-4 text-(--ink-3)"></i>
+                                </a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </section>
+            {% endif %}
+        {% endfor %}
+        <section class="mt-7">
+            <h2 class="kicker">Done in {{ month.name }}</h2>
+            <ul class="mt-1 divide-y divide-(--line)">
+                {% for d in done %}
+                    <li class="flex items-center justify-between gap-3 py-2.5 text-[14px]">
+                        <span class="min-w-0">
+                            <span class="block truncate">{{ d.name }}</span>
+                            <span class="block truncate text-[12px] text-(--ink-3)">{{ d.date }} · {{ d.how }}</span>
+                        </span>
+                        <span class="tnum shrink-0 {% if d.cls == 'income' %}text-(--pos){% else %}text-(--ink-2){% endif %}">{% if d.cls == 'income' %}+{% endif %}{{ d.money.text }}</span>
+                    </li>
+                {% endfor %}
+            </ul>
+        </section>
+    {% endif %}
+{% endblock %}

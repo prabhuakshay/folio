@@ -1,0 +1,94 @@
+{% extends "prototype_ui/plan/shell.html" %}
+{# S · What needs you — a Policy leads with whether it counts, then its renewal, then the record as a table. #}
+{% block header_title %}{{ p.name }}{% endblock %}
+{% block page_style %}
+    .facts div { display: flex; justify-content: space-between; gap: 16px; padding: 10px 0; border-top: 1px solid var(--line); font-size: 15px; }
+    .facts dt { color: var(--ink-2); flex-shrink: 0; }
+    .facts dd { text-align: right; }
+{% endblock %}
+{% block page %}
+    <p class="kicker mt-4">Does it count?</p>
+    <p class="display mt-2 text-[56px] leading-none {% if p.counts == 'none' %}text-(--ink-3){% endif %}">{% if p.counts == "none" %}No{% else %}Yes{% endif %}</p>
+    <p class="mt-3 max-w-[34ch] text-[16px] leading-6 text-(--ink-2)">{{ p.verdict }}</p>
+    {% if p.counts == "health" %}
+        <ul class="mt-4 divide-y divide-(--line)">
+            {% for person in people %}
+                {% if person.name in p.persons %}
+                    <li class="flex justify-between py-2.5 text-[14px]">
+                        <span>{{ person.name }}</span>
+                        <span class="tnum text-(--ink-2)">{% if p.deductible %}₹25 L over ₹10 L base{% else %}₹10 L of {{ person.health_text }} counted{% endif %}</span>
+                    </li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    {% elif p.counts == "life" %}
+        <p class="mt-4 text-[14px] text-(--ink-2)">Your life cover: {{ life.counted }} counted of {{ life.need }} needed.</p>
+    {% endif %}
+    <section class="mt-8 rounded-[20px] bg-(--well) p-4">
+        <p class="text-[13px] font-medium {% if p.status == 'soon' %}text-(--neg){% else %}text-(--ink-2){% endif %}">{{ p.when }}</p>
+        <p class="mt-1 text-[17px] font-semibold">Covered until {{ p.until }}</p>
+        <p class="mt-1 text-[13px] text-(--ink-2)">Renewal term {{ p.renewal }}.{% if p.premium %} Fulfilling the premium near this date rolls it forward.{% endif %}</p>
+        {% if p.premium %}
+            <a href="{{ p.premium_url }}" class="mt-3 flex items-center justify-between rounded-[14px] bg-white px-3.5 py-3 text-[14px]">
+                <span><span class="block font-medium">{{ p.premium.0 }}</span><span class="block text-(--ink-2)">{{ p.premium.1 }}</span></span>
+                <i data-lucide="chevron-right" class="size-4 text-(--ink-3)"></i>
+            </a>
+        {% elif not p.employer %}
+            <span class="mt-3 flex h-11 items-center justify-center rounded-full bg-(--ink) text-[14px] font-medium text-white">Record renewal</span>
+            <p class="mt-2 text-[12px] text-(--ink-3)">No premium Schedule: renew by editing the dates, or link a premium Schedule.</p>
+        {% endif %}
+    </section>
+    <dl class="facts tnum mt-8">
+        <div>
+            <dt>Type</dt><dd>{{ p.type }}</dd>
+        </div>
+        <div>
+            <dt>Insurer</dt><dd>{{ p.insurer }}</dd>
+        </div>
+        <div>
+            <dt>Policy number</dt><dd>{{ p.number }}</dd>
+        </div>
+        <div>
+            <dt>{% if p.counts == "life" %}Sum assured{% else %}Sum insured{% endif %}</dt><dd>{{ p.cover }}</dd>
+        </div>
+        <div>
+            <dt>Persons covered</dt><dd>{{ p.persons|join:", " }}</dd>
+        </div>
+        {% if p.life_assured %}
+            <div>
+                <dt>Life assured</dt><dd>{{ p.life_assured }}</dd>
+            </div>
+        {% endif %}
+        <div>
+            <dt>Cover start</dt><dd>{{ p.start }}</dd>
+        </div>
+        {% if p.deductible %}
+            <div>
+                <dt>Deductible</dt><dd>{{ p.deductible }}</dd>
+            </div>
+        {% endif %}
+        <div>
+            <dt>Nominees</dt><dd>{% for n, share in p.nominees %}{{ n }} {{ share }}{% if not forloop.last %}, {% endif %}{% empty %}—{% endfor %}</dd>
+        </div>
+        <div>
+            <dt>Riders</dt><dd>{% for r, amt in p.riders %}{{ r }}{% if amt != "—" %} {{ amt }}{% endif %}{% if not forloop.last %}, {% endif %}{% empty %}—{% endfor %}</dd>
+        </div>
+        {% for h, v in p.holdings %}
+            <div>
+                <dt>Linked Holding</dt><dd>{{ h }}<span class="block text-[13px] text-(--ink-3)">{{ v }}</span></dd>
+            </div>
+        {% endfor %}
+        <div>
+            <dt>Employer-provided</dt><dd>{% if p.employer %}Yes · never counted{% else %}No{% endif %}</dd>
+        </div>
+        {% if p.notes %}
+            <div>
+                <dt>Notes</dt><dd>{{ p.notes }}</dd>
+            </div>
+        {% endif %}
+    </dl>
+    <div class="mt-8 grid grid-cols-2 gap-2 text-[14px] font-medium">
+        <span class="flex h-11 items-center justify-center rounded-full bg-(--well)">Edit</span>
+        <span class="flex h-11 items-center justify-center rounded-full bg-(--well) text-(--neg)">Delete</span>
+    </div>
+{% endblock %}

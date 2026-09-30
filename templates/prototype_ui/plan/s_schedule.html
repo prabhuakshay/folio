@@ -1,0 +1,95 @@
+{% extends "prototype_ui/plan/shell.html" %}
+{# S · What needs you — a Schedule as a statement: facts, template Postings, changes, then upcoming and history. #}
+{% block header_title %}{{ s.name }}{% endblock %}
+{% block page_style %}
+    .facts div { display: flex; justify-content: space-between; gap: 16px; padding: 10px 0; border-top: 1px solid var(--line); font-size: 15px; }
+    .facts dt { color: var(--ink-2); }
+    .facts dd { text-align: right; }
+{% endblock %}
+{% block page %}
+    <p class="kicker mt-4">{{ s.class_name }} · {{ s.every }}</p>
+    <p class="figure num mt-3 {% if s.cls == 'income' %}text-(--pos){% endif %}"
+       {% if s.money.whole|length > 7 %}style="font-size: clamp(56px, 17vw, 80px)"{% endif %}>{% if s.tilde %}<span class="cur">~</span>{% endif %}<span class="cur">₹</span>{{ s.money.whole }}</p>
+    {% if s.flag %}
+        <div class="mt-6 rounded-[20px] bg-(--well) p-4">
+            <p class="text-[15px] font-semibold text-(--neg)">Out of order</p>
+            <p class="mt-1 text-[14px] leading-5 text-(--ink-2)">{{ s.flag }}. Nothing is blocked; the badge stays until the Stage is met.</p>
+            <div class="mt-3 grid grid-cols-2 gap-2 text-[14px] font-medium">
+                <span class="flex h-11 items-center justify-center rounded-full bg-(--ink) text-white">Pause until met</span>
+                <span class="flex h-11 items-center justify-center rounded-full bg-white">Keep it</span>
+            </div>
+        </div>
+    {% endif %}
+    {% if s.paused %}
+        <div class="mt-6 flex items-center gap-3 rounded-[20px] bg-(--well) p-4">
+            <i data-lucide="pause" class="size-5"></i>
+            <span class="flex-1 text-[14px]"><span class="block font-medium">{{ s.paused }}</span><span class="block text-(--ink-2)">No Occurrences in the window; resumes by itself.</span></span>
+            <span class="text-[13px] font-medium">Resume now</span>
+        </div>
+    {% endif %}
+    <dl class="facts tnum mt-8">
+        <div>
+            <dt>Class</dt><dd>{{ s.class_name }}</dd>
+        </div>
+        <div>
+            <dt>Repeats</dt><dd>{{ s.every }} · never ends</dd>
+        </div>
+        <div>
+            <dt>Amount</dt><dd>{% if s.estimated %}Estimated · last actual{% else %}Fixed{% endif %}</dd>
+        </div>
+        <div>
+            <dt>Posting</dt><dd>{{ s.mode }}{% if s.mode == "Auto-post" %} on its date{% endif %}</dd>
+        </div>
+        <div>
+            <dt>Next</dt><dd>{% if s.paused %}{{ s.next }} · after the pause{% else %}{{ s.next }}{% endif %}</dd>
+        </div>
+    </dl>
+    <h2 class="kicker mt-8">Template Postings</h2>
+    <table class="tnum mt-1 w-full text-[15px]">
+        <tbody>
+            {% for acct, amt in s.template %}
+                <tr class="border-t border-(--line)">
+                    <td class="py-2.5">{{ acct }}</td>
+                    <td class="py-2.5 text-right text-(--ink-2)">{{ amt }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% if s.notes %}
+        <h2 class="kicker mt-8">Changes and notes</h2>
+        <ul class="mt-1 text-[15px]">
+            {% for n in s.notes %}<li class="border-t border-(--line) py-2.5">{{ n }}</li>{% endfor %}
+        </ul>
+    {% endif %}
+    <h2 class="kicker mt-8">Upcoming</h2>
+    <ul class="mt-1 text-[15px]">
+        {% for o in s_occurrences %}
+            <li class="border-t border-(--line)">
+                <a href="{{ o.url }}" class="tnum flex justify-between py-2.5">
+                    <span class="{% if o.status == 'overdue' %}font-medium text-(--neg){% endif %}">{{ o.date }}{% if o.status == 'overdue' %} · overdue{% endif %}</span>
+                    <span>{{ o.tilde }}{{ o.money.text }}</span>
+                </a>
+            </li>
+        {% empty %}
+            <li class="tnum flex justify-between border-t border-(--line) py-2.5">
+                <span>{{ s.next }}</span><span class="text-(--ink-2)">{{ s.tilde }}{{ s.money.text }}</span>
+            </li>
+        {% endfor %}
+    </ul>
+    <h2 class="kicker mt-8">History</h2>
+    <ul class="mt-1 text-[15px]">
+        {% for d in s_done %}
+            <li class="tnum flex justify-between border-t border-(--line) py-2.5">
+                <span>{{ d.date }} <span class="text-[13px] text-(--ink-3)">· {{ d.how }}</span></span><span>{{ d.money.text }}</span>
+            </li>
+        {% empty %}
+            <li class="border-t border-(--line) py-2.5 text-[14px] text-(--ink-3)">Nothing fulfilled yet.</li>
+        {% endfor %}
+    </ul>
+    <div class="mt-8 grid grid-cols-2 gap-2 text-[14px] font-medium">
+        <span class="flex h-11 items-center justify-center rounded-full bg-(--well)">Edit</span>
+        <span class="flex h-11 items-center justify-center rounded-full bg-(--well)">Change amount from…</span>
+        <span class="flex h-11 items-center justify-center rounded-full bg-(--well)">{% if s.paused %}Change pause{% else %}Pause{% endif %}</span>
+        <span class="flex h-11 items-center justify-center rounded-full bg-(--well) text-(--neg)">End</span>
+    </div>
+{% endblock %}

@@ -1,0 +1,96 @@
+{% extends "prototype_ui/plan/shell.html" %}
+{# S · What needs you — Plan opens with a queue of decisions, most urgent first, then quiet links. #}
+{% block page %}
+    <h1 class="display mt-2 text-[40px] leading-none">Plan</h1>
+    <p class="mt-3 text-[16px] text-(--ink-2)">7 things need you. Two are overdue.</p>
+    <ul class="mt-6 divide-y divide-(--line)">
+        {% for o in needs_you %}
+            <li class="flex items-start gap-3.5 py-4">
+                <span class="tile mt-0.5 size-9 rounded-full" style="--c: {{ o.color }}"><i data-lucide="{{ o.icon }}" class="size-4"></i></span>
+                <a href="{{ o.url }}" class="min-w-0 flex-1">
+                    <span class="block text-[15px] leading-5">
+                        {% if o.match %}
+                            Looks paid: link ₹{{ o.match_money.whole }} from {{ o.match.date|slice:"4:" }}?
+                        {% elif o.cls == "income" %}
+                            Confirm the {{ o.name }} credit
+                        {% else %}
+                            Confirm {{ o.name }}, {{ o.tilde }}₹{{ o.money.whole }}
+                        {% endif %}
+                    </span>
+                    <span class="block text-[13px] leading-5 {% if o.status == 'overdue' %}font-medium text-(--neg){% else %}text-(--ink-3){% endif %}">{{ o.name }} · {{ o.late }}</span>
+                </a>
+                <a href="{{ o.url }}"
+                   class="shrink-0 rounded-full {% if forloop.first %}bg-(--ink) text-white{% else %}bg-(--well){% endif %} px-4 py-2 text-[13px] font-medium">{% if o.match %}Link{% else %}Confirm{% endif %}</a>
+            </li>
+        {% endfor %}
+        <li class="flex items-start gap-3.5 py-4">
+            <span class="tile mt-0.5 size-9 rounded-full" style="--c: #0A8754"><i data-lucide="arrow-down-right" class="size-4"></i></span>
+            <a href="{{ urls.budget }}#surplus" class="min-w-0 flex-1">
+                <span class="block text-[15px] leading-5">Direct {{ surplus_total.text }} of surplus</span>
+                <span class="block text-[13px] leading-5 text-(--ink-3)">Tax refund and September's leftover · Stage {{ stage.n }} first</span>
+            </a>
+            <a href="{{ urls.budget }}#surplus"
+               class="shrink-0 rounded-full bg-(--well) px-4 py-2 text-[13px] font-medium">Direct it</a>
+        </li>
+        {% for p in renewing %}
+            <li class="flex items-start gap-3.5 py-4">
+                <span class="tile mt-0.5 size-9 rounded-full" style="--c: #1C7C54"><i data-lucide="shield" class="size-4"></i></span>
+                <a href="{{ p.url }}" class="min-w-0 flex-1">
+                    <span class="block text-[15px] leading-5">{{ p.name }} renews in 18 days</span>
+                    <span class="block text-[13px] leading-5 text-(--ink-3)">Premium ₹28,450 on 18 Oct · cover lapses {{ p.until }}</span>
+                </a>
+                <a href="{{ p.url }}"
+                   class="shrink-0 rounded-full bg-(--well) px-4 py-2 text-[13px] font-medium">Review</a>
+            </li>
+        {% endfor %}
+        {% for s in over_limits %}
+            {% if forloop.first %}
+                <li class="flex items-start gap-3.5 py-4">
+                    <span class="tile mt-0.5 size-9 rounded-full" style="--c: {{ s.color }}"><i data-lucide="{{ s.icon }}" class="size-4"></i></span>
+                    <a href="{{ urls.budget }}#limits" class="min-w-0 flex-1">
+                        <span class="block text-[15px] leading-5">{{ s.name }} is {{ s.over.text }} over its limit</span>
+                        <span class="block text-[13px] leading-5 text-(--ink-3)">{{ s.spent.text }} of {{ s.limit.text }}{% if over_limits|length > 1 %} · {{ over_limits|length|add:"-1" }} more over{% endif %}</span>
+                    </a>
+                    <a href="{{ urls.budget }}#limits"
+                       class="shrink-0 rounded-full bg-(--well) px-4 py-2 text-[13px] font-medium">See</a>
+                </li>
+            {% endif %}
+        {% endfor %}
+        {% for s in schedules %}
+            {% if s.flag %}
+                <li class="flex items-start gap-3.5 py-4">
+                    <span class="tile mt-0.5 size-9 rounded-full" style="--c: {{ s.color }}"><i data-lucide="{{ s.icon }}" class="size-4"></i></span>
+                    <a href="{{ s.url }}" class="min-w-0 flex-1">
+                        <span class="block text-[15px] leading-5">{{ s.name }} is out of order</span>
+                        <span class="block text-[13px] leading-5 text-(--ink-3)">It funds a Goal while Stage {{ stage.n }} · {{ stage.name }} is unmet</span>
+                    </a>
+                    <a href="{{ s.url }}"
+                       class="shrink-0 rounded-full bg-(--well) px-4 py-2 text-[13px] font-medium">Decide</a>
+                </li>
+            {% endif %}
+        {% endfor %}
+    </ul>
+    <h2 class="kicker mt-10">Everything else</h2>
+    <ul class="mt-1 divide-y divide-(--line) text-[15px]">
+        <li>
+            <a href="{{ urls.budget }}" class="flex items-center justify-between py-3.5">
+                <span>Budget</span><span class="tnum text-(--ink-2)">{{ b.left.text }} left in {{ month.name }}</span>
+            </a>
+        </li>
+        <li>
+            <a href="{{ urls.recurring }}" class="flex items-center justify-between py-3.5">
+                <span>Recurring</span><span class="tnum text-(--ink-2)">{{ occ_groups.2.items|length }} in the next 7 days</span>
+            </a>
+        </li>
+        <li>
+            <a href="{{ urls.scorecard }}" class="flex items-center justify-between py-3.5">
+                <span>Before Goals</span><span class="tnum text-(--ink-2)">Stage {{ stage.n }} of {{ stage.of }} · {{ stage.name }}</span>
+            </a>
+        </li>
+        <li>
+            <a href="{{ urls.policies }}" class="flex items-center justify-between py-3.5">
+                <span>Policies</span><span class="tnum text-(--ink-2)">{{ policies|length }} · 2 cover gaps</span>
+            </a>
+        </li>
+    </ul>
+{% endblock %}

@@ -1,0 +1,133 @@
+{% extends "prototype_ui/plan/shell.html" %}
+{# Q · Rooms — a Policy is a plain record: cover, verdict, then every field. #}
+{% block header_title %}{{ p.name }}{% endblock %}
+{% block page %}
+    <p class="kicker mt-4">{{ p.type }}{% if p.employer %} · employer-provided{% endif %}</p>
+    <p class="figure num mt-3 {% if p.counts == 'none' %}text-(--ink-3){% endif %}"
+       {% if p.cover|length > 6 %}style="font-size: clamp(48px, 14vw, 72px)"{% endif %}>
+        {{ p.cover }}
+    </p>
+    <p class="mt-4 max-w-[34ch] text-[16px] leading-6 text-(--ink-2)">{{ p.verdict }}</p>
+    {% if p.status == "soon" %}
+        <div class="mt-5 rounded-[20px] bg-(--well) p-4 text-[14px]">
+            <p class="font-medium text-(--neg)">{{ p.when }} · cover until {{ p.until }}</p>
+            <p class="mt-1 text-(--ink-2)">Confirming its premium Occurrence rolls cover until on by {{ p.renewal }}.</p>
+        </div>
+    {% endif %}
+    <dl class="mt-6 divide-y divide-(--line) text-[15px]">
+        <div class="flex justify-between gap-4 py-3">
+            <dt class="text-(--ink-2)">Insurer</dt>
+            <dd class="text-right">
+                {{ p.insurer }}
+            </dd>
+        </div>
+        <div class="flex justify-between gap-4 py-3">
+            <dt class="text-(--ink-2)">Policy number</dt>
+            <dd class="tnum text-right">
+                {{ p.number }}
+            </dd>
+        </div>
+        <div class="flex justify-between gap-4 py-3">
+            <dt class="text-(--ink-2)">Persons covered</dt>
+            <dd class="text-right">
+                {{ p.persons|join:", " }}
+            </dd>
+        </div>
+        {% if p.life_assured %}
+            <div class="flex justify-between gap-4 py-3">
+                <dt class="text-(--ink-2)">Life assured</dt>
+                <dd class="text-right">
+                    {{ p.life_assured }}
+                </dd>
+            </div>
+        {% endif %}
+        <div class="flex justify-between gap-4 py-3">
+            <dt class="text-(--ink-2)">Cover start</dt>
+            <dd class="text-right">
+                {{ p.start }}
+            </dd>
+        </div>
+        <div class="flex justify-between gap-4 py-3">
+            <dt class="text-(--ink-2)">Cover until</dt>
+            <dd class="text-right {% if p.status == 'soon' %}font-medium text-(--neg){% endif %}">
+                {{ p.until }}
+            </dd>
+        </div>
+        <div class="flex justify-between gap-4 py-3">
+            <dt class="text-(--ink-2)">Renewal term</dt>
+            <dd class="text-right">
+                {{ p.renewal }}
+            </dd>
+        </div>
+        <div class="flex justify-between gap-4 py-3">
+            <dt class="text-(--ink-2)">Premium Schedule</dt>
+            <dd class="text-right">
+                {% if p.premium %}
+                    <a href="{{ p.premium_url }}" class="underline">{{ p.premium.0 }}</a>
+                    <span class="block text-[13px] text-(--ink-3)">{{ p.premium.1 }}</span>
+                {% else %}
+                    <span class="text-(--ink-3)">None</span>
+                {% endif %}
+            </dd>
+        </div>
+        <div class="flex justify-between gap-4 py-3">
+            <dt class="text-(--ink-2)">Employer-provided</dt>
+            <dd class="text-right">
+                {{ p.employer|yesno:"Yes · not counted,No" }}
+            </dd>
+        </div>
+        {% if p.deductible %}
+            <div class="flex justify-between gap-4 py-3">
+                <dt class="text-(--ink-2)">Deductible</dt>
+                <dd class="text-right">
+                    {{ p.deductible }}
+                </dd>
+            </div>
+        {% endif %}
+        <div class="flex justify-between gap-4 py-3">
+            <dt class="text-(--ink-2)">Nominees</dt>
+            <dd class="text-right">
+                {% for n, share in p.nominees %}
+                    {{ n }} {{ share }}{% if not forloop.last %},{% endif %}
+                {% empty %}
+                    <span class="text-(--ink-3)">—</span>
+                {% endfor %}
+            </dd>
+        </div>
+        <div class="flex justify-between gap-4 py-3">
+            <dt class="text-(--ink-2)">Riders</dt>
+            <dd class="text-right">
+                {% for n, amt in p.riders %}
+                    <span class="block">{{ n }}{% if amt != "—" %} · {{ amt }}{% endif %}</span>
+                {% empty %}
+                    <span class="text-(--ink-3)">—</span>
+                {% endfor %}
+            </dd>
+        </div>
+        {% if p.holdings %}
+            <div class="flex justify-between gap-4 py-3">
+                <dt class="text-(--ink-2)">Linked Holdings</dt>
+                <dd class="text-right">
+                    {% for n, v in p.holdings %}
+                        <span class="block">{{ n }}</span><span class="block text-[13px] text-(--ink-3)">{{ v }}</span>
+                    {% endfor %}
+                </dd>
+            </div>
+        {% endif %}
+        {% if p.notes %}
+            <div class="flex justify-between gap-4 py-3">
+                <dt class="text-(--ink-2)">Notes</dt>
+                <dd class="text-right">
+                    {{ p.notes }}
+                </dd>
+            </div>
+        {% endif %}
+    </dl>
+    <div class="mt-8 grid {% if p.premium %}grid-cols-2{% else %}grid-cols-3{% endif %} gap-2 text-[14px] font-medium">
+        <span class="flex h-11 items-center justify-center rounded-full bg-(--well)">Edit</span>
+        {% if not p.premium %}
+            <span class="flex h-11 items-center justify-center rounded-full bg-(--well)">Record renewal</span>
+        {% endif %}
+        <span class="flex h-11 items-center justify-center rounded-full bg-(--well) text-(--neg)">Delete</span>
+    </div>
+{% endblock %}

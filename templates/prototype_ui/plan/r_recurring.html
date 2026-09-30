@@ -1,0 +1,159 @@
+{% extends "prototype_ui/plan/shell.html" %}
+{# R · The month — a timeline through the month; each Occurrence opens in place to confirm or link. Schedules group by the Account the money leaves or lands. #}
+{% block header_title %}Recurring{% endblock %}
+{% block page_style %}
+    .rail { position: relative; }
+    .rail::before { content: ""; position: absolute; left: 47px; top: 0; bottom: 0; width: 1px; background: var(--line); }
+    .occ[open] { background: var(--well); border-radius: 20px; }
+    li[id] { scroll-margin-top: 80px; }
+{% endblock %}
+{% block page %}
+    <div class="mt-3 flex gap-1 text-[14px] font-medium">
+        <a href="{{ urls.recurring }}"
+           class="rounded-full px-4 py-1.5 {% if view != 'schedules' %}bg-(--ink) text-white{% else %}bg-(--well){% endif %}">Timeline</a>
+        <a href="{{ urls.schedules }}"
+           class="rounded-full px-4 py-1.5 {% if view == 'schedules' %}bg-(--ink) text-white{% else %}bg-(--well){% endif %}">Schedules</a>
+    </div>
+    {% if view != "schedules" %}
+        <p class="mt-6 max-w-[34ch] text-[16px] leading-6 text-(--ink-2)">
+            <b class="text-(--neg)">2 overdue</b>, 1 due today, then {{ occ_groups.2.items|length }} in the next week. Tap one to confirm it or link what you already recorded.
+        </p>
+        {# Fulfilled this month, greyed, oldest first. #}
+        <p class="kicker mt-8">September · fulfilled</p>
+        <ul class="rail mt-2">
+            {% for d in done reversed %}
+                <li class="flex items-center gap-3 py-2 text-(--ink-3)">
+                    <span class="tnum w-9 shrink-0 text-right text-[14px] font-semibold">{{ d.date|slice:"4:"|cut:" Sep" }}</span>
+                    <span class="relative z-10 size-2.5 shrink-0 rounded-full bg-(--line)"></span>
+                    <span class="min-w-0 flex-1">
+                        <span class="block truncate text-[14px]">{{ d.name }}</span>
+                        <span class="block truncate text-[12px]">{{ d.how }}</span>
+                    </span>
+                    <span class="num text-[14px]">{% if d.cls == 'income' %}+{% endif %}₹{{ d.money.whole }}</span>
+                </li>
+            {% endfor %}
+        </ul>
+        {% for g in occ_groups %}
+            {% if g.key == "today" %}
+                <div class="relative mt-4 flex items-center gap-3">
+                    <span class="w-9 shrink-0 text-right text-[12px] font-semibold text-(--accent)">30</span>
+                    <span class="size-3 shrink-0 rounded-full bg-(--accent) ring-4 ring-white"></span>
+                    <span class="h-px flex-1 bg-(--accent)"></span>
+                    <span class="text-[12px] font-semibold text-(--accent)">Today</span>
+                </div>
+            {% elif g.key == "later" %}
+                <p class="kicker mt-6">October</p>
+            {% endif %}
+            {% if g.key == "overdue" %}<p class="kicker mt-6 text-(--neg)">Still open</p>{% endif %}
+            <ul class="rail mt-1">
+                {% for o in g.items %}
+                    <li id="{{ o.key }}">
+                        <details class="occ -mx-2 px-2" {% if open == o.key %}open{% endif %}>
+                            <summary class="flex items-center gap-3 py-3">
+                                <span class="w-9 shrink-0 text-right leading-none">
+                                    <span class="tnum block text-[16px] font-semibold {% if o.status == 'overdue' %}text-(--neg){% endif %}">{{ o.short|cut:" Sep"|cut:" Oct"|cut:" Mar" }}</span>
+                                    {% if o.key == "epf" %}<span class="block text-[10px] text-(--ink-3)">Mar</span>{% endif %}
+                                </span>
+                                <span class="relative z-10 size-2.5 shrink-0 rounded-full {% if o.status == 'overdue' %}bg-(--neg){% else %}bg-(--ink){% endif %}"></span>
+                                <span class="min-w-0 flex-1">
+                                    <span class="block truncate text-[15px]">{{ o.name }}</span>
+                                    <span class="block truncate text-[13px] {% if o.status == 'overdue' %}font-medium text-(--neg){% else %}text-(--ink-3){% endif %}">{% if o.late %}{{ o.late }} · {% endif %}{{ o.source }}</span>
+                                </span>
+                                <span class="num shrink-0 text-[15px] font-medium {% if o.cls == 'income' %}text-(--pos){% elif o.cls == 'excluded' %}text-(--ink-3){% endif %}">{% if o.cls == 'income' %}+{% endif %}{{ o.tilde }}<span class="cur">₹</span>{{ o.money.whole }}</span>
+                            </summary>
+                            <div class="pb-4 pl-[60px]">
+                                {% if o.match %}
+                                    <label class="flex gap-3 rounded-[16px] bg-white p-3">
+                                        <input type="radio" name="how-{{ o.key }}" checked class="mt-1 accent-black">
+                                        <span class="flex-1 text-[14px]">
+                                            <span class="block font-medium">Link {{ o.match.payee }} {{ o.match_money.text }}</span>
+                                            <span class="block text-(--ink-2)">{{ o.match.date }} · {{ o.match.from }} → {{ o.match.to }} · from {{ o.match.how }}</span>
+                                            <span class="mt-1 block text-[12px] text-(--ink-3)">{{ o.match.why }}</span>
+                                        </span>
+                                    </label>
+                                    <label class="mt-2 flex gap-3 p-3 text-[14px]">
+                                        <input type="radio" name="how-{{ o.key }}" class="mt-1 accent-black">
+                                        <span>Record it as a new Transaction</span>
+                                    </label>
+                                {% else %}
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <label class="text-[12px] text-(--ink-2)">Date<input class="field mt-1" value="{% if o.key == 'epf' %}31 Mar 2026{% else %}{{ o.short }}{% endif %}"></label>
+                                        <label class="text-[12px] text-(--ink-2)">Amount{% if o.estimated %} · estimate{% endif %}<input class="field tnum mt-1" value="{{ o.money.whole }}"></label>
+                                    </div>
+                                    <p class="mt-2 text-[13px] text-(--ink-2)">
+                                        {{ o.from }} → {{ o.to }}.
+                                        {% if o.key == "epf" %}About {{ o.money.text }} at the latest scheme rate — confirm at what your passbook shows.{% endif %}
+                                        {% if o.key == "sip" %}Units from the 5 Oct NAV (AMFI); editable.{% endif %}
+                                        {% if o.key == "rent" %}Posts itself on its date; confirm now only to post early.{% endif %}
+                                        {% if o.key == "emi" %}Split proposed by reducing balance.{% endif %}
+                                        {% if o.key == "icici" %}Statement amount due; pay in full keeps Stage 1 met.{% endif %}
+                                        {% if o.key == "star" %}Fulfilling it rolls the Policy's cover to 18 Oct 2027.{% endif %}
+                                    </p>
+                                {% endif %}
+                                <div class="mt-3 flex items-center gap-2 text-[14px] font-medium">
+                                    <span class="flex h-10 flex-1 items-center justify-center rounded-full bg-(--ink) text-white">{% if o.match %}Link{% else %}Confirm{% endif %}</span>
+                                    <a href="{{ o.url }}" class="flex h-10 items-center rounded-full bg-white px-4">Link other…</a>
+                                    <span class="flex h-10 items-center px-3 text-(--ink-2)">Skip</span>
+                                </div>
+                                {% if o.schedule_url %}<a href="{{ o.schedule_url }}" class="mt-3 inline-block text-[13px] text-(--ink-3)">Open its Schedule</a>{% endif %}
+                            </div>
+                        </details>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endfor %}
+    {% else %}
+        <p class="mt-6 max-w-[34ch] text-[16px] leading-6 text-(--ink-2)">
+            {{ monthly.in.text }} comes in and {{ monthly.committed.text }} is committed each month; {{ monthly.savings.text }} is scheduled into savings.
+        </p>
+        {% for g in sched_by_from %}
+            <section class="mt-9">
+                <div class="flex items-baseline justify-between gap-3">
+                    <h2 class="display text-[24px]">{{ g.name }}</h2>
+                    <p class="tnum text-right text-[13px] text-(--ink-2)">
+                        {% if g.name == "SBI Salary" %}<span class="text-(--pos)">+₹1,55,400</span> in · ₹10,000 out a month
+                        {% elif g.name == "HDFC Savings" %}~₹50,519 out a month · ₹71,350 yearly
+                        {% elif g.name == "Cash" %}₹6,000 out a month
+                        {% else %}₹649 a month · one paused
+                        {% endif %}
+                    </p>
+                </div>
+                <ul class="mt-1 divide-y divide-(--line)">
+                    {% for s in g.items %}
+                        <li>
+                            <a href="{{ s.url }}" class="flex items-center gap-3.5 py-3">
+                                <span class="tile size-9 rounded-full" style="--c: {{ s.color }}"><i data-lucide="{{ s.icon }}" class="size-4"></i></span>
+                                <span class="min-w-0 flex-1">
+                                    <span class="block truncate text-[15px]">{{ s.name }}</span>
+                                    <span class="block truncate text-[13px] text-(--ink-3)">{{ s.every }} · {{ s.mode }}</span>
+                                    {% if s.flag %}<span class="mt-1 inline-block rounded-full bg-(--neg) px-2 py-0.5 text-[11px] font-medium text-white">Out of order</span>{% endif %}
+                                    {% if s.paused %}<span class="mt-1 inline-block rounded-full bg-(--well) px-2 py-0.5 text-[11px] font-medium text-(--ink-2)">{{ s.paused }}</span>{% endif %}
+                                </span>
+                                <span class="num shrink-0 text-[15px] font-medium {% if s.cls == 'income' %}text-(--pos){% endif %} {% if s.paused %}text-(--ink-3){% endif %}">{% if s.cls == 'income' %}+{% endif %}{{ s.tilde }}<span class="cur">₹</span>{{ s.money.whole }}</span>
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </section>
+        {% endfor %}
+        <section class="mt-9">
+            <h2 class="display text-[24px]">From Account terms</h2>
+            <p class="text-[13px] text-(--ink-3)">Not Schedules: these follow the Account itself. Change them there.</p>
+            <ul class="mt-1 divide-y divide-(--line)">
+                {% for n, how, icon, color in from_terms %}
+                    <li class="flex items-center gap-3.5 py-3">
+                        <span class="tile size-9 rounded-full" style="--c: {{ color }}"><i data-lucide="{{ icon }}" class="size-4"></i></span>
+                        <span class="min-w-0 flex-1"><span class="block truncate text-[15px]">{{ n }}</span><span class="block truncate text-[13px] text-(--ink-3)">{{ how }}</span></span>
+                    </li>
+                {% endfor %}
+            </ul>
+        </section>
+        <span class="mt-8 flex h-11 items-center justify-center gap-2 rounded-full bg-(--well) text-[14px] font-medium"><i data-lucide="plus" class="size-4"></i>New Schedule</span>
+        <p class="mt-3 text-center text-[13px] text-(--ink-3)">Or “Make recurring” on any Transaction.</p>
+    {% endif %}
+{% endblock %}
+{% block page_script %}
+    {% if open %}
+        <script>document.getElementById("{{ open }}")?.scrollIntoView({ block: "start" });</script>
+    {% endif %}
+{% endblock %}

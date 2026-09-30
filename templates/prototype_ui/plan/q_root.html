@@ -1,0 +1,57 @@
+{% extends "prototype_ui/plan/shell.html" %}
+{# Q · Rooms — Plan is an index of four rooms, each with one live line. #}
+{% block page %}
+    <h1 class="display mt-2 text-[40px] leading-none">Plan</h1>
+    <p class="mt-3 max-w-[34ch] text-[16px] leading-6 text-(--ink-2)">What you've committed to: this month's Budget, what repeats, the steps before Goals, and your cover.</p>
+    <ul class="mt-8 divide-y divide-(--line)">
+        <li>
+            <a href="{{ urls.budget }}" class="block py-5">
+                <span class="flex items-center gap-4">
+                    <span class="tile size-11 rounded-full" style="--c: #000"><i data-lucide="gauge" class="size-5"></i></span>
+                    <span class="min-w-0 flex-1">
+                        <span class="display block text-[26px] leading-7">Budget</span>
+                        <span class="block text-[14px] text-(--ink-2)">₹{{ b.left.whole }} left in {{ month.name }} · ends {{ month.ends }}</span>
+                    </span>
+                    <i data-lucide="chevron-right" class="size-5 text-(--ink-3)"></i>
+                </span>
+                <span class="mt-4 ml-[60px] block">
+                    <span class="block h-1.5 overflow-hidden rounded-full bg-(--line)">
+                        <span class="block h-full rounded-full bg-(--ink)"
+                              style="width: {{ b.spent_pct }}%"></span>
+                    </span>
+                    <span class="tnum mt-1.5 flex justify-between text-[12px] text-(--ink-3)"><span>{{ b.spent_pct }}% of spendable used</span><span>day {{ month.day }} of {{ month.days }}</span></span>
+                </span>
+            </a>
+        </li>
+        <li>
+            <a href="{{ urls.recurring }}" class="flex items-center gap-4 py-5">
+                <span class="tile size-11 rounded-full" style="--c: #000"><i data-lucide="repeat" class="size-5"></i></span>
+                <span class="min-w-0 flex-1">
+                    <span class="display block text-[26px] leading-7">Recurring</span>
+                    <span class="block text-[14px] font-medium text-(--neg)">{{ occ_groups.0.items|length }} overdue · {{ occ_groups.1.items|length }} due today</span>
+                </span>
+                <i data-lucide="chevron-right" class="size-5 text-(--ink-3)"></i>
+            </a>
+        </li>
+        <li>
+            <a href="{{ urls.scorecard }}" class="flex items-center gap-4 py-5">
+                <span class="tile size-11 rounded-full" style="--c: #000"><i data-lucide="list-checks" class="size-5"></i></span>
+                <span class="min-w-0 flex-1">
+                    <span class="display block text-[26px] leading-7">Before Goals</span>
+                    <span class="block text-[14px] text-(--ink-2)">Stage {{ stage.n }} of {{ stage.of }} · {{ stage.name }}</span>
+                </span>
+                <i data-lucide="chevron-right" class="size-5 text-(--ink-3)"></i>
+            </a>
+        </li>
+        <li>
+            <a href="{{ urls.policies }}" class="flex items-center gap-4 py-5">
+                <span class="tile size-11 rounded-full" style="--c: #000"><i data-lucide="shield" class="size-5"></i></span>
+                <span class="min-w-0 flex-1">
+                    <span class="display block text-[26px] leading-7">Policies</span>
+                    <span class="block text-[14px] text-(--ink-2)">{{ policies|length }} Policies · Star Health {{ renewing.0.when|lower }}</span>
+                </span>
+                <i data-lucide="chevron-right" class="size-5 text-(--ink-3)"></i>
+            </a>
+        </li>
+    </ul>
+{% endblock %}

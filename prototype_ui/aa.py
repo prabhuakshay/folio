@@ -10,6 +10,7 @@ from collections import defaultdict
 
 from django.http import Http404
 from django.shortcuts import render
+from django.urls import reverse
 
 from prototype_ui.aa_data import (
     ACCTS,
@@ -71,7 +72,7 @@ def _base(request, screen, tab):
             "home": nav_url("home", "L"),
             "activity": _u("prototype-aa-activity", variant),
             "accounts": _u("prototype-aa-accounts", variant),
-            "plan": nav_url("plan", "L"),
+            "plan": reverse("prototype-plan"),
         },
         settings_url=nav_url("settings", "L"),
         imports_url=nav_url("imports", "L"),

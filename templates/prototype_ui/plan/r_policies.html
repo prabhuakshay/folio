@@ -1,0 +1,97 @@
+{% extends "prototype_ui/plan/shell.html" %}
+{# R · The month — Policies are read as cover per person: health against the floor, life against the need; the Policies hang off the people. #}
+{% block header_title %}Policies{% endblock %}
+{% block page %}
+    <p class="kicker mt-4">Stage 3 · Protection</p>
+    <p class="display mt-2 text-[34px] leading-[1.1]">Not met. <span class="text-(--neg)">Term life {{ life.gap }} short; Amma uncovered.</span></p>
+    <p class="mt-3 text-[14px] text-(--ink-2)">Counted cover only: in force, not from an employer, of a counted type.</p>
+    <section class="mt-10">
+        <div class="flex items-baseline justify-between">
+            <h2 class="display text-[26px]">Health</h2>
+            <p class="text-[13px] text-(--ink-2)">Floor {{ floor.short }} each</p>
+        </div>
+        <ul class="mt-2 divide-y divide-(--line)">
+            {% for person in people %}
+                <li class="py-4">
+                    <div class="flex items-baseline justify-between gap-3">
+                        <span class="text-[16px] font-medium">{{ person.name }} <span class="text-[13px] font-normal text-(--ink-3)">{{ person.rel }}</span></span>
+                        <span class="num shrink-0 text-[16px] font-semibold {% if person.health_gap %}text-(--neg){% endif %}">{{ person.health_text }}</span>
+                    </div>
+                    {# Scale is ₹40 L so the ₹10 L floor tick sits a quarter along. #}
+                    <div class="relative mt-2 h-2 rounded-full bg-(--line)">
+                        <div class="h-full rounded-full {% if person.health_gap %}bg-(--neg){% else %}bg-(--ink){% endif %}"
+                             style="width: {% widthratio person.health 4000000 100 %}%"></div>
+                        <span class="absolute -top-1 left-1/4 h-4 w-0.5 bg-(--ink-2)"></span>
+                    </div>
+                    <p class="mt-2 text-[13px] {% if person.health_gap %}font-medium text-(--neg){% else %}text-(--ink-2){% endif %}">
+                        {% if person.health_gap %}₹10 L short · {% endif %}{{ person.health_how }}
+                    </p>
+                    <p class="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[13px]">
+                        {% for p in person.policies %}
+                            {% if p.counts == "health" or p.employer %}
+                                <a href="{{ p.url }}" class="underline decoration-(--line) underline-offset-4 {% if p.employer %}text-(--ink-3){% endif %}">{{ p.name }}{% if p.employer %} · not counted{% endif %}</a>
+                            {% endif %}
+                        {% endfor %}
+                    </p>
+                </li>
+            {% endfor %}
+        </ul>
+    </section>
+    <section class="mt-10">
+        <div class="flex items-baseline justify-between">
+            <h2 class="display text-[26px]">Life</h2>
+            <p class="text-[13px] text-(--ink-2)">Priya and Aarav rely on your income</p>
+        </div>
+        <div class="mt-3 flex items-baseline justify-between text-[15px]">
+            <span><b>{{ life.counted }}</b> counted</span><span class="text-(--ink-2)">need {{ life.need }}</span>
+        </div>
+        <div class="mt-2 h-2.5 overflow-hidden rounded-full bg-(--line)">
+            <div class="h-full rounded-full bg-(--ink)" style="width: {{ life.pct }}%"></div>
+        </div>
+        <p class="mt-2 text-[14px] font-medium text-(--neg)">{{ life.gap }} short</p>
+        <p class="mt-1 text-[13px] text-(--ink-3)">{{ life.how }}. Provisional while Take-home is declared.</p>
+        <ul class="mt-3 divide-y divide-(--line)">
+            {% for p in policies %}
+                {% if p.counts == "life" %}
+                    <li>
+                        <a href="{{ p.url }}" class="flex items-center gap-3.5 py-3">
+                            <span class="tile size-9 rounded-full" style="--c: #000"><i data-lucide="{{ p.icon }}" class="size-4"></i></span>
+                            <span class="min-w-0 flex-1"><span class="block truncate text-[15px]">{{ p.name }}</span><span class="block truncate text-[13px] text-(--ink-3)">{{ p.type }} · {{ p.when }}</span></span>
+                            <span class="num text-[15px] font-medium">{{ p.cover }}</span>
+                        </a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    </section>
+    <section class="mt-10">
+        <h2 class="display text-[26px]">Not counted</h2>
+        <p class="text-[13px] text-(--ink-3)">Recorded and shown, never counted by the Doctrine.</p>
+        <ul class="mt-1 divide-y divide-(--line)">
+            {% for p in policies %}
+                {% if p.counts == "none" %}
+                    <li>
+                        <a href="{{ p.url }}" class="flex items-center gap-3.5 py-3">
+                            <span class="tile size-9 rounded-full" style="--c: #8D8D97"><i data-lucide="{{ p.icon }}" class="size-4"></i></span>
+                            <span class="min-w-0 flex-1"><span class="block truncate text-[15px]">{{ p.name }}</span><span class="block truncate text-[13px] text-(--ink-3)">{{ p.type }}{% if p.employer %} · employer-provided{% endif %} · to {{ p.until }}</span></span>
+                            <span class="num text-[15px] text-(--ink-2)">{{ p.cover }}</span>
+                        </a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    </section>
+    {% if renewing %}
+        <section class="mt-10">
+            <h2 class="kicker">Renewing soon</h2>
+            {% for p in renewing %}
+                <a href="{{ p.url }}" class="mt-2 flex items-center gap-3 rounded-[20px] bg-(--well) p-4">
+                    <i data-lucide="refresh-cw" class="size-5"></i>
+                    <span class="flex-1 text-[14px]"><span class="block font-medium">{{ p.name }} · {{ p.when|lower }}</span><span class="block text-(--ink-2)">Premium ₹28,450 due 18 Oct; paying it rolls cover to 18 Oct 2027.</span></span>
+                    <i data-lucide="chevron-right" class="size-5 text-(--ink-3)"></i>
+                </a>
+            {% endfor %}
+        </section>
+    {% endif %}
+    <span class="mt-8 flex h-11 items-center justify-center gap-2 rounded-full bg-(--well) text-[14px] font-medium"><i data-lucide="plus" class="size-4"></i>Add Policy</span>
+{% endblock %}

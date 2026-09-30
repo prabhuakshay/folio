@@ -1,0 +1,45 @@
+{% extends "prototype_ui/plan/shell.html" %}
+{# R · The month — a deep link to one Occurrence: the in-place confirm panel as its own page. #}
+{% block header_title %}{{ o.name }}{% endblock %}
+{% block page %}
+    <p class="kicker mt-4 {% if o.status == 'overdue' %}text-(--neg){% endif %}">{{ o.date }}{% if o.late %} · {{ o.late }}{% endif %}</p>
+    <p class="figure num mt-3 {% if o.cls == 'income' %}text-(--pos){% endif %}">{% if o.estimated %}<span class="cur">~₹</span>{% else %}<span class="cur">₹</span>{% endif %}{{ o.money.whole }}</p>
+    <p class="mt-4 max-w-[34ch] text-[16px] leading-6 text-(--ink-2)">{{ o.from }} → {{ o.to }}. {{ o.source }} · {{ o.class_name }}.</p>
+    {% if o.match %}
+        <h2 class="kicker mt-8">Looks already recorded</h2>
+        <label class="mt-2 flex gap-3 rounded-[20px] bg-(--well) p-4">
+            <input type="radio" name="how" checked class="mt-1 accent-black">
+            <span class="flex-1 text-[15px]">
+                <span class="block font-medium">Link {{ o.match.payee }} {{ o.match_money.text }}</span>
+                <span class="block text-[14px] text-(--ink-2)">{{ o.match.date }} · {{ o.match.from }} → {{ o.match.to }} · from {{ o.match.how }}</span>
+                <span class="mt-1 block text-[12px] text-(--ink-3)">{{ o.match.why }}. Pre-selected because it's the only Match; nothing links without your tap.</span>
+            </span>
+        </label>
+        <label class="mt-2 flex gap-3 p-4 text-[15px]">
+            <input type="radio" name="how" class="mt-1 accent-black">
+            <span>Record it as a new Transaction instead</span>
+        </label>
+    {% else %}
+        <div class="mt-8 grid grid-cols-2 gap-2">
+            <label class="text-[12px] text-(--ink-2)">Date<input class="field mt-1" value="{% if o.key == 'epf' %}31 Mar 2026{% else %}{{ o.short }}{% endif %}"></label>
+            <label class="text-[12px] text-(--ink-2)">Amount{% if o.estimated %} · estimate{% endif %}<input class="field tnum mt-1" value="{{ o.money.whole }}"></label>
+        </div>
+        <p class="mt-3 text-[14px] text-(--ink-2)">
+            {% if o.key == "epf" %}About {{ o.money.text }} at the latest scheme rate — confirm at what your passbook shows. Not overdue until tomorrow, six months past its date.{% endif %}
+            {% if o.key == "sip" %}Units from the 5 Oct NAV (AMFI); editable. A later CAS corrects them through the link.{% endif %}
+            {% if o.key == "rent" %}Posts itself on its date; confirm now only to post early.{% endif %}
+            {% if o.key == "emi" %}Split proposed by reducing balance.{% endif %}
+            {% if o.key == "icici" %}Statement amount due; paying in full keeps Stage 1 met.{% endif %}
+            {% if o.key == "star" %}Fulfilling it rolls the Policy's cover to 18 Oct 2027.{% endif %}
+            {% if o.key == "help" %}No Match found within 5 days of 25 Sep.{% endif %}
+        </p>
+    {% endif %}
+    <span class="mt-6 flex h-12 items-center justify-center gap-2 rounded-full bg-(--ink) text-[15px] font-medium text-white"><i data-lucide="check" class="size-4"></i>{% if o.match %}Link it{% else %}Confirm{% endif %}</span>
+    <div class="mt-2 grid grid-cols-2 gap-2 text-[14px] font-medium">
+        <span class="flex h-11 items-center justify-center rounded-full bg-(--well)">Link a different Transaction…</span>
+        <span class="flex h-11 items-center justify-center rounded-full bg-(--well)">Skip</span>
+    </div>
+    {% if o.schedule_url %}
+        <a href="{{ o.schedule_url }}" class="mt-8 flex items-center justify-between border-t border-(--line) pt-4 text-[15px]"><span>Its Schedule <span class="text-(--ink-3)">· {{ o.name }}</span></span><i data-lucide="chevron-right" class="size-5 text-(--ink-3)"></i></a>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,71 @@
+{% extends "prototype_ui/plan/shell.html" %}
+{# R · The month — a Policy leads with its cover on a timeline: this term's start, today, cover until, and what renews it. #}
+{% block header_title %}{{ p.name }}{% endblock %}
+{% block page %}
+    <p class="kicker mt-4">{{ p.type }} · {{ p.insurer }}</p>
+    <p class="figure num mt-3">{{ p.cover|cut:" over ₹10 L"|cut:" IDV" }}</p>
+    {% if p.deductible %}<p class="mt-2 text-[15px] text-(--ink-2)">over a {{ p.deductible }} deductible</p>{% endif %}
+    {# This term's cover, from its last renewal to cover until. #}
+    <div class="mt-8">
+        <div class="relative h-1.5 rounded-full bg-(--line)">
+            <div class="h-full rounded-full {% if p.status == 'soon' %}bg-(--neg){% else %}bg-(--ink){% endif %}"
+                 style="width: {% if p.key == 'star' %}95{% elif p.key == 'term' %}55{% elif p.key == 'endow' %}76{% elif p.key == 'care' %}74{% elif p.key == 'acme' %}50{% else %}64{% endif %}%"></div>
+            <span class="absolute -top-1 size-3.5 -translate-x-1/2 rounded-full border-2 border-white bg-(--accent)"
+                  style="left: {% if p.key == 'star' %}95{% elif p.key == 'term' %}55{% elif p.key == 'endow' %}76{% elif p.key == 'care' %}74{% elif p.key == 'acme' %}50{% else %}64{% endif %}%"></span>
+        </div>
+        <div class="tnum mt-2 flex justify-between text-[12px] text-(--ink-3)">
+            <span>{% if p.key == 'star' %}18 Oct 2025{% elif p.key == 'term' %}14 Mar 2026{% elif p.key == 'endow' %}28 Dec 2025{% elif p.key == 'care' %}2 Jan 2026{% elif p.key == 'acme' %}{{ p.start }}{% else %}{{ p.start }}{% endif %}</span>
+            <span>today</span>
+            <span class="{% if p.status == 'soon' %}font-medium text-(--neg){% endif %}">{{ p.until }}</span>
+        </div>
+    </div>
+    <p class="mt-5 max-w-[34ch] text-[16px] leading-6 text-(--ink-2)">
+        {% if p.key == "star" %}
+            Cover ends in <b class="text-(--neg)">18 days</b>. Fulfilling the 18 Oct premium rolls it to 18 Oct 2027.
+        {% elif p.employer %}
+            Renewed by Acme each April. It ends if you leave the job.
+        {% elif p.premium %}
+            Covered to {{ p.until }}. Fulfilling the premium near that date rolls it forward by one renewal term.
+        {% else %}
+            Covered to {{ p.until }}. No premium Schedule: record the renewal by editing its dates. It shows on Due 30 days before.
+        {% endif %}
+    </p>
+    <section class="mt-8 rounded-[20px] bg-(--well) p-4">
+        <p class="text-[13px] font-medium text-(--ink-2)">{% if p.counts == "none" %}Not counted{% else %}What it counts for{% endif %}</p>
+        <p class="mt-1 text-[15px] leading-6">{{ p.verdict }}</p>
+        <div class="mt-3 flex flex-wrap gap-1.5">
+            {% for who in p.persons %}<span class="pill bg-white">{{ who }}</span>{% endfor %}
+        </div>
+    </section>
+    <dl class="mt-8 divide-y divide-(--line) text-[15px]">
+        <div class="flex justify-between gap-4 py-3"><dt class="text-(--ink-2)">Policy number</dt><dd class="tnum text-right">{{ p.number }}</dd></div>
+        {% if p.life_assured %}<div class="flex justify-between gap-4 py-3"><dt class="text-(--ink-2)">Life assured</dt><dd>{{ p.life_assured }}</dd></div>{% endif %}
+        <div class="flex justify-between gap-4 py-3"><dt class="text-(--ink-2)">Cover start</dt><dd>{{ p.start }}</dd></div>
+        <div class="flex justify-between gap-4 py-3"><dt class="text-(--ink-2)">Renewal term</dt><dd class="text-right">{{ p.renewal }}</dd></div>
+        <div class="flex justify-between gap-4 py-3">
+            <dt class="text-(--ink-2)">Premium</dt>
+            <dd class="text-right">{% if p.premium %}<a href="{{ p.premium_url }}" class="underline decoration-(--line) underline-offset-4">{{ p.premium.1 }}</a>{% else %}<span class="text-(--ink-3)">No Schedule</span>{% endif %}</dd>
+        </div>
+        {% if p.deductible %}<div class="flex justify-between gap-4 py-3"><dt class="text-(--ink-2)">Deductible</dt><dd>{{ p.deductible }}</dd></div>{% endif %}
+        {% if p.employer %}<div class="flex justify-between gap-4 py-3"><dt class="text-(--ink-2)">Employer-provided</dt><dd>Yes · shown, not counted</dd></div>{% endif %}
+        <div class="flex justify-between gap-4 py-3">
+            <dt class="text-(--ink-2)">Nominees</dt>
+            <dd class="text-right">{% for n, share in p.nominees %}{{ n }} {{ share }}{% if not forloop.last %}, {% endif %}{% empty %}<span class="text-(--ink-3)">None</span>{% endfor %}</dd>
+        </div>
+        {% if p.riders %}
+            <div class="flex justify-between gap-4 py-3">
+                <dt class="text-(--ink-2)">Riders</dt>
+                <dd class="text-right">{% for n, amt in p.riders %}{{ n }}{% if amt != "—" %} {{ amt }}{% endif %}{% if not forloop.last %}<br>{% endif %}{% endfor %}</dd>
+            </div>
+        {% endif %}
+        {% for h, v in p.holdings %}
+            <div class="flex justify-between gap-4 py-3"><dt class="text-(--ink-2)">Holding</dt><dd class="text-right">{{ h }}<span class="block text-[13px] text-(--ink-3)">{{ v }}</span></dd></div>
+        {% endfor %}
+        {% if p.notes %}<div class="flex justify-between gap-4 py-3"><dt class="text-(--ink-2)">Notes</dt><dd class="text-right">{{ p.notes }}</dd></div>{% endif %}
+    </dl>
+    <div class="mt-8 grid grid-cols-3 gap-2 text-[14px] font-medium">
+        <span class="flex h-11 items-center justify-center rounded-full bg-(--well)">Edit</span>
+        <span class="flex h-11 items-center justify-center rounded-full bg-(--well)">Record renewal</span>
+        <span class="flex h-11 items-center justify-center rounded-full bg-(--well) text-(--neg)">Delete</span>
+    </div>
+{% endblock %}

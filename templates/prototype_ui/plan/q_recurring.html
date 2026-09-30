@@ -1,0 +1,224 @@
+{% extends "prototype_ui/plan/shell.html" %}
+{# Q · Rooms — Recurring splits Due and Schedules; confirming or linking happens in a bottom sheet. #}
+{% block header_title %}Recurring{% endblock %}
+{% block page %}
+    <div class="mt-3 grid grid-cols-2 rounded-full bg-(--well) p-1 text-[14px] font-medium">
+        <a href="{{ urls.recurring }}"
+           data-tab-link
+           class="flex h-9 items-center justify-center rounded-full {% if view == 'due' %}bg-(--ink) text-white{% else %}text-(--ink-2){% endif %}">Due</a>
+        <a href="{{ urls.schedules }}"
+           data-tab-link
+           class="flex h-9 items-center justify-center rounded-full {% if view == 'schedules' %}bg-(--ink) text-white{% else %}text-(--ink-2){% endif %}">Schedules</a>
+    </div>
+    {% if view == "schedules" %}
+        <p class="mt-6 text-[16px] leading-6 text-(--ink-2)">
+            A month of Schedules brings in <b class="text-(--pos)">+₹{{ monthly.in.whole }}</b>, saves ₹{{ monthly.savings.whole }} and commits ₹{{ monthly.committed.whole }}.
+        </p>
+        {% for g in sched_groups %}
+            <section class="mt-8">
+                <div class="flex items-baseline justify-between">
+                    <h2 class="display text-[24px]">{{ g.name }}</h2>
+                    <p class="tnum text-[14px] text-(--ink-2)">{{ g.total.text }} a month</p>
+                </div>
+                {% if g.name == "Committed" %}
+                    <p class="text-[13px] text-(--ink-3)">Schedules only — the ₹38,500 EMI comes from the Loan's terms, below.</p>
+                {% endif %}
+                <ul class="mt-1 divide-y divide-(--line)">
+                    {% for s in g.items %}
+                        <li>
+                            <a href="{{ s.url }}" class="flex items-center gap-3.5 py-3.5">
+                                <span class="tile size-9 rounded-full" style="--c: {{ s.color }}"><i data-lucide="{{ s.icon }}" class="size-4"></i></span>
+                                <span class="min-w-0 flex-1">
+                                    <span class="block truncate text-[15px]">{{ s.name }}</span>
+                                    <span class="block truncate text-[13px] text-(--ink-3)">{{ s.every }} · {{ s.mode }}</span>
+                                    {% if s.flag %}<span class="mt-1 block text-[12px] font-medium text-(--neg)">Out of order</span>{% endif %}
+                                    {% if s.paused %}<span class="pill mt-1">{{ s.paused }}</span>{% endif %}
+                                </span>
+                                <span class="num shrink-0 text-[15px] font-medium {% if s.cls == 'income' %}text-(--pos){% endif %} {% if s.paused %}text-(--ink-3){% endif %}">{% if s.cls == 'income' %}+{% endif %}{{ s.tilde }}<span class="cur">₹</span>{{ s.money.whole }}</span>
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </section>
+        {% endfor %}
+        <section class="mt-8">
+            <h2 class="display text-[24px]">From Account terms</h2>
+            <p class="text-[13px] text-(--ink-3)">Not Schedules — each Account's own terms expect these. Change them on the Account.</p>
+            <ul class="mt-1 divide-y divide-(--line)">
+                {% for name, line, icon, color in from_terms %}
+                    <li class="flex items-center gap-3.5 py-3.5">
+                        <span class="tile size-9 rounded-full" style="--c: {{ color }}"><i data-lucide="{{ icon }}" class="size-4"></i></span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block truncate text-[15px]">{{ name }}</span>
+                            <span class="block truncate text-[13px] text-(--ink-3)">{{ line }}</span>
+                        </span>
+                    </li>
+                {% endfor %}
+            </ul>
+        </section>
+        <span class="mt-6 flex h-11 items-center justify-center gap-2 rounded-full bg-(--ink) text-[14px] font-medium text-white"><i data-lucide="plus" class="size-4"></i>New Schedule</span>
+        <p class="mt-2 text-center text-[13px] text-(--ink-3)">or “Make recurring” from any Transaction</p>
+    {% else %}
+        <p class="mt-6 text-[16px] leading-6 text-(--ink-2)">
+            <b class="text-(--neg)">{{ occ_groups.0.items|length }} overdue</b> and {{ occ_groups.1.items|length }} due today. Tap one to confirm it, or link a Transaction you already recorded.
+        </p>
+        {% for g in occ_groups %}
+            {% if g.items %}
+                <section class="mt-7">
+                    <h2 class="kicker {% if g.key == 'overdue' %}text-(--neg){% endif %}">{{ g.name }}</h2>
+                    <ul class="mt-1 divide-y divide-(--line)">
+                        {% for o in g.items %}
+                            <li class="flex items-center gap-3.5 py-3.5">
+                                <button type="button"
+                                        data-occ="{{ o.key }}"
+                                        class="flex min-w-0 flex-1 items-center gap-3.5 text-left">
+                                    <span class="tile size-9 rounded-full" style="--c: {{ o.color }}"><i data-lucide="{{ o.icon }}" class="size-4"></i></span>
+                                    <span class="min-w-0 flex-1">
+                                        <span class="block truncate text-[15px]">{{ o.name }}</span>
+                                        <span class="block truncate text-[13px] {% if g.key == 'overdue' %}font-medium text-(--neg){% else %}text-(--ink-3){% endif %}">
+                                            {% if g.key == 'overdue' %}
+                                                {{ o.short }} · {{ o.late }}
+                                            {% else %}
+                                                {{ o.date }} · {{ o.source }}
+                                            {% endif %}
+                                        </span>
+                                        {% if o.match %}
+                                            <span class="mt-0.5 block truncate text-[12px] text-(--ink-2)">Looks paid · ₹{{ o.match_money.whole }} on {{ o.match.date|slice:"4:" }}</span>
+                                        {% endif %}
+                                    </span>
+                                    <span class="num shrink-0 text-[15px] font-medium {% if o.cls == 'income' %}text-(--pos){% endif %}">{% if o.cls == 'income' %}+{% endif %}{{ o.tilde }}<span class="cur">₹</span>{{ o.money.whole }}</span>
+                                </button>
+                                {% if g.key == 'overdue' or g.key == 'today' %}
+                                    <button type="button"
+                                            data-occ="{{ o.key }}"
+                                            class="h-9 shrink-0 rounded-full bg-(--ink) px-3.5 text-[13px] font-medium text-white">
+                                        {% if o.match %}
+                                            Link
+                                        {% else %}
+                                            Confirm
+                                        {% endif %}
+                                    </button>
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </section>
+            {% endif %}
+        {% endfor %}
+        <details class="mt-7">
+            <summary class="kicker flex items-center gap-1">
+                <i data-lucide="chevron-right" class="chev size-4 transition-transform"></i>Fulfilled in September · {{ done|length }}
+            </summary>
+            <ul class="mt-1 divide-y divide-(--line)">
+                {% for d in done %}
+                    <li class="flex items-center justify-between gap-3 py-3 text-[14px]">
+                        <span class="min-w-0"><span class="block truncate">{{ d.name }}</span><span class="block text-[12px] text-(--ink-3)">{{ d.date }} · {{ d.how }}</span></span>
+                        <span class="tnum shrink-0 {% if d.cls == 'income' %}text-(--pos){% endif %}">{% if d.cls == 'income' %}+{% endif %}₹{{ d.money.whole }}</span>
+                    </li>
+                {% endfor %}
+            </ul>
+        </details>
+    {% endif %}
+{% endblock %}
+{% block sheets %}
+    {% if view != "schedules" %}
+        <div id="occ-scrim"
+             {% if not open %}hidden{% endif %}
+             data-occ-close
+             class="fixed inset-0 z-50 bg-black/30"></div>
+        {% for o in occurrences %}
+            <div data-sheet-for="{{ o.key }}"
+                 {% if open != o.key %}hidden{% endif %}
+                 class="fixed inset-x-0 bottom-0 z-50 mx-auto max-h-[88dvh] max-w-xl overflow-y-auto rounded-t-[28px] bg-white px-6 pt-3 pb-[max(24px,env(safe-area-inset-bottom))]">
+                <div class="mx-auto h-1 w-10 rounded-full bg-(--line)"></div>
+                <div class="mt-4 flex items-start gap-3.5">
+                    <span class="tile size-10 rounded-full" style="--c: {{ o.color }}"><i data-lucide="{{ o.icon }}" class="size-5"></i></span>
+                    <div class="min-w-0 flex-1">
+                        <p class="text-[17px] font-semibold">{{ o.name }}</p>
+                        <p class="text-[13px] text-(--ink-3)">{{ o.source }}</p>
+                        {% if o.late %}
+                            <p class="mt-0.5 text-[13px] font-medium {% if o.status == 'overdue' or o.status == 'today' %}text-(--neg){% else %}text-(--ink-2){% endif %}">
+                                {{ o.late }}
+                            </p>
+                        {% endif %}
+                    </div>
+                    <button type="button"
+                            data-occ-close
+                            class="grid size-9 place-items-center rounded-full bg-(--well)"
+                            aria-label="Close">
+                        <i data-lucide="x" class="size-4"></i>
+                    </button>
+                </div>
+                {% if o.match %}
+                    <h3 class="kicker mt-6">Matches</h3>
+                    <label class="mt-2 flex items-start gap-3 rounded-[20px] bg-(--well) p-4">
+                        <input type="radio" name="m-{{ o.key }}" checked class="mt-1 accent-black">
+                        <span class="min-w-0 flex-1">
+                            <span class="flex justify-between gap-2 text-[15px]"><span class="font-medium">{{ o.match.payee }}</span><span class="tnum">₹{{ o.match_money.whole }}</span></span>
+                            <span class="block text-[13px] text-(--ink-2)">{{ o.match.date }} · {{ o.match.from }} → {{ o.match.to }} · from {{ o.match.how }}</span>
+                            <span class="mt-1 block text-[12px] text-(--ink-3)">{{ o.match.why }}</span>
+                        </span>
+                    </label>
+                    <span class="mt-3 flex h-12 items-center justify-center gap-2 rounded-full bg-(--ink) text-[15px] font-medium text-white"><i data-lucide="link" class="size-4"></i>Link this Transaction</span>
+                    <p class="mt-6 text-center text-[13px] text-(--ink-3)">or record it as a new Transaction</p>
+                {% endif %}
+                <div class="mt-4 grid grid-cols-2 gap-2">
+                    <label class="block">
+                        <span class="kicker">Date</span>
+                        <input class="field mt-1" value="{{ o.date }}">
+                    </label>
+                    <label class="block">
+                        <span class="kicker">Amount{% if o.estimated %} · estimate{% endif %}</span>
+                        <input class="field tnum mt-1" value="₹{{ o.money.whole }}">
+                    </label>
+                </div>
+                <div class="mt-3 flex flex-wrap gap-2 text-[13px]">
+                    <span class="pill">From {{ o.from }}</span>
+                    <span class="pill">To {{ o.to }}</span>
+                    <span class="pill">{{ o.class_name }}</span>
+                </div>
+                {% if not o.match %}
+                    <span class="mt-5 flex h-12 items-center justify-center gap-2 rounded-full bg-(--ink) text-[15px] font-medium text-white"><i data-lucide="check" class="size-4"></i>Confirm</span>
+                {% else %}
+                    <span class="mt-5 flex h-12 items-center justify-center gap-2 rounded-full bg-(--well) text-[15px] font-medium"><i data-lucide="check" class="size-4"></i>Confirm as new</span>
+                {% endif %}
+                <div class="mt-3 flex items-center justify-between text-[14px] font-medium">
+                    <span class="text-(--ink-2)">Link a different Transaction…</span>
+                    <span class="text-(--neg)">Skip</span>
+                </div>
+                {% if o.schedule_url %}
+                    <a href="{{ o.schedule_url }}"
+                       class="mt-5 block text-center text-[13px] text-(--ink-3) underline">Open its Schedule</a>
+                {% endif %}
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endblock %}
+{% block page_script %}
+    <script>
+    (() => {
+        const scrim = document.getElementById("occ-scrim");
+        if (!scrim) return;
+        const close = () => {
+            document.querySelectorAll("[data-sheet-for]").forEach((s) => (s.hidden = true));
+            scrim.hidden = true;
+            delete document.body.dataset.sheet;
+        };
+        const open = (key) => {
+            close();
+            const s = document.querySelector(`[data-sheet-for="${key}"]`);
+            if (!s) return;
+            s.hidden = false;
+            scrim.hidden = false;
+            document.body.dataset.sheet = key;
+        };
+        document.addEventListener("click", (e) => {
+            const o = e.target.closest("[data-occ]");
+            if (o) open(o.dataset.occ);
+            if (e.target.closest("[data-occ-close]")) close();
+        });
+        document.addEventListener("keydown", (e) => e.key === "Escape" && close());
+        if (!scrim.hidden) document.body.dataset.sheet = "occ";
+    })();
+    </script>
+{% endblock %}

@@ -1,6 +1,6 @@
 from django.urls import path
 
-from prototype_ui import aa, nav, views
+from prototype_ui import aa, nav, plan, views
 
 urlpatterns = [
     path("", views.home, name="prototype-ui"),
@@ -11,4 +11,11 @@ urlpatterns = [
     path("aa/txn/<int:tid>/", aa.txn, name="prototype-aa-txn"),
     path("aa/accounts/", aa.accounts, name="prototype-aa-accounts"),
     path("aa/accounts/<slug:key>/", aa.account, name="prototype-aa-account"),
+    path("plan/", plan.root, name="prototype-plan"),
+    path("plan/budget/", plan.budget, name="prototype-plan-budget"),
+    path("plan/recurring/", plan.recurring, name="prototype-plan-recurring"),
+    path("plan/occurrence/<slug:key>/", plan.occurrence, name="prototype-plan-occurrence"),
+    path("plan/schedule/<slug:key>/", plan.schedule, name="prototype-plan-schedule"),
+    path("plan/policies/", plan.policies, name="prototype-plan-policies"),
+    path("plan/policies/<slug:key>/", plan.policy, name="prototype-plan-policy"),
 ]

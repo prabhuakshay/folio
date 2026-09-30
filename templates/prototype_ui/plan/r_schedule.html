@@ -1,0 +1,93 @@
+{% extends "prototype_ui/plan/shell.html" %}
+{# R · The month — a Schedule leads with where it lands next: its coming Occurrences as a short timeline. #}
+{% block header_title %}{{ s.name }}{% endblock %}
+{% block page %}
+    <p class="kicker mt-4">{{ s.every }} · {{ s.mode }} · {{ s.class_name }}</p>
+    <p class="figure num mt-3 {% if s.cls == 'income' %}text-(--pos){% endif %}"><span class="cur">{{ s.tilde }}₹</span>{{ s.money.whole }}</p>
+    {% if s.flag %}
+        <div class="mt-5 flex gap-3 rounded-[20px] bg-(--well) p-4">
+            <i data-lucide="triangle-alert" class="mt-0.5 size-5 shrink-0 text-(--neg)"></i>
+            <p class="text-[14px]"><span class="block font-medium text-(--neg)">{{ s.flag }}</span><span class="block text-(--ink-2)">Nothing is blocked. The badge goes once Stage 3 is met.</span></p>
+        </div>
+    {% endif %}
+    {% if s.paused %}
+        <div class="mt-5 flex gap-3 rounded-[20px] bg-(--well) p-4">
+            <i data-lucide="pause" class="mt-0.5 size-5 shrink-0"></i>
+            <p class="text-[14px]"><span class="block font-medium">{{ s.paused }}</span><span class="block text-(--ink-2)">No Occurrences in the window. It resumes by itself.</span></p>
+        </div>
+    {% endif %}
+    <h2 class="kicker mt-8">Next</h2>
+    {% with day=s.next|slice:"4:"|cut:" Oct"|cut:" Dec"|cut:" Mar 2027" %}
+        <ol class="relative mt-2 border-l border-(--line) pl-5">
+            <li class="relative py-2.5">
+                <span class="absolute top-4 -left-[25px] size-2.5 rounded-full bg-(--ink)"></span>
+                <div class="flex justify-between text-[15px]"><span class="font-medium">{{ s.next }}</span><span class="num">{{ s.tilde }}{{ s.money.text }}</span></div>
+            </li>
+            {% if "Monthly" in s.every %}
+                {% if s.paused %}
+                    {% with months="Jan Feb Mar Apr May" %}
+                        {% for m in months.split %}
+                            <li class="relative py-2.5 text-(--ink-2)">
+                                <span class="absolute top-4 -left-[24.5px] size-2 rounded-full bg-(--line)"></span>
+                                <div class="flex justify-between text-[15px]"><span>{{ day }} {{ m }}</span><span class="num">{{ s.money.text }}</span></div>
+                            </li>
+                        {% endfor %}
+                    {% endwith %}
+                {% else %}
+                    {% with months="Nov Dec Jan Feb Mar" %}
+                        {% for m in months.split %}
+                            <li class="relative py-2.5 text-(--ink-2)">
+                                <span class="absolute top-4 -left-[24.5px] size-2 rounded-full bg-(--line)"></span>
+                                <div class="flex justify-between text-[15px]">
+                                    <span>{{ day }} {{ m }}</span>
+                                    {% if s.key == "rent" and m in "Jan Feb Mar" %}
+                                        <span class="num font-medium text-(--ink)">₹33,600 <span class="text-[12px] font-normal text-(--ink-3)">new rent</span></span>
+                                    {% else %}
+                                        <span class="num">{{ s.tilde }}{{ s.money.text }}</span>
+                                    {% endif %}
+                                </div>
+                            </li>
+                        {% endfor %}
+                    {% endwith %}
+                {% endif %}
+            {% else %}
+                    {% for y in "12" %}
+                        <li class="relative py-2.5 text-(--ink-2)">
+                            <span class="absolute top-4 -left-[24.5px] size-2 rounded-full bg-(--line)"></span>
+                            <div class="flex justify-between text-[15px]">
+                                <span>{{ s.every|cut:"Yearly on " }} {% if "2027" in s.next %}{% if y == "1" %}2028{% else %}2029{% endif %}{% else %}{% if y == "1" %}2027{% else %}2028{% endif %}{% endif %}</span><span class="num">{{ s.money.text }}</span>
+                            </div>
+                        </li>
+                    {% endfor %}
+            {% endif %}
+        </ol>
+    {% endwith %}
+    {% if s.notes %}
+        <ul class="mt-4 space-y-1.5 text-[14px] text-(--ink-2)">
+            {% for n in s.notes %}<li class="flex gap-2"><i data-lucide="info" class="mt-0.5 size-4 shrink-0 text-(--ink-3)"></i>{{ n }}</li>{% endfor %}
+        </ul>
+    {% endif %}
+    <h2 class="kicker mt-8">Each time it posts</h2>
+    <ul class="mt-1 divide-y divide-(--line)">
+        {% for acct, amt in s.template %}
+            <li class="tnum flex justify-between py-2.5 text-[15px]"><span>{{ acct }}</span><span>{{ amt }}</span></li>
+        {% endfor %}
+    </ul>
+    <p class="mt-2 text-[13px] text-(--ink-3)">
+        {% if s.mode == "Auto-post" %}Posts itself on its date; you can edit or delete what it posts.{% elif s.estimated %}Estimated: always confirmed, pre-filled with the last actual.{% else %}Fixed: confirmed with one tap.{% endif %}
+    </p>
+    {% if s_done %}
+        <h2 class="kicker mt-8">Already this month</h2>
+        <ul class="mt-1 divide-y divide-(--line)">
+            {% for d in s_done %}
+                <li class="flex justify-between py-2.5 text-[15px] text-(--ink-2)"><span>{{ d.date }} <span class="block text-[13px] text-(--ink-3)">{{ d.how }}</span></span><span class="num">{{ d.money.text }}</span></li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    <div class="mt-8 grid grid-cols-2 gap-2 text-[14px] font-medium">
+        <span class="flex h-11 items-center justify-center rounded-full bg-(--well)">Edit</span>
+        <span class="flex h-11 items-center justify-center rounded-full bg-(--well)">Change amount from…</span>
+        <span class="flex h-11 items-center justify-center rounded-full bg-(--well)">{% if s.paused %}Resume now{% else %}Pause{% endif %}</span>
+        <span class="flex h-11 items-center justify-center rounded-full bg-(--well) text-(--neg)">End</span>
+    </div>
+{% endblock %}

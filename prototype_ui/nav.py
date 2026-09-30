@@ -234,7 +234,8 @@ def _nav_context(variant):
             # Filled in by the "Activity and Accounts screens" prototype.
             "activity": reverse("prototype-aa-activity"),
             "accounts": reverse("prototype-aa-accounts"),
-            "plan": _url("plan", variant),
+            # Filled in by the "Plan tab screens" prototype.
+            "plan": reverse("prototype-plan"),
         },
         settings_url=_url("settings", variant),
         tabs_left=[("home", "Home", "house"), ("activity", "Activity", "list")],

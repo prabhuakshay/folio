@@ -1,0 +1,170 @@
+{% extends "prototype_ui/plan/shell.html" %}
+{# Q · Rooms — Budget is a top-down waterfall to spendable, then limits, then surplus. #}
+{% block header_title %}Budget{% endblock %}
+{% block page %}
+    <p class="kicker mt-4">{{ month.name }} · {{ month.span }} · ends {{ month.ends }}</p>
+    <p class="figure num mt-3"><span class="cur">₹</span>{{ b.left.whole }}</p>
+    <p class="mt-4 max-w-[34ch] text-[16px] leading-6 text-(--ink-2)">Left to spend of ₹{{ b.spendable.whole }}. Whatever's left tonight becomes surplus to direct tomorrow — it doesn't roll into {{ month.next }}.</p>
+    {# Waterfall: each step is a bar placed on the same income-wide track. #}
+    <h2 class="display mt-10 text-[26px]">How {{ month.name }} was split</h2>
+    <div class="mt-3 divide-y divide-(--line)">
+        <div class="py-3.5">
+            <div class="flex items-baseline justify-between text-[15px]">
+                <span>Expected income</span><span class="num font-medium text-(--pos)">+₹{{ b.income.whole }}</span>
+            </div>
+            <div class="mt-2 flex h-2.5"><div class="h-full w-full rounded-full bg-(--pos)"></div></div>
+            <p class="mt-1.5 text-[13px] text-(--ink-3)">Salary · Acme, net of TDS and EPF</p>
+        </div>
+        <details class="py-3.5">
+            <summary>
+                <div class="flex items-baseline justify-between text-[15px]">
+                    <span class="flex items-center gap-1"><i data-lucide="chevron-right" class="chev size-4 text-(--ink-3) transition-transform"></i>Savings</span><span class="num font-medium">−₹{{ b.savings.whole }}</span>
+                </div>
+                <div class="mt-2 flex h-2.5">
+                    <div style="width: {{ b.w_left }}%"></div>
+                    <div style="width: {{ b.w_spent }}%"></div>
+                    <div style="width: {{ b.w_committed }}%"></div>
+                    <div class="h-full rounded-full bg-(--ink)" style="width: {{ b.w_savings }}%"></div>
+                </div>
+                <p class="mt-1.5 text-[13px] text-(--ink-3)">{{ b.rate }}% savings-rate target · ₹{{ b.scheduled.whole }} scheduled</p>
+            </summary>
+            <ul class="mt-2 ml-5 text-[14px]">
+                {% for l in savings_lines %}
+                    <li>
+                        <a href="{{ l.url }}" class="flex justify-between py-1.5"><span>{{ l.name }} <span class="text-(--ink-3)">· {{ l.note }}</span></span><span class="tnum">{{ l.amount.text }}</span></a>
+                    </li>
+                {% endfor %}
+            </ul>
+            <p class="mt-2 ml-5 rounded-[14px] bg-(--well) px-3 py-2.5 text-[13px]">
+                <b class="font-semibold">₹{{ b.unscheduled.whole }} unscheduled</b> — reserved to reach {{ b.rate }}%, but no Schedule moves it. <a href="{{ urls.schedules }}" class="font-medium underline">Set up a SIP?</a>
+            </p>
+        </details>
+        <details class="py-3.5">
+            <summary>
+                <div class="flex items-baseline justify-between text-[15px]">
+                    <span class="flex items-center gap-1"><i data-lucide="chevron-right" class="chev size-4 text-(--ink-3) transition-transform"></i>Committed</span><span class="num font-medium">−₹{{ b.committed.whole }}</span>
+                </div>
+                <div class="mt-2 flex h-2.5">
+                    <div style="width: {{ b.w_left }}%"></div>
+                    <div style="width: {{ b.w_spent }}%"></div>
+                    <div class="h-full rounded-full bg-(--ink)"
+                         style="width: {{ b.w_committed }}%"></div>
+                </div>
+                <p class="mt-1.5 text-[13px] text-(--ink-3)">Rent, EMI, bills and subscriptions due this month</p>
+            </summary>
+            <ul class="mt-2 ml-5 text-[14px]">
+                {% for l in committed_lines %}
+                    <li class="flex justify-between py-1.5">
+                        <span>{{ l.name }} <span class="{% if 'overdue' in l.note %}text-(--neg){% else %}text-(--ink-3){% endif %}">· {{ l.note }}</span></span><span class="tnum">{{ l.amount.text }}</span>
+                    </li>
+                {% endfor %}
+            </ul>
+            <p class="mt-2 ml-5 text-[13px] text-(--ink-3)">ICICI card bill ₹{{ b.card_bill.whole }} excluded — its spending was already counted when charged to the Card.</p>
+        </details>
+        <div class="py-3.5">
+            <div class="flex items-baseline justify-between text-[15px] font-semibold">
+                <span>= Spendable</span><span class="num">₹{{ b.spendable.whole }}</span>
+            </div>
+            <div class="mt-2 flex h-2.5 gap-px">
+                <div class="h-full rounded-l-full bg-(--ink)" style="width: {{ b.w_left }}%"></div>
+                <div class="h-full rounded-r-full bg-(--ink)"
+                     style="width: {{ b.w_spent }}%"></div>
+            </div>
+        </div>
+        <details class="py-3.5">
+            <summary>
+                <div class="flex items-baseline justify-between text-[15px]">
+                    <span class="flex items-center gap-1"><i data-lucide="chevron-right" class="chev size-4 text-(--ink-3) transition-transform"></i>Spent</span><span class="num font-medium">−₹{{ b.spent.whole }}</span>
+                </div>
+                <div class="mt-2 flex h-2.5">
+                    <div style="width: {{ b.w_left }}%"></div>
+                    <div class="h-full rounded-full bg-(--ink-3)"
+                         style="width: {{ b.w_spent }}%"></div>
+                </div>
+                <p class="mt-1.5 text-[13px] text-(--ink-3)">Everything not from a fulfilled Occurrence, Uncategorised included</p>
+            </summary>
+            <ul class="mt-2 ml-5 text-[14px]">
+                {% for s in spend %}
+                    <li class="flex items-center gap-2.5 py-1.5">
+                        <span class="tile size-6 rounded-full" style="--c: {{ s.color }}"><i data-lucide="{{ s.icon }}" class="size-3"></i></span>
+                        <span class="flex-1">{{ s.name }}</span><span class="tnum">{{ s.spent.text }}</span>
+                    </li>
+                {% endfor %}
+            </ul>
+        </details>
+        <div class="py-3.5">
+            <div class="flex items-baseline justify-between text-[15px] font-semibold">
+                <span>= Left</span><span class="num">₹{{ b.left.whole }}</span>
+            </div>
+            <div class="mt-2 flex h-2.5">
+                <div class="h-full rounded-full bg-(--accent)" style="width: {{ b.w_left }}%"></div>
+            </div>
+        </div>
+    </div>
+    {# Limits #}
+    <h2 class="display mt-10 text-[26px]">Limits</h2>
+    <p class="text-[13px] text-(--ink-3)">Optional, per Expense Account. Every month starts clean.</p>
+    <ul class="mt-2 divide-y divide-(--line)">
+        {% for s in limits %}
+            <li class="py-3.5">
+                <div class="flex items-center gap-3 text-[15px]">
+                    <span class="tile size-8 rounded-full" style="--c: {{ s.color }}"><i data-lucide="{{ s.icon }}" class="size-4"></i></span>
+                    <span class="flex-1">{{ s.name }}</span>
+                    <span class="tnum text-[14px]">{{ s.spent.text }} <span class="text-(--ink-3)">of {{ s.limit.text }}</span></span>
+                </div>
+                <div class="mt-2 ml-11 h-1.5 overflow-hidden rounded-full bg-(--line)">
+                    <div class="h-full rounded-full {% if s.over %}bg-(--neg){% else %}bg-(--ink){% endif %}"
+                         style="width: {{ s.pct }}%"></div>
+                </div>
+                <p class="mt-1.5 ml-11 text-[13px] {% if s.over %}font-medium text-(--neg){% else %}text-(--ink-3){% endif %}">
+                    {% if s.over %}
+                        ₹{{ s.over.whole }} over this month
+                    {% else %}
+                        ₹{{ s.left.whole }} left · monthly
+                    {% endif %}
+                </p>
+            </li>
+        {% endfor %}
+        {% for s in yearly %}
+            <li class="py-3.5">
+                <div class="flex items-center gap-3 text-[15px]">
+                    <span class="tile size-8 rounded-full" style="--c: {{ s.color }}"><i data-lucide="{{ s.icon }}" class="size-4"></i></span>
+                    <span class="flex-1">{{ s.name }}</span>
+                    <span class="tnum text-[14px]">{{ s.spent.text }} <span class="text-(--ink-3)">of {{ s.limit.text }}</span></span>
+                </div>
+                <div class="mt-2 ml-11 h-1.5 overflow-hidden rounded-full bg-(--line)">
+                    <div class="h-full rounded-full bg-(--ink)" style="width: {{ s.pct }}%"></div>
+                </div>
+                <p class="mt-1.5 ml-11 text-[13px] text-(--ink-3)">₹{{ s.left.whole }} left · yearly, over FY 2026-27</p>
+            </li>
+        {% endfor %}
+    </ul>
+    <span class="mt-3 flex h-11 items-center justify-center gap-2 rounded-full bg-(--well) text-[14px] font-medium"><i data-lucide="plus" class="size-4"></i>Add a limit</span>
+    {# Surplus to direct #}
+    <h2 class="display mt-10 text-[26px]">Surplus to direct</h2>
+    <p class="stat mt-2 text-[44px]"><span class="cur">₹</span>{{ surplus_total.whole }}</p>
+    <ul class="mt-3 divide-y divide-(--line) text-[15px]">
+        {% for s in surplus %}
+            <li class="flex justify-between gap-3 py-3">
+                <span><span class="block">{{ s.name }}</span><span class="block text-[13px] text-(--ink-3)">{{ s.note }}</span></span>
+                <span class="tnum">{{ s.amount.text }}</span>
+            </li>
+        {% endfor %}
+    </ul>
+    <div class="mt-4 rounded-[20px] bg-(--well) p-4">
+        <p class="kicker">Stage {{ stage.n }} of {{ stage.of }} · {{ stage.name }}</p>
+        <ul class="mt-2 space-y-1.5 text-[14px]">
+            {% for name, gap, how in stage.gaps %}
+                <li>
+                    <span class="font-medium">{{ name }}</span> <span class="font-medium text-(--neg)">{{ gap }}</span>
+                    <span class="block text-[13px] text-(--ink-3)">{{ how }}</span>
+                </li>
+            {% endfor %}
+        </ul>
+        <p class="mt-3 text-[14px] leading-5 text-(--ink-2)">{{ stage.advice }}</p>
+        <p class="mt-2 text-[13px] text-(--ink-3)">Then: {{ stage.next }}</p>
+        <a href="{{ urls.scorecard }}"
+           class="mt-3 flex h-11 items-center justify-center rounded-full bg-(--ink) text-[14px] font-medium text-white">See Before Goals</a>
+    </div>
+    <p class="mt-3 text-[13px] text-(--ink-3)">Nothing moves automatically.</p>
+{% endblock %}

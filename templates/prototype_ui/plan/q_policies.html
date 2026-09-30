@@ -1,0 +1,34 @@
+{% extends "prototype_ui/plan/shell.html" %}
+{# Q · Rooms — Policies grouped by what they count toward. #}
+{% block header_title %}Policies{% endblock %}
+{% block page %}
+    <h1 class="display mt-2 text-[40px] leading-none">Policies</h1>
+    <a href="{{ urls.scorecard }}"
+       class="mt-4 flex items-center gap-3 rounded-[20px] bg-(--well) p-4 text-[14px]">
+        <i data-lucide="shield-alert" class="size-5 shrink-0 text-(--neg)"></i>
+        <span class="flex-1"><span class="block font-medium">Stage {{ stage.n }} · {{ stage.name }} unmet</span><span class="block text-(--ink-2)">Term life {{ life.gap }} short · Amma uncovered</span></span>
+        <i data-lucide="chevron-right" class="size-4 text-(--ink-3)"></i>
+    </a>
+    {% for name, hint, items in policy_groups %}
+        <section class="mt-9">
+            <h2 class="display text-[26px]">{{ name }}</h2>
+            <p class="text-[13px] text-(--ink-3)">{{ hint }}</p>
+            <ul class="mt-1 divide-y divide-(--line)">
+                {% for p in items %}
+                    <li>
+                        <a href="{{ p.url }}" class="flex items-center gap-3.5 py-3.5">
+                            <span class="tile size-9 rounded-full" style="--c: #000"><i data-lucide="{{ p.icon }}" class="size-4"></i></span>
+                            <span class="min-w-0 flex-1">
+                                <span class="block truncate text-[15px]">{{ p.name }}</span>
+                                <span class="block truncate text-[13px] text-(--ink-3)">{{ p.type }} · {{ p.persons|join:", " }}</span>
+                                <span class="block truncate text-[13px] {% if p.status == 'soon' %}font-medium text-(--neg){% else %}text-(--ink-3){% endif %}">{{ p.when }}</span>
+                            </span>
+                            <span class="num shrink-0 text-[15px] font-medium {% if p.counts == 'none' %}text-(--ink-3){% endif %}">{{ p.cover }}</span>
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </section>
+    {% endfor %}
+    <span class="mt-8 flex h-11 items-center justify-center gap-2 rounded-full bg-(--well) text-[14px] font-medium"><i data-lucide="plus" class="size-4"></i>Add Policy</span>
+{% endblock %}
