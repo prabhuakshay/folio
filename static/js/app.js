@@ -57,3 +57,7 @@ document.addEventListener("click", (event) => {
   if (opener) document.getElementById(opener.dataset.sheet).showModal();
   if (event.target.matches("dialog.sheet")) event.target.close();
 });
+
+// A sheet the server sent back with `data-open`, such as one whose form was
+// refused, opens as the page loads.
+document.querySelector("dialog.sheet[data-open]")?.showModal();
