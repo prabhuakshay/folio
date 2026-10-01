@@ -10,4 +10,7 @@ if [ "${RUN_MIGRATIONS:-1}" = "1" ]; then
   python manage.py createcachetable
 fi
 
+# Until the install is claimed, the log carries the code that claims it.
+python manage.py setup_code
+
 exec "$@"

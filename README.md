@@ -19,7 +19,7 @@ cp .env.example .env         # then set SECRET_KEY (see below)
 uv run prek install          # pre-commit and commit-msg hooks
 npm install && npm run build   # or `npm run watch` while working
 uv run manage.py migrate
-uv run manage.py createsuperuser
+uv run manage.py setup_code    # prints the code that claims the install
 uv run manage.py runserver
 ```
 
@@ -31,6 +31,10 @@ python3 -c "import secrets; print(secrets.token_urlsafe(50))"
 
 The app is on <http://localhost:8000> and the admin on
 <http://localhost:8000/admin/> (configurable via `ADMIN_URL`).
+
+A fresh install has no login. The server prints a setup code to its log at
+start (`Setup code: …`, or run `manage.py setup_code`); the first visit asks
+for it, then for the name, email and password of the install's only login.
 
 ## Tests
 
@@ -62,7 +66,6 @@ differ (`id -u && id -g`), set them in `.env` and run `docker compose build`.
 Dependencies are baked into the image, so rebuild after `uv add`.
 
 ```bash
-docker compose exec web python manage.py createsuperuser
 docker compose exec web python manage.py makemigrations
 docker compose logs -f tailwind
 ```

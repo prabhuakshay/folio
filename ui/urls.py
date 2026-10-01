@@ -1,8 +1,7 @@
-"""App shell URLs: the four tab roots, the screens stacked on them, sign-in."""
+"""App shell URLs: the four tab roots, the screens stacked on them."""
 
 from typing import TYPE_CHECKING
 
-from django.contrib.auth import views as auth_views
 from django.urls import path
 from django.views.generic import TemplateView
 
@@ -43,7 +42,5 @@ urlpatterns = [
         screen("new.html", back="home", title="New transaction"),
         name="new",
     ),
-    path("login/", auth_views.LoginView.as_view(), name="login"),
-    path("logout/", auth_views.LogoutView.as_view(), name="logout"),
     path("manifest.webmanifest", views.manifest, name="manifest"),
 ]

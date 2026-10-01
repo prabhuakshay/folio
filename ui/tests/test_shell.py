@@ -100,7 +100,7 @@ def test_every_page_requires_sign_in(client, name):
 
 
 @pytest.mark.django_db
-def test_sign_in_page_is_open(client):
+def test_sign_in_page_is_open(client, user):
     assert client.get(reverse("login")).status_code == 200
 
 

@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% comment %}
+    A full-screen step outside the app: signing in and claiming the install.
+    No tab bar; the wordmark heads it and `step` counts the claim's steps.
+{% endcomment %}
+{% block body %}
+    <div class="mx-auto flex min-h-dvh max-w-sm flex-col px-6 pt-[env(safe-area-inset-top)] pb-12">
+        <header class="flex h-14 items-center">
+            <span class="wordmark text-[16px]">FOLIO</span>
+            {% if step %}<span class="ml-auto text-[13px] text-ink-3">{{ step }} of 2</span>{% endif %}
+        </header>
+        <main>
+            {% block main %}{% endblock %}
+        </main>
+    </div>
+{% endblock %}
