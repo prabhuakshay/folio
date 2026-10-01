@@ -22,4 +22,5 @@ urlpatterns = [
     path("", include("ui.urls")),
     path("", include("jobs.urls")),
     path("", include("doctrine.urls")),
+    path("", include("ledger.urls")),
 ]

@@ -1,0 +1,148 @@
+{% extends "ui/screen.html" %}
+{% comment %}
+    Income, Expenses and Roles as tabs. In a tree, each group folds; tapping
+    an Account, a group's Edit or Add opens the one sheet, which htmx fills.
+    A role opens its own sheet to point it at another Account.
+{% endcomment %}
+{% block content %}
+    <nav class="mt-3 grid grid-cols-3 rounded-full bg-well p-1 text-[14px] font-medium"
+         aria-label="Chart of Accounts">
+        {% for key, label in tabs.items %}
+            <a href="?tab={{ key }}"
+               class="rounded-full py-2 text-center {% if key == current %}bg-ink text-white{% endif %}"
+               {% if key == current %}aria-current="page"{% endif %}>{{ label }}</a>
+        {% endfor %}
+    </nav>
+    {% if current == "roles" %}
+        <p class="mt-5 text-[15px] leading-6 text-ink-2">
+            Some Accounts have a job: Folio posts certain things there on its own, like interest you earn or what an import can't place. A role marks which Account does each job, so renaming or moving it changes nothing.
+        </p>
+        <ul class="mt-2 divide-y">
+            {% for row in roles %}
+                <li>
+                    <button type="button"
+                            data-sheet="sheet-{{ row.role }}"
+                            class="flex w-full items-center gap-4 py-3 text-left">
+                        <span class="min-w-0 flex-1">
+                            <span class="block text-[16px] font-medium">{{ row.role.label }}</span>
+                            <span class="mt-0.5 line-clamp-2 block text-[13px] leading-5 text-ink-2">{{ row.about }}</span>
+                            {% if row.account %}
+                                <span class="mt-0.5 block truncate text-[13px] text-ink-3">Goes to {{ row.path }}</span>
+                            {% else %}
+                                <span class="mt-0.5 block truncate text-[13px] text-ink-3">Its Account was deleted; Folio makes a new one when next needed</span>
+                            {% endif %}
+                        </span>
+                        {% include "icons/chevron-right.svg" with class="size-5 text-ink-3" %}
+                    </button>
+                    <dialog id="sheet-{{ row.role }}"
+                            class="sheet max-h-[72dvh]"
+                            aria-labelledby="sheet-{{ row.role }}-title"
+                            {% if open == row.role %}data-open{% endif %}>
+                        <div class="-mt-3 mb-4 flex justify-center">
+                            <span class="h-1 w-10 rounded-full bg-hairline"></span>
+                        </div>
+                        <div class="flex items-start gap-4">
+                            <h2 id="sheet-{{ row.role }}-title"
+                                tabindex="-1"
+                                autofocus
+                                class="display min-w-0 flex-1 text-[26px] leading-none outline-none">
+                                {{ row.role.label }}
+                            </h2>
+                            {% include "ledger/close_sheet.html" %}
+                        </div>
+                        <p class="mt-3 text-[14px] leading-6 text-ink-2">{{ row.about }}</p>
+                        <p class="mt-1 text-[13px] leading-5 text-ink-3">
+                            The Account doing it now keeps its name and history; it just stops being used for this.
+                        </p>
+                        <form method="post"
+                              action="{% url 'chart_role' row.role %}"
+                              class="mt-5 grid gap-2">
+                            {% csrf_token %}
+                            <select name="account"
+                                    class="field"
+                                    aria-label="Account for {{ row.role.label }}"
+                                    {% if row.errors %}aria-invalid="true"{% endif %}>
+                                {% for pk, path in row.candidates %}
+                                    <option value="{{ pk }}"
+                                            {% if pk == row.account.pk %}selected{% endif %}>{{ path }}</option>
+                                {% endfor %}
+                            </select>
+                            {% for error in row.errors %}<p class="text-[13px] text-negative">{{ error }}</p>{% endfor %}
+                            <button type="submit"
+                                    class="mt-2 h-12 w-full rounded-full bg-ink text-[15px] font-medium text-white">
+                                Save
+                            </button>
+                        </form>
+                    </dialog>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p class="mt-5 text-[15px] leading-6 text-ink-2">
+            {% if current == "income" %}
+                Where your money comes from.
+            {% else %}
+                Where your money goes.
+            {% endif %}
+            Groups, in bold, only add up the Accounts inside them. Tap an Account to rename it, move it or add words that name it in quick-add.
+        </p>
+        <details class="mt-2 text-[14px] leading-6 text-ink-2">
+            <summary class="list-none font-medium text-ink underline underline-offset-4">Where are my bank accounts?</summary>
+            <p class="mt-2">
+                What you own and owe (bank accounts, cards, loans, investments) are Accounts too. You'll add those from the Accounts tab, under groups Folio has already set up.
+            </p>
+        </details>
+        <button type="button"
+                hx-get="{% url 'chart_new' %}?under={{ top.pk }}"
+                hx-target="#account-sheet"
+                class="pill mt-5 h-11 w-full text-[14px]">
+            {% include "icons/plus.svg" with class="size-4" %}
+            Add to {{ top.name }}
+        </button>
+        <ul class="mt-4 divide-y">
+            {% for item in items %}
+                <li>
+                    {% if item.row.account.is_group %}
+                        <details class="group/g"
+                                 {% if item.row.account.pk|stringformat:"s" == unfolded %}open{% endif %}>
+                            <summary class="flex list-none items-center gap-3 py-3">
+                                {% include "icons/chevron-right.svg" with class="size-5 text-ink-3 transition-transform group-open/g:rotate-90" %}
+                                <span class="min-w-0 flex-1 truncate text-[16px] font-semibold">{{ item.row.account.name }}</span>
+                                {% if item.row.account.role %}
+                                    <span class="text-[13px] text-ink-3">Role: {{ item.row.account.get_role_display }}</span>
+                                {% endif %}
+                                <span class="text-[13px] text-ink-3">{{ item.under|length }}</span>
+                            </summary>
+                            <div class="pb-2 pl-8">
+                                <div class="flex gap-2 pb-1">
+                                    <button type="button"
+                                            hx-get="{% url 'chart_account' item.row.account.pk %}"
+                                            hx-target="#account-sheet"
+                                            class="pill">Edit group</button>
+                                    <button type="button"
+                                            hx-get="{% url 'chart_new' %}?under={{ item.row.account.pk }}"
+                                            hx-target="#account-sheet"
+                                            class="pill">
+                                        {% include "icons/plus.svg" with class="size-3.5" %}
+                                        Add here
+                                    </button>
+                                </div>
+                                <ul class="divide-y">
+                                    {% for row in item.under %}
+                                        <li>{% include "ledger/chart_row.html" %}</li>
+                                    {% empty %}
+                                        <li class="py-3 text-[14px] text-ink-3">Nothing in this group yet.</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </details>
+                    {% else %}
+                        {% include "ledger/chart_row.html" with row=item.row %}
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+        <dialog id="account-sheet" class="sheet max-h-[72dvh]" aria-label="Account">
+        </dialog>
+    {% endif %}
+{% endblock %}
