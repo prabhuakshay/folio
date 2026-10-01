@@ -104,12 +104,11 @@ RUN SECRET_KEY=build-only python manage.py collectstatic --noinput --clear \
 
 # ───────────────────────────── prod ──────────────────────────────
 # Just the runtime: base, the venv and the app. Everything stays root-owned so
-# the unprivileged user can read the code but never change it; only media, the
-# one place the app writes, belongs to it.
+# the unprivileged user can read the code but never change it; the app keeps
+# nothing on disk.
 FROM base AS prod
 COPY --from=build /opt/venv /opt/venv
 COPY --from=build /app /app
-RUN mkdir -p /app/media && chown folio:folio /app/media
 
 USER folio
 EXPOSE 8000

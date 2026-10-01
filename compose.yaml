@@ -1,19 +1,17 @@
 # Local development stack:
 #
 #   web          autoreloading runserver with the working tree bind-mounted
+#   postgres     the database, as in prod, its data in the pgdata volume
 #   tailwind     Tailwind CLI in watch mode, rebuilding static/css/app.css
 #   mountpoints  one-shot ahead of tailwind that keeps root out of your tree
 #
 #   cp .env.example .env      # then set SECRET_KEY
 #   docker compose up --build
 #
-# There is no database container. SQLite (the default) lives in the working
-# tree; for Postgres, point DATABASE_URL at your own server. Inside a container
-# `localhost` is the container, so a server on your machine is
-# host.docker.internal.
-#
-# Every Django setting comes from .env; this file sets no `environment:` of its
-# own, so what you read in .env is exactly what the app sees.
+# Every Django setting comes from .env except DATABASE_URL, which this file
+# points at the postgres service so dev runs on the same database as prod.
+# `docker compose down -v` drops the volume and starts the database afresh;
+# `docker compose exec postgres psql -U folio` opens a shell on it.
 
 name: folio
 
@@ -23,8 +21,10 @@ services:
       context: .
       target: dev
     env_file: .env
-    # Run as you: anything the server writes into the tree (migrations, the
-    # SQLite file) must stay editable without sudo.
+    environment:
+      DATABASE_URL: postgres://folio:${POSTGRES_PASSWORD:-folio}@postgres:5432/folio
+    # Run as you: anything the server writes into the tree (migrations) must
+    # stay editable without sudo.
     user: "${DOCKER_UID:-1000}:${DOCKER_GID:-1000}"
     command: >
       sh -c "python manage.py migrate --noinput
@@ -35,17 +35,32 @@ services:
       - .:/app
     ports:
       - "${WEB_PORT:-8000}:8000"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     # Keeps stdin open so `breakpoint()` works: `docker attach folio-web-1`.
     stdin_open: true
     tty: true
     depends_on:
+      postgres:
+        condition: service_healthy
       # Waits for the stylesheet to exist, not just for the container to start.
       # On a fresh clone the first npm install takes long enough that Django
       # would otherwise serve the first pages unstyled.
       tailwind:
         condition: service_healthy
+
+  postgres:
+    # Same major version as compose.prod.yaml; keep the two in step.
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_USER: folio
+      POSTGRES_DB: folio
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-folio}
+    volumes:
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U folio -d folio"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
 
   tailwind:
     build: &tailwind-build
@@ -95,3 +110,6 @@ services:
     volumes:
       - .:/app
     command: mkdir -p node_modules
+
+volumes:
+  pgdata:
