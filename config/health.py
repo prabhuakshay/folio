@@ -1,10 +1,12 @@
 """Health probe for the container runtime and load balancers."""
 
+from django.contrib.auth.decorators import login_not_required
 from django.db import DatabaseError, connection
 from django.http import HttpRequest, HttpResponse
 from django.views.decorators.http import require_GET
 
 
+@login_not_required
 @require_GET
 def healthz(request: HttpRequest) -> HttpResponse:  # noqa: ARG001
     """Report whether this instance can serve requests.

@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 
 import environ
+from django.utils.csp import CSP
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -75,6 +76,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "simple_history",
+    "ui",
 ]
 
 MIDDLEWARE = [
@@ -84,8 +86,10 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.auth.middleware.LoginRequiredMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "django.middleware.csp.ContentSecurityPolicyMiddleware",
     "simple_history.middleware.HistoryRequestMiddleware",
 ]
 
@@ -144,6 +148,14 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
+# Authentication
+# https://docs.djangoproject.com/en/6.1/topics/auth/default/
+
+LOGIN_URL = "login"
+LOGIN_REDIRECT_URL = "home"
+LOGOUT_REDIRECT_URL = "login"
+
+
 # Security
 # https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
@@ -162,13 +174,24 @@ SECURE_HSTS_INCLUDE_SUBDOMAINS = env.bool(
 )
 SECURE_HSTS_PRELOAD = env.bool("SECURE_HSTS_PRELOAD", default=False)
 
+# https://docs.djangoproject.com/en/6.1/ref/csp/
+SECURE_CSP = {
+    "default-src": [CSP.SELF],
+    "base-uri": [CSP.SELF],
+    "form-action": [CSP.SELF],
+    "frame-ancestors": [CSP.NONE],
+    "object-src": [CSP.NONE],
+}
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/6.1/topics/i18n/
 
 LANGUAGE_CODE = env.str("LANGUAGE_CODE", default="en-us")
 
-TIME_ZONE = env.str("TIME_ZONE", default="UTC")
+# Folio is for Indian markets only: dates, Budget months and due days are all
+# Indian days, wherever the server runs.
+TIME_ZONE = "Asia/Kolkata"
 
 USE_I18N = True
 

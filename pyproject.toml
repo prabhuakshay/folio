@@ -16,6 +16,9 @@ dependencies = [
 [dependency-groups]
 dev = [
     "prek>=0.5.4",
+    "pytest>=9.1.1",
+    "pytest-django>=4.14.0",
+    "pytest-env>=1.7.1",
     "ruff>=0.16.9",
 ]
 
@@ -87,3 +90,15 @@ max-statements = 50
 
 [tool.ruff.lint.flake8-type-checking]
 runtime-evaluated-base-classes = ["django.db.models.Model"]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings"
+addopts = "--strict-markers"
+filterwarnings = [
+    # WhiteNoise looks for collected static files, which tests never build.
+    "ignore:No directory at:UserWarning",
+]
+
+[tool.pytest_env]
+# Settings refuse to load without one; tests never sign anything that matters.
+SECRET_KEY = "test-only-secret-key"

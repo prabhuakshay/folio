@@ -3,3 +3,153 @@
 /* Tailwind emits only the utilities it finds referenced. Sources are detected
    automatically from the project root (skipping anything gitignored), so new
    apps and templates are picked up without listing them here. */
+
+/* Archivo variable, self-hosted for the CSP: wdth 62–125, wght 100–900. Latin
+   Extended carries the ₹. */
+@font-face {
+  font-family: "Archivo";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  font-stretch: 62% 125%;
+  src: url("../fonts/archivo-latin-wdth-normal.woff2") format("woff2-variations");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Archivo";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  font-stretch: 62% 125%;
+  src: url("../fonts/archivo-latin-ext-wdth-normal.woff2") format("woff2-variations");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+/* Variant J. Tailwind's palette is cleared so only these colours exist: cobalt
+   is the one signal colour, for "you are here" markers and the primary +. */
+@theme {
+  --color-*: initial;
+  --color-white: #ffffff;
+  --color-ink: #000000;
+  --color-ink-2: #55555e;
+  --color-ink-3: #8d8d97;
+  --color-hairline: #eaeaed;
+  --color-well: #f4f4f6;
+  --color-cobalt: #2f5bff;
+  --color-positive: #0a8754;
+  --color-negative: #d63a2f;
+
+  --font-sans: "Archivo", ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  *,
+  ::before,
+  ::after {
+    border-color: var(--color-hairline);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-cobalt);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
+}
+
+@layer components {
+  .wordmark {
+    font-stretch: 125%;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+
+  /* The one poster-size figure a page leads with. */
+  .figure {
+    font-size: clamp(72px, 24vw, 104px);
+    line-height: 0.9;
+    font-weight: 700;
+    font-stretch: 62%;
+    letter-spacing: -0.01em;
+    @media (width >= 64rem) {
+      font-size: 76px;
+    }
+  }
+
+  .stat {
+    font-weight: 700;
+    font-stretch: 62%;
+    line-height: 1;
+    letter-spacing: -0.005em;
+  }
+
+  .display {
+    font-weight: 700;
+    font-stretch: 62%;
+    letter-spacing: -0.005em;
+  }
+
+  .cur {
+    font-size: 0.62em;
+    font-weight: 500;
+    font-stretch: 100%;
+    margin-right: 0.06em;
+    vertical-align: 0.08em;
+    opacity: 0.7;
+  }
+
+  .figure .cur {
+    font-size: 0.36em;
+    font-weight: 600;
+    margin-right: 0.12em;
+    vertical-align: 1.2em;
+    opacity: 1;
+  }
+
+  .stat .cur {
+    font-size: 0.5em;
+    font-weight: 600;
+    margin-right: 0.08em;
+    vertical-align: 0.55em;
+    opacity: 1;
+  }
+
+  .field {
+    width: 100%;
+    border-radius: 14px;
+    background: var(--color-well);
+    padding: 11px 14px;
+    font-size: 15px;
+    outline: none;
+    &:focus {
+      background: var(--color-white);
+      box-shadow:
+        inset 0 0 0 1px rgb(0 0 0 / 0.3),
+        0 0 0 4px rgb(0 0 0 / 0.06);
+    }
+  }
+
+  /* Replaces htmx's own indicator styles, turned off in base.html. */
+  .htmx-indicator {
+    opacity: 0;
+  }
+
+  .htmx-request .htmx-indicator,
+  .htmx-request.htmx-indicator {
+    opacity: 1;
+    transition: opacity 200ms ease-in;
+  }
+}

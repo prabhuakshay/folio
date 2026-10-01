@@ -32,6 +32,14 @@ python3 -c "import secrets; print(secrets.token_urlsafe(50))"
 The app is on <http://localhost:8000> and the admin on
 <http://localhost:8000/admin/> (configurable via `ADMIN_URL`).
 
+## Tests
+
+```bash
+uv run pytest
+```
+
+Tests need no `.env`: pytest supplies its own `SECRET_KEY`.
+
 ## Docker
 
 ### Development
