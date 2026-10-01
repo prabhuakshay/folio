@@ -55,6 +55,25 @@
     border-color: var(--color-hairline);
   }
 
+  /* Tailwind v4's preflight resets buttons to the default cursor. */
+  a[href],
+  button,
+  [role="button"],
+  summary,
+  select,
+  label[for],
+  input[type="checkbox"],
+  input[type="radio"],
+  input[type="submit"],
+  input[type="button"],
+  input[type="reset"] {
+    cursor: pointer;
+  }
+
+  :disabled {
+    cursor: not-allowed;
+  }
+
   :focus-visible {
     outline: 2px solid var(--color-cobalt);
     outline-offset: 2px;
