@@ -1,0 +1,53 @@
+{% extends "prototype_ui/settings/shell.html" %}
+{# Shared · Expected Returns, the default Glide Path, and the rebalancing bands. Per-Goal overrides live on the Goal. #}
+{% block content %}
+    <h1 class="display mt-2 text-[40px] leading-none">Target Allocation and returns</h1>
+    <section class="mt-6">
+        <h2 class="display text-[24px]">Expected Return a year</h2>
+        <p class="mt-1 text-[14px] text-(--ink-2)">Used to project every Goal. Nominal, before tax.</p>
+        <ul class="mt-2 divide-y divide-(--line)">
+            {% for r in returns %}
+                <li class="tnum flex items-center gap-3 py-3">
+                    <span class="flex-1 text-[15px]">{{ r.cls }}</span>
+                    <span class="text-[12px] text-(--ink-3)">{{ r.band }}</span>
+                    <span class="w-20 shrink-0">
+                        <input class="field py-2 text-right font-semibold"
+                               value="{{ r.value }}"
+                               aria-label="{{ r.cls }}">
+                    </span>
+                </li>
+            {% endfor %}
+        </ul>
+    </section>
+    <section class="mt-8">
+        <h2 class="display text-[24px]">Default Glide Path</h2>
+        <p class="mt-1 text-[14px] text-(--ink-2)">Equity by years to the Goal: the midpoint of SEBI's Life Cycle Fund bands. Gold takes {{ drift.gold }}; the rest is debt. Override it on each Goal.</p>
+        <ol class="mt-3 space-y-2">
+            {% for years, eq in glide %}
+                <li class="tnum flex items-center gap-3 text-[14px]">
+                    <span class="w-28 shrink-0 text-(--ink-2)">{{ years }}</span>
+                    <span class="h-2 flex-1 overflow-hidden rounded-full bg-(--line)"><span class="block h-full bg-(--ink)"
+      style="width: {{ eq }}"></span></span>
+                    <span class="w-10 text-right font-semibold">{{ eq }}</span>
+                </li>
+            {% endfor %}
+        </ol>
+    </section>
+    <section class="mt-8">
+        <h2 class="display text-[24px]">Rebalancing</h2>
+        <dl class="mt-2 divide-y divide-(--line) text-[15px]">
+            <div class="flex items-center justify-between py-3">
+                <dt>Nudge to rebalance past</dt>
+                <dd class="font-semibold">
+                    {{ drift.inner }}
+                </dd>
+            </div>
+            <div class="flex items-center justify-between py-3">
+                <dt>Suggest switching past</dt>
+                <dd class="font-semibold">
+                    {{ drift.outer }}
+                </dd>
+            </div>
+        </dl>
+    </section>
+{% endblock %}

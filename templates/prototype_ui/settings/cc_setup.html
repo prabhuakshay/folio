@@ -1,0 +1,102 @@
+{% extends "prototype_ui/settings/shell.html" %}
+{# CC · Starting point — one balance sheet on the start date, filled in any order; the ladder below shows which Stages Folio can judge yet. #}
+{% block content %}
+    <p class="kicker mt-4">Your starting point · <a href="#" class="val">1 Sep 2026</a></p>
+    <p class="figure tnum mt-3">{% if filled == "all" %}<span class="cur">₹</span>1.06<span class="text-[.45em]"> Cr</span>{% elif filled == "some" %}<span class="cur">₹</span>2.28<span class="text-[.45em]"> L</span>{% else %}<span class="cur">₹</span>0{% endif %}</p>
+    <p class="mt-2 text-[14px] text-(--ink-2)">Net Worth so far. Fill in what you had on the start date, in any order.</p>
+    {# ——— You, as sentences with blanks ——— #}
+    <section class="mt-8 text-[19px] leading-[1.6]">
+        {% if "you" in have %}
+            <p>Born <span class="val">14 Mar 1990</span>, retiring at <span class="val">60</span>. <span class="val">Priya</span> and <span class="val">Aarav</span> rely on your income; <span class="val">Amma</span> is under your cover.</p>
+        {% else %}
+            <p>Born <a href="{{ urls.profile }}"
+    class="rounded-md bg-(--accent-soft) px-2 text-(--accent)">date of birth</a>, retiring at <span class="val">60</span>. <a href="{{ urls.dependents }}"
+    class="rounded-md bg-(--accent-soft) px-2 text-(--accent)">who relies on you?</a></p>
+        {% endif %}
+        {% if "expense" in have %}
+            <p class="mt-2">You spend about <span class="val">₹80,000</span> a month and take home <span class="val">₹1,55,000</span>.</p>
+        {% else %}
+            <p class="mt-2">You spend about <a href="{{ urls.profile }}"
+    class="rounded-md bg-(--accent-soft) px-2 text-(--accent)">₹ a month</a> and take home <a href="{{ urls.profile }}"
+    class="rounded-md bg-(--accent-soft) px-2 text-(--accent)">₹ a month</a>.</p>
+        {% endif %}
+    </section>
+    {# ——— The balance sheet ——— #}
+    {% for g in groups %}
+        <section class="mt-8">
+            <div class="flex items-baseline justify-between">
+                <h2 class="display text-[26px]">{{ g.label }}</h2>
+                <a href="{{ add_url }}"
+                   class="flex items-center gap-1 text-[14px] font-medium text-(--accent)"><i data-lucide="plus" class="size-4"></i>Add</a>
+            </div>
+            {% if g.rows %}
+                <ul class="mt-1 divide-y divide-(--line)">
+                    {% for a in g.rows %}
+                        <li class="flex items-center gap-3 py-3">
+                            <span class="min-w-0 flex-1"><span class="block text-[15px]">{{ a.name }}</span><span class="block truncate text-[12px] text-(--ink-3)">{{ a.kind }} · {{ a.how }}</span></span>
+                            <span class="tnum text-[15px] font-semibold {% if a.owe %}text-(--neg){% endif %}">{{ a.amount }}</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% elif g.label == "Grow" %}
+                <a href="{{ urls.upload }}"
+                   class="mt-2 flex items-center gap-4 rounded-[20px] bg-(--ink) p-5 text-white">
+                    <i data-lucide="file-up" class="size-6"></i>
+                    <span class="min-w-0 flex-1"><span class="block text-[16px] font-medium">Import your mutual funds</span><span class="block text-[13px] text-white/70">A CAMS + KFintech CAS brings every Holding with its full history</span></span>
+                </a>
+                <p class="mt-2 text-[13px] text-(--ink-3)">Then add EPF, PPF, deposits, NPS and demat holdings by hand.</p>
+            {% else %}
+                <a href="{{ add_url }}"
+                   class="mt-2 block rounded-[20px] border border-dashed border-(--ink-3)/50 px-5 py-4 text-[14px] text-(--ink-2)">{{ g.hint }}</a>
+            {% endif %}
+        </section>
+    {% endfor %}
+    {# ——— What Folio can judge ——— #}
+    <section class="mt-10 rounded-[24px] bg-(--well) p-5">
+        <h2 class="display text-[26px] leading-none">Folio can judge {{ judged_n }} of 6 Stages</h2>
+        <ol class="mt-4 space-y-3">
+            {% for s in ladder %}
+                <li class="flex items-start gap-3">
+                    <span class="grid size-7 shrink-0 place-items-center rounded-full text-[12px] font-semibold {% if s.judged %}bg-(--ink) text-white{% else %}text-(--ink-3) ring-1 ring-(--ink-3){% endif %}">{% if s.judged %}<i data-lucide="check" class="size-4"></i>{% else %}{{ s.n }}{% endif %}</span>
+                    <span class="min-w-0 flex-1">
+                        <span class="block text-[15px] {% if not s.judged %}text-(--ink-2){% endif %}">{{ s.name }}</span>
+                        {% if not s.judged %}<span class="block text-[13px] text-(--ink-3)">{{ s.needs }}</span>{% endif %}
+                    </span>
+                </li>
+            {% endfor %}
+        </ol>
+        {% if judged_n == 6 %}
+            <a href="{{ tab_urls.home }}"
+               class="mt-5 flex h-12 items-center justify-center rounded-full bg-(--ink) text-[15px] font-medium text-white">Done · see where you stand</a>
+        {% else %}
+            <p class="mt-4 text-[13px] leading-5 text-(--ink-3)">Folio works meanwhile; anything it can't judge yet just isn't shown.</p>
+        {% endif %}
+    </section>
+{% endblock %}
+{% block sheets %}
+    {% if sheet == "bank" %}
+        {% include "prototype_ui/imports/sheet_top.html" with close_url=close_url %}
+        <h2 class="display text-[28px] leading-none">Add to Spend from</h2>
+        <div class="mt-4 flex flex-wrap gap-2">
+            <span class="pill bg-(--ink) text-white">Bank</span><span class="pill">Cash</span><span class="pill">Wallet</span><span class="pill">Card</span><span class="pill">BNPL</span>
+        </div>
+        <div class="mt-4 space-y-3">
+            <input class="field" value="Kotak 811" aria-label="Name">
+            <label class="block">
+                <span class="text-[13px] text-(--ink-3)">Balance on 1 Sep 2026</span><input class="field tnum mt-1 text-[22px] font-semibold"
+       value="₹12,500">
+            </label>
+            <div class="flex items-center gap-3 rounded-[16px] bg-(--well) px-4 py-3">
+                <span class="min-w-0 flex-1 text-[14px]">Counts toward the Emergency Fund</span>
+                <button type="button"
+                        class="sw"
+                        role="switch"
+                        aria-checked="true"
+                        aria-label="Emergency-Fund eligible"></button>
+            </div>
+        </div>
+        <a href="{{ close_url }}"
+           class="mt-6 flex h-12 items-center justify-center rounded-full bg-(--ink) text-[15px] font-medium text-white">Add Kotak 811</a>
+        {% include "prototype_ui/imports/sheet_bottom.html" %}
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,139 @@
+{% extends "prototype_ui/settings/shell.html" %}
+{# AA · Checklist — an empty Home carries Set up Folio; every item opens the real screen and Folio works throughout. #}
+{% block header_title %}{% if step == "start" %}Start date{% elif step == "account" %}Add an Account{% endif %}{% endblock %}
+{% block content %}
+    {% if step == "start" %}
+        <h1 class="display mt-2 text-[40px] leading-none">When do Folio's books open?</h1>
+        <p class="mt-3 max-w-[36ch] text-[15px] leading-6 text-(--ink-2)">You'll enter each Account's balance on this day, and Transactions from it on. Each Account can have its own date later.</p>
+        <div class="mt-6 space-y-2">
+            {% for key, date, label, note, rec in start_choices %}
+                <label class="flex items-start gap-3 rounded-[20px] bg-(--well) p-4 has-[:checked]:bg-white has-[:checked]:ring-2 has-[:checked]:ring-(--ink)">
+                    <input type="radio"
+                           name="start"
+                           class="mt-1.5 accent-black"
+                           {% if rec %}checked{% endif %}>
+                    <span class="min-w-0 flex-1">
+                        <span class="block text-[17px] font-medium">{{ date }}{% if rec %} <span class="pill ml-1">Recommended</span>{% endif %}</span>
+                        {% if label %}<span class="block text-[13px] text-(--ink-2)">{{ label }}. {{ note }}</span>{% endif %}
+                    </span>
+                </label>
+            {% endfor %}
+        </div>
+        <p class="mt-4 text-[13px] leading-5 text-(--ink-3)">Mutual funds from your CAS keep their full history whatever you pick.</p>
+        <a href="{{ finish_url }}"
+           class="mt-8 flex h-12 items-center justify-center rounded-full bg-(--ink) text-[15px] font-medium text-white">Save</a>
+    {% elif step == "account" %}
+        <h1 class="display mt-2 text-[40px] leading-none">{% if kind == "cards" %}Cards and Loans{% elif kind == "grow" %}Other investments{% else %}Bank and cash{% endif %}</h1>
+        <div class="hide-scrollbar mt-5 flex gap-2 overflow-x-auto">
+            {% if kind == "cards" %}
+                <span class="pill bg-(--ink) text-white">Credit card</span><span class="pill">Home loan</span><span class="pill">Car loan</span><span class="pill">Personal loan</span><span class="pill">Card EMI</span><span class="pill">BNPL</span>
+            {% elif kind == "grow" %}
+                <span class="pill bg-(--ink) text-white">EPF</span><span class="pill">PPF</span><span class="pill">FD</span><span class="pill">NPS</span><span class="pill">Stocks</span><span class="pill">Property</span><span class="pill">Gold</span>
+            {% else %}
+                <span class="pill bg-(--ink) text-white">Savings</span><span class="pill">Current</span><span class="pill">Cash</span><span class="pill">Wallet</span>
+            {% endif %}
+        </div>
+        <div class="mt-5 space-y-3">
+            {% if kind == "cards" %}
+                <label class="block">
+                    <span class="text-[13px] text-(--ink-3)">Name</span><input class="field mt-1"
+       value="ICICI Amazon Pay">
+                </label>
+                <label class="block">
+                    <span class="text-[13px] text-(--ink-3)">Owed on 1 Sep 2026</span><input class="field tnum mt-1 text-[20px] font-semibold"
+       value="₹23,410">
+                </label>
+                <div class="grid grid-cols-3 gap-2">
+                    <label class="block">
+                        <span class="text-[12px] text-(--ink-3)">Statement day</span><input class="field mt-1"
+       value="12th">
+                    </label>
+                    <label class="block">
+                        <span class="text-[12px] text-(--ink-3)">Due day</span><input class="field mt-1" value="30th">
+                    </label>
+                    <label class="block">
+                        <span class="text-[12px] text-(--ink-3)">Limit</span><input class="field mt-1" value="₹3 L">
+                    </label>
+                </div>
+            {% elif kind == "grow" %}
+                <label class="block">
+                    <span class="text-[13px] text-(--ink-3)">Name</span><input class="field mt-1" value="EPF">
+                </label>
+                <label class="block">
+                    <span class="text-[13px] text-(--ink-3)">Balance on 1 Sep 2026, from your passbook</span><input class="field tnum mt-1 text-[20px] font-semibold"
+       value="₹8,40,000">
+                </label>
+                <p class="text-[13px] text-(--ink-3)">Folio credits interest each 31 March at the notified rate.</p>
+            {% else %}
+                <label class="block">
+                    <span class="text-[13px] text-(--ink-3)">Name</span><input class="field mt-1" value="HDFC Savings">
+                </label>
+                <label class="block">
+                    <span class="text-[13px] text-(--ink-3)">Balance on 1 Sep 2026</span><input class="field tnum mt-1 text-[20px] font-semibold"
+       value="₹1,84,320">
+                </label>
+                <div class="flex items-center gap-3 rounded-[16px] bg-(--well) px-4 py-3">
+                    <span class="min-w-0 flex-1 text-[14px]">Counts toward the Emergency Fund</span>
+                    <button type="button"
+                            class="sw"
+                            role="switch"
+                            aria-checked="true"
+                            aria-label="Emergency-Fund eligible"></button>
+                </div>
+            {% endif %}
+        </div>
+        {% if added %}
+            <p class="kicker mt-6">Added</p>
+            <ul class="divide-y divide-(--line)">
+                {% for a in added %}<li class="tnum flex justify-between py-2.5 text-[14px]"><span>{{ a.name }}</span><span class="font-semibold">{{ a.amount }}</span></li>{% endfor %}
+            </ul>
+        {% endif %}
+        <div class="mt-8 grid grid-cols-2 gap-2">
+            <a href="#"
+               class="flex h-12 items-center justify-center rounded-full bg-(--well) text-[15px] font-medium">Save, add another</a>
+            <a href="{{ finish_url }}"
+               class="flex h-12 items-center justify-center rounded-full bg-(--ink) text-[15px] font-medium text-white">Save and finish</a>
+        </div>
+    {% else %}
+        <p class="kicker mt-4">Set up Folio · {{ done_n }} of {{ total }} done</p>
+        <div class="mt-3 flex gap-1">
+            {% for i in items %}
+                <span class="h-1.5 flex-1 rounded-full {% if i.done %}bg-(--ink){% else %}bg-(--line){% endif %}"></span>
+            {% endfor %}
+        </div>
+        {% if next_item %}
+            <h1 class="display mt-8 text-[52px] leading-[.92]">{% if done_n == 0 %}Let's get your money in{% else %}Next: {{ next_item.title }}{% endif %}</h1>
+            <a href="{{ next_item.url }}"
+               class="mt-6 flex items-center gap-3 rounded-[20px] bg-(--ink) px-5 py-4 text-white">
+                <span class="min-w-0 flex-1"><span class="block text-[16px] font-medium">{{ next_item.title }}</span><span class="block text-[13px] text-white/70">{{ next_item.what }}. {{ next_item.unlocks }}.</span></span>
+                <i data-lucide="chevron-right" class="size-5"></i>
+            </a>
+            <ul class="mt-6 divide-y divide-(--line)">
+                {% for i in items %}
+                    {% if i != next_item %}
+                        <li>
+                            <a href="{{ i.url }}" class="flex items-center gap-3.5 py-3.5">
+                                <span class="grid size-7 shrink-0 place-items-center rounded-full {% if i.done %}bg-(--ink) text-white{% else %}ring-1 ring-(--ink-3){% endif %}">
+                                    {% if i.done %}<i data-lucide="check" class="size-4"></i>{% endif %}
+                                </span>
+                                <span class="min-w-0 flex-1">
+                                    <span class="block text-[15px] {% if i.done %}text-(--ink-3) line-through decoration-(--ink-3)/50{% endif %}">{{ i.title }}</span>
+                                    {% if not i.done %}<span class="block truncate text-[13px] text-(--ink-3)">{{ i.unlocks }}</span>{% endif %}
+                                </span>
+                                <i data-lucide="chevron-right" class="size-5 text-(--ink-3)"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+            </ul>
+            <p class="mt-6 text-[13px] leading-5 text-(--ink-3)">Do these in any order, or skip ahead and start adding Transactions with +. Until something's here, Folio has nothing to judge; the list stays on Overview until it's done or you hide it.</p>
+            <button type="button"
+                    class="mt-3 text-[14px] font-medium text-(--ink-2) underline decoration-(--ink-3)/40 underline-offset-4">Hide this list</button>
+        {% else %}
+            <h1 class="display mt-8 text-[52px] leading-[.92]">Folio is set up</h1>
+            <p class="mt-4 text-[16px] leading-6 text-(--ink-2)">Stage 3 of 6 · Protection is where your surplus goes first.</p>
+            <a href="{{ tab_urls.home }}"
+               class="mt-8 flex h-12 items-center justify-center rounded-full bg-(--ink) text-[15px] font-medium text-white">Go to Overview</a>
+        {% endif %}
+    {% endif %}
+{% endblock %}

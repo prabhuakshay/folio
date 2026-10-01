@@ -1,0 +1,62 @@
+{% extends "prototype_ui/base.html" %}
+{# PROTOTYPE — full-screen steps with no tab bar: claiming the install, and BB's wizard. #}
+{% block theme_color %}#FFFFFF{% endblock %}
+{% block style %}
+    {% include "prototype_ui/partials/j_style.html" %}
+    .tnum { font-variant-numeric: tabular-nums; }
+    .field { background: var(--well); border-radius: 14px; padding: 13px 16px; font-size: 16px; width: 100%; outline: none; }
+    .field:focus { background: #fff; box-shadow: inset 0 0 0 1px rgb(0 0 0 / .3), 0 0 0 4px rgb(0 0 0 / .06); }
+    .sw { position: relative; width: 44px; height: 26px; flex-shrink: 0; border-radius: 999px; background: var(--line); }
+    .sw::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 999px; background: #fff; box-shadow: 0 1px 3px rgb(0 0 0 / .25); transition: transform .2s var(--ease-sheet); }
+    .sw[aria-checked="true"] { background: var(--ink); }
+    .sw[aria-checked="true"]::after { transform: translateX(18px); }
+    .choice[aria-checked="true"] { box-shadow: inset 0 0 0 2px var(--ink); background: #fff; }
+    #proto-bar { bottom: calc(6.5rem + env(safe-area-inset-bottom)); }
+{% endblock %}
+{% block body %}
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..800&display=swap"
+          rel="stylesheet">
+    <div class="mx-auto flex min-h-dvh max-w-xl flex-col px-6 pt-[env(safe-area-inset-top)]">
+        <header class="flex h-14 items-center gap-3">
+            {% block top %}{% endblock %}
+        </header>
+        <main class="flex-1 pb-36">
+            {% block main %}{% endblock %}
+        </main>
+        <footer class="fixed inset-x-0 bottom-0 z-40 bg-white/95 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-3 backdrop-blur-xl">
+            <div class="mx-auto max-w-xl px-6">
+                {% block foot %}{% endblock %}
+            </div>
+        </footer>
+    </div>
+{% endblock %}
+{% block proto_state %}
+    <p class="font-semibold mb-1">{{ variant }} · {{ variant_name }}</p>
+    <p class="mb-3 leading-4 text-white/70">{{ rule }}</p>
+    <dl class="space-y-1.5">
+        <div><dt class="text-white/55">Screen · path</dt><dd>{{ screen }} · {{ trail }}{% if step %} · {{ step }}{% endif %}</dd></div>
+        <div>
+            <dt class="text-white/55">Sample world</dt>
+            <dd>
+                Wed 30 Sep 2026, a fresh install on the VPS. Akshay opens it on his phone for the first time.
+            </dd>
+        </div>
+    </dl>
+    <p class="font-semibold mt-3 mb-1">Jump to</p>
+    <ul class="space-y-0.5">
+        {% for label, url in jump %}
+            <li><a href="{{ url }}" class="underline decoration-white/30">{{ label }}</a></li>
+        {% endfor %}
+    </ul>
+    <div id="proto-last" hidden></div>
+{% endblock %}
+{% block script %}
+    <script>
+        document.addEventListener("click", (e) => {
+            const s = e.target.closest(".sw");
+            if (s) s.setAttribute("aria-checked", s.getAttribute("aria-checked") !== "true");
+            const c = e.target.closest(".choice");
+            if (c) c.parentElement.querySelectorAll(".choice").forEach((x) => x.setAttribute("aria-checked", x === c));
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,53 @@
+{% extends "prototype_ui/settings/shell.html" %}
+{# Shared · Security: passkeys, authenticator, recovery codes, password, sessions, security log. Changes need a fresh check. #}
+{% block content %}
+    <h1 class="display mt-2 text-[40px] leading-none">Security and sign-in</h1>
+    {% include "prototype_ui/settings/sudo.html" with sudo_why="Needed to change passkeys, codes or password" %}
+    <section class="mt-8">
+        <h2 class="display text-[24px]">Passkeys</h2>
+        <p class="mt-1 text-[14px] text-(--ink-2)">Sign in with your fingerprint or face, no password.</p>
+        <ul class="mt-2 divide-y divide-(--line)">
+            {% for name, when in passkeys %}
+                <li class="flex items-center gap-3 py-3">
+                    <i data-lucide="key-round" class="size-5"></i>
+                    <span class="min-w-0 flex-1"><span class="block text-[15px]">{{ name }}</span><span class="block text-[12px] text-(--ink-3)">{{ when }}</span></span>
+                    {% if sudo %}<button type="button"
+        class="text-[13px] font-medium text-(--neg)">Remove</button>{% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+        {% if sudo %}<button type="button"
+        class="mt-2 text-[14px] font-medium text-(--accent)">Add a passkey on this device</button>{% endif %}
+    </section>
+    <section class="mt-8">
+        <h2 class="display text-[24px]">Password and authenticator</h2>
+        <p class="mt-1 text-[14px] text-(--ink-2)">The fallback when no passkey is to hand.</p>
+        <dl class="mt-2 divide-y divide-(--line) text-[15px]">
+            <div class="flex items-center justify-between py-3"><dt>Password</dt><dd class="text-(--ink-3)">{% if sudo %}<a href="#" class="font-medium text-(--accent)">Change</a>{% else %}Set 2 Apr 2025{% endif %}</dd></div>
+            <div class="flex items-center justify-between py-3"><dt>Authenticator app</dt><dd class="text-(--ink-3)">{% if sudo %}<a href="#" class="font-medium text-(--accent)">Replace</a>{% else %}On{% endif %}</dd></div>
+            <div class="flex items-center justify-between py-3"><dt>Recovery codes</dt><dd class="text-(--ink-3)">{% if sudo %}<a href="#" class="font-medium text-(--accent)">Make new codes</a>{% else %}8 of 10 left{% endif %}</dd></div>
+        </dl>
+    </section>
+    <section class="mt-8">
+        <h2 class="display text-[24px]">Signed in</h2>
+        <ul class="mt-2 divide-y divide-(--line)">
+            {% for name, how, when in sessions %}
+                <li class="flex items-center gap-3 py-3">
+                    <span class="min-w-0 flex-1"><span class="block text-[15px]">{{ name }}</span><span class="block text-[12px] text-(--ink-3)">{{ how }}</span></span>
+                    <span class="text-[13px] text-(--ink-3)">{{ when }}</span>
+                </li>
+            {% endfor %}
+        </ul>
+        <button type="button"
+                class="mt-3 h-11 w-full rounded-full bg-(--well) text-[14px] font-medium">Sign out everywhere else</button>
+        <p class="mt-2 text-[12px] text-(--ink-3)">You stay signed in for 30 days from your last visit.</p>
+    </section>
+    <section class="mt-8">
+        <h2 class="display text-[24px]">Security log</h2>
+        <ul class="mt-2 divide-y divide-(--line)">
+            {% for when, what, where in security_log %}
+                <li class="py-2.5 text-[13px]"><span class="block text-[14px]">{{ what }}</span><span class="text-(--ink-3)">{{ when }} · {{ where }}</span></li>
+            {% endfor %}
+        </ul>
+    </section>
+{% endblock %}

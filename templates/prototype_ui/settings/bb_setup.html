@@ -1,0 +1,136 @@
+{% extends "prototype_ui/settings/fullscreen.html" %}
+{# BB · Wizard — one question a step, Back and Continue, no tab bar until it ends on Home. #}
+{% block top %}
+    <a href="{{ prev_url }}"
+       class="-ml-2 grid size-10 place-items-center rounded-full"
+       aria-label="Back"><i data-lucide="chevron-left"
+   class="size-6"></i></a>
+    {% if step != "done" %}
+        <div class="flex flex-1 gap-1">
+            {% for i in "123456" %}
+                <span class="h-1.5 flex-1 rounded-full {% if forloop.counter <= step_n %}bg-(--ink){% else %}bg-(--line){% endif %}"></span>
+            {% endfor %}
+        </div>
+        {% if skip %}<a href="{{ next_url }}" class="text-[14px] font-medium text-(--ink-2)">Skip</a>{% endif %}
+    {% endif %}
+{% endblock %}
+{% block main %}
+    {% if step == "you" %}
+        <h1 class="display mt-8 text-[48px] leading-[.92]">When were you born?</h1>
+        <p class="mt-3 text-[16px] leading-6 text-(--ink-2)">With your retirement age, this dates your Retirement Goal.</p>
+        <input class="field mt-8 text-[20px]" value="14 Mar 1990">
+        <div class="mt-4 flex items-center gap-3 rounded-[20px] bg-(--well) p-5">
+            <span class="min-w-0 flex-1"><span class="block text-[16px] font-medium">Retire at</span><span class="block text-[13px] text-(--ink-2)">14 Mar 2050 · in 23 years</span></span>
+            <span class="flex items-center rounded-full bg-white">
+                <button type="button"
+                        class="grid size-10 place-items-center"
+                        aria-label="Lower">
+                    <i data-lucide="minus" class="size-4"></i>
+                </button>
+                <span class="stat w-10 text-center text-[30px]">60</span>
+                <button type="button"
+                        class="grid size-10 place-items-center"
+                        aria-label="Raise">
+                    <i data-lucide="plus" class="size-4"></i>
+                </button>
+            </span>
+        </div>
+    {% elif step == "dependents" %}
+        <h1 class="display mt-8 text-[48px] leading-[.92]">Who depends on you?</h1>
+        <p class="mt-3 text-[16px] leading-6 text-(--ink-2)">Everyone here needs health cover. Anyone relying on your income means you need term life cover too.</p>
+        <ul class="mt-8 space-y-2">
+            {% for d in dependents %}
+                <li class="flex items-center gap-3 rounded-[20px] bg-(--well) p-4">
+                    <span class="min-w-0 flex-1"><span class="block text-[16px] font-medium">{{ d.name }}</span><span class="block text-[13px] text-(--ink-3)">{{ d.rel }} · born {{ d.dob }}</span></span>
+                    <span class="text-right text-[12px] leading-4 text-(--ink-2)">Relies on
+                        <br>
+                    your income</span>
+                    <button type="button"
+                            class="sw"
+                            role="switch"
+                            aria-checked="{% if d.relies %}true{% else %}false{% endif %}"
+                            aria-label="{{ d.name }} relies on your income"></button>
+                </li>
+            {% endfor %}
+        </ul>
+        <button type="button"
+                class="mt-3 flex items-center gap-2 text-[15px] font-medium text-(--accent)"><i data-lucide="plus" class="size-4"></i>Add someone</button>
+    {% elif step == "start" %}
+        <h1 class="display mt-8 text-[48px] leading-[.92]">When do your books open?</h1>
+        <p class="mt-3 text-[16px] leading-6 text-(--ink-2)">You'll give balances on this day, and enter Transactions from it on.</p>
+        <div class="mt-8 space-y-2" role="radiogroup">
+            {% for key, date, label, note, rec in start_choices %}
+                <button type="button"
+                        class="choice block w-full rounded-[20px] bg-(--well) p-5 text-left"
+                        aria-checked="{% if rec %}true{% else %}false{% endif %}">
+                    <span class="block text-[18px] font-medium">{{ date }}</span>
+                    {% if label %}<span class="block text-[13px] text-(--ink-2)">{{ label }}. {{ note }}</span>{% endif %}
+                </button>
+            {% endfor %}
+        </div>
+    {% elif step == "balances" %}
+        <h1 class="display mt-8 text-[48px] leading-[.92]">What did you have on 1 Sep?</h1>
+        <p class="mt-3 text-[16px] leading-6 text-(--ink-2)">One row per Account. Mutual funds come next, from your CAS.</p>
+        {% for label, hint, rows in groups %}
+            <section class="mt-7">
+                <h2 class="display text-[24px]">{{ label }}</h2>
+                <ul class="mt-1 divide-y divide-(--line)">
+                    {% for a in rows %}
+                        {% if not a.cas %}
+                            <li class="py-3">
+                                <div class="flex items-center gap-3">
+                                    <span class="min-w-0 flex-1"><span class="block text-[15px]">{{ a.name }}</span><span class="block truncate text-[12px] text-(--ink-3)">{{ a.kind }} · {{ a.how }}</span></span>
+                                    <span class="w-36 shrink-0">
+                                        <input class="field tnum py-2 text-right font-semibold {% if a.owe %}text-(--neg){% endif %}"
+                                               value="{{ a.amount }}"
+                                               aria-label="{{ a.name }} balance">
+                                    </span>
+                                </div>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+                <button type="button"
+                        class="mt-1 flex items-center gap-2 text-[14px] font-medium text-(--accent)"><i data-lucide="plus" class="size-4"></i>{% if label == "Spend from" %}Bank, cash or Card{% elif label == "Owe" %}Loan{% elif label == "Grow" %}EPF, PPF, deposit, NPS or demat{% else %}Property or gold{% endif %}</button>
+            </section>
+        {% endfor %}
+    {% elif step == "invest" %}
+        <h1 class="display mt-8 text-[48px] leading-[.92]">Bring in your mutual funds</h1>
+        <p class="mt-3 text-[16px] leading-6 text-(--ink-2)">A detailed CAS from CAMS or KFintech carries every buy and sell since you started. Request one by email; it arrives in minutes.</p>
+        <a href="{{ urls.upload }}"
+           class="mt-8 flex items-center gap-4 rounded-[20px] bg-(--ink) p-5 text-white">
+            <i data-lucide="file-up" class="size-7"></i>
+            <span class="min-w-0 flex-1"><span class="block text-[16px] font-medium">Choose your CAS PDF</span><span class="block text-[13px] text-white/70">Password is the one you set when requesting it</span></span>
+        </a>
+        <a href="#"
+           class="mt-3 block text-[14px] font-medium text-(--ink-2) underline decoration-(--ink-3)/40 underline-offset-4">How to request a detailed CAS</a>
+        <p class="mt-8 text-[14px] leading-6 text-(--ink-2)">Stocks and ETFs in a demat account: add them as Opening Lots, or upload an NSDL or CDSL CAS later from Accounts › Imports.</p>
+    {% elif step == "expense" %}
+        <h1 class="display mt-8 text-[48px] leading-[.92]">Roughly, a month</h1>
+        <p class="mt-3 text-[16px] leading-6 text-(--ink-2)">Folio needs a year of history to measure these. Until then it judges your Stages on what you say here, and marks them provisional.</p>
+        <label class="mt-8 block">
+            <span class="text-[13px] text-(--ink-3)">You spend, including EMIs</span><input class="field tnum mt-1 text-[24px] font-semibold"
+       value="₹80,000">
+        </label>
+        <label class="mt-4 block">
+            <span class="text-[13px] text-(--ink-3)">You take home, after tax and EPF</span><input class="field tnum mt-1 text-[24px] font-semibold"
+       value="₹1,55,000">
+        </label>
+    {% else %}
+        <p class="kicker mt-8">Net Worth on 1 Sep</p>
+        <p class="figure tnum mt-2"><span class="cur">₹</span>1.06<span class="text-[.45em]"> Cr</span></p>
+        <h1 class="display mt-8 text-[36px] leading-none">Start with Stage 3 · Protection</h1>
+        <p class="mt-3 text-[16px] leading-6 text-(--ink-2)">No revolving credit and a starter fund are in place. Next, Folio needs your Policies to see whether Priya, Aarav and Amma are covered.</p>
+        <a href="{{ urls.policies }}"
+           class="mt-6 flex items-center gap-3 rounded-[20px] bg-(--well) px-5 py-4">
+            <span class="min-w-0 flex-1"><span class="block text-[15px] font-medium">Add your Policies</span><span class="block text-[13px] text-(--ink-2)">Term life, health base and top-up</span></span>
+            <i data-lucide="chevron-right" class="size-5"></i>
+        </a>
+    {% endif %}
+{% endblock %}
+{% block foot %}
+    <a href="{% if step == 'done' %}{{ home_url }}{% else %}{{ next_url }}{% endif %}"
+       class="flex h-14 items-center justify-center rounded-full bg-(--ink) text-[16px] font-medium text-white">
+        {% if step == "done" %}Go to Home{% else %}Continue{% endif %}
+    </a>
+{% endblock %}

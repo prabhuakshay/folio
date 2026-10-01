@@ -1,0 +1,73 @@
+{% extends "prototype_ui/settings/shell.html" %}
+{# Shared · Chart of Accounts: the Income and Expense tree (balance-sheet Accounts live on the Accounts tab) plus who holds each role. #}
+{% block header_actions %}
+    <button type="button"
+            class="flex h-9 items-center gap-1.5 rounded-full bg-(--ink) px-3.5 text-[13px] font-medium text-white"><i data-lucide="plus" class="size-4"></i>Account</button>
+{% endblock %}
+{% block content %}
+    <h1 class="display mt-2 text-[40px] leading-none">Chart of Accounts</h1>
+    <p class="mt-3 max-w-[36ch] text-[15px] leading-6 text-(--ink-2)">Where income comes from and spending goes. Bank, Card, Loan and investment Accounts are on the <a href="{{ urls.accounts }}" class="underline">Accounts tab</a>.</p>
+    {% for top, groups in chart %}
+        <section class="mt-7">
+            <h2 class="display text-[24px]">{{ top }}</h2>
+            <ul class="mt-1">
+                {% for name, leaves, roles in groups %}
+                    <li class="border-b border-(--line)">
+                        {% if leaves %}
+                            <details>
+                                <summary class="flex items-center gap-2 py-3">
+                                    <i data-lucide="chevron-right"
+                                       class="chev size-4 text-(--ink-3) transition-transform"></i>
+                                    <span class="flex-1 text-[15px] font-medium">{{ name }}</span>
+                                    {% for r in roles %}<span class="pill">{{ r }}</span>{% endfor %}
+                                    <span class="text-[12px] text-(--ink-3)">{{ leaves|length }}</span>
+                                </summary>
+                                <ul class="pb-2 pl-6">
+                                    {% for leaf in leaves %}
+                                        <li class="flex items-center gap-2 py-2 text-[15px]">
+                                            <span class="flex-1">{{ leaf }}</span>
+                                            {% if leaf == "Interest paid" or leaf == "Bank charges & fees" %}<span class="pill">{{ leaf }}</span>{% endif %}
+                                            <button type="button"
+                                                    class="grid size-8 place-items-center rounded-full text-(--ink-3)"
+                                                    aria-label="Edit {{ leaf }}">
+                                                <i data-lucide="ellipsis" class="size-4"></i>
+                                            </button>
+                                        </li>
+                                    {% endfor %}
+                                    <li>
+                                        <button type="button"
+                                                class="py-2 text-[14px] font-medium text-(--accent)">Add under {{ name }}</button>
+                                    </li>
+                                </ul>
+                            </details>
+                        {% else %}
+                            <div class="flex items-center gap-2 py-3 pl-6">
+                                <span class="flex-1 text-[15px]">{{ name }}</span>
+                                {% for r in roles %}<span class="pill">{{ r }}</span>{% endfor %}
+                                <button type="button"
+                                        class="grid size-8 place-items-center rounded-full text-(--ink-3)"
+                                        aria-label="Edit {{ name }}">
+                                    <i data-lucide="ellipsis" class="size-4"></i>
+                                </button>
+                            </div>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        </section>
+    {% endfor %}
+    <p class="mt-3 text-[13px] leading-5 text-(--ink-3)">Each Account's menu: rename, move, aliases, close, or delete after moving its Postings elsewhere.</p>
+    <section class="mt-9">
+        <h2 class="display text-[24px]">Roles</h2>
+        <p class="mt-1 text-[14px] text-(--ink-2)">The Account Folio uses for each system purpose. Point a role elsewhere; delete its Account and Folio recreates it when next needed.</p>
+        <ul class="mt-2 divide-y divide-(--line)">
+            {% for role, acct in roles %}
+                <li class="flex items-center gap-3 py-3">
+                    <span class="w-36 shrink-0 text-[14px] font-medium">{{ role }}</span>
+                    <span class="min-w-0 flex-1 truncate text-[13px] text-(--ink-2)">{{ acct }}</span>
+                    <i data-lucide="chevron-right" class="size-4 text-(--ink-3)"></i>
+                </li>
+            {% endfor %}
+        </ul>
+    </section>
+{% endblock %}

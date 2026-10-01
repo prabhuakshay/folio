@@ -1,0 +1,61 @@
+{% extends "prototype_ui/settings/shell.html" %}
+{# CC · Rules as sentences, grouped by the Stage they judge; tap a value to change it in a sheet. #}
+{% block header_title %}The rules{% endblock %}
+{% block content %}
+    <h1 class="display mt-2 text-[40px] leading-none">The rules</h1>
+    <p class="mt-3 max-w-[36ch] text-[15px] leading-6 text-(--ink-2)">Tap a value to change it. Folio accepts any value and warns when it's outside the recommended band. Blue values are ones you changed.</p>
+    {% for stage, rows in rule_groups %}
+        <section class="mt-8">
+            <h2 class="kicker">{{ stage }}</h2>
+            <ul class="mt-2 space-y-3 text-[18px] leading-7">
+                {% for t in rows %}
+                    <li>{{ t.say.0 }} <a href="{{ urls.rules }}&edit={{ t.key }}"
+    class="val {% if t.changed %}changed{% endif %}">{{ t.value }}</a> {{ t.say.1 }}</li>
+                {% endfor %}
+            </ul>
+        </section>
+    {% endfor %}
+    <section class="mt-8">
+        <h2 class="kicker">Projecting Goals</h2>
+        <p class="mt-2 text-[18px] leading-8">
+            Expect equity to return <a href="#" class="val">11%</a> a year, debt <a href="#" class="val">7%</a>, gold and silver <a href="#" class="val">7%</a> and cash <a href="#" class="val">3.5%</a>.
+            Nudge a rebalance past <a href="#"
+    class="val">±5 pp</a> of drift and suggest switching past <a href="#"
+    class="val">±10 pp</a>.
+        </p>
+        <a href="{{ urls.returns }}"
+           class="mt-3 inline-block text-[14px] font-medium text-(--ink-2) underline decoration-(--ink-3)/40 underline-offset-4">See the Glide Path</a>
+    </section>
+{% endblock %}
+{% block sheets %}
+    {% if edit %}
+        {% include "prototype_ui/imports/sheet_top.html" with close_url=urls.rules %}
+        <h2 class="display text-[28px] leading-none">{{ edit.name }}</h2>
+        <p class="mt-2 text-[15px] leading-6 text-(--ink-2)">{{ edit.say.0 }} … {{ edit.say.1 }}</p>
+        <div class="mt-6 flex items-center justify-center gap-6">
+            <button type="button"
+                    class="grid size-12 place-items-center rounded-full bg-(--well)"
+                    aria-label="Lower">
+                <i data-lucide="minus" class="size-5"></i>
+            </button>
+            <span class="stat min-w-[6rem] text-center text-[64px] {% if edit.changed %}text-(--accent){% endif %}">{{ edit.value }}</span>
+            <button type="button"
+                    class="grid size-12 place-items-center rounded-full bg-(--well)"
+                    aria-label="Raise">
+                <i data-lucide="plus" class="size-5"></i>
+            </button>
+        </div>
+        <div class="mt-6 h-2 rounded-full bg-(--line)">
+            <div class="mx-[20%] h-full rounded-full bg-(--ink)/25"></div>
+        </div>
+        <p class="tnum mt-2 flex justify-between text-[12px] text-(--ink-3)"><span>Recommended {{ edit.band }}</span><span>Default {{ edit.default }}</span></p>
+        <p class="mt-4 text-[13px] text-(--ink-2)">Judges: {{ edit.stage }}. Changes apply from today; past figures aren't recomputed.</p>
+        <div class="mt-6 grid grid-cols-2 gap-2">
+            <a href="{{ urls.rules }}"
+               class="flex h-12 items-center justify-center rounded-full bg-(--well) text-[15px] font-medium">Reset to {{ edit.default }}</a>
+            <a href="{{ urls.rules }}"
+               class="flex h-12 items-center justify-center rounded-full bg-(--ink) text-[15px] font-medium text-white">Save</a>
+        </div>
+        {% include "prototype_ui/imports/sheet_bottom.html" %}
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "prototype_ui/settings/shell.html" %}
+{# Shared · Export everything: a one-way exit, behind a fresh check, emailed when it happens. #}
+{% block content %}
+    <h1 class="display mt-2 text-[40px] leading-none">Export everything</h1>
+    <p class="mt-3 max-w-[36ch] text-[15px] leading-6 text-(--ink-2)">For leaving Folio. It can't be loaded back in; moving to another install is a copy of the database.</p>
+    <ul class="mt-6 space-y-2 text-[15px]">
+        <li class="flex gap-3"><i data-lucide="file-json" class="mt-0.5 size-5 shrink-0"></i><span><span class="font-medium">folio.json</span><span class="block text-[13px] text-(--ink-2)">Every current record: Accounts, Transactions, Goals, Earmarks, Schedules, Policies, Prices. Documented, versioned.</span></span></li>
+        <li class="flex gap-3"><i data-lucide="sheet" class="mt-0.5 size-5 shrink-0"></i><span><span class="font-medium">transactions.csv, holdings.csv</span><span class="block text-[13px] text-(--ink-2)">For a spreadsheet. One row per Posting.</span></span></li>
+    </ul>
+    <p class="mt-4 text-[13px] text-(--ink-3)">Not included: change history, Import internals, passwords and passkeys.</p>
+    {% if sudo %}
+        <a href="#"
+           class="mt-6 flex h-12 items-center justify-center gap-2 rounded-full bg-(--ink) text-[15px] font-medium text-white"><i data-lucide="download" class="size-4"></i>Download folio-export-2026-09-30.zip</a>
+        <p class="mt-2 text-center text-[12px] text-(--ink-3)">We'll email {{ profile.email }} that an export was made.</p>
+    {% else %}
+        {% include "prototype_ui/settings/sudo.html" with sudo_why="Needed before Folio hands over everything" %}
+    {% endif %}
+    <p class="mt-6 text-[13px] text-(--ink-3)">Last exported 14 Sep from Pixel 9.</p>
+{% endblock %}

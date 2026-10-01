@@ -1,0 +1,30 @@
+{# BB — thresholds edited in place with a stepper; the band sits under each, changed values offer a reset. #}
+<ul class="divide-y divide-(--line)">
+    {% for t in thresholds %}
+        <li class="flex items-center gap-3 py-3.5">
+            <span class="min-w-0 flex-1">
+                <span class="block text-[15px]">{{ t.name }}</span>
+                <span class="block text-[12px] text-(--ink-3)">
+                    {% if t.changed %}
+                        <span class="text-(--accent)">Default {{ t.default }} ·</span> <a href="#"
+    class="underline">Reset</a> ·
+                    {% endif %}
+                    Recommended {{ t.band }}
+                </span>
+            </span>
+            <span class="flex items-center rounded-full bg-(--well)">
+                <button type="button"
+                        class="grid size-9 place-items-center"
+                        aria-label="Lower {{ t.name }}">
+                    <i data-lucide="minus" class="size-4"></i>
+                </button>
+                <span class="tnum min-w-[4.5rem] text-center text-[15px] font-semibold {% if t.changed %}text-(--accent){% endif %}">{{ t.value }}</span>
+                <button type="button"
+                        class="grid size-9 place-items-center"
+                        aria-label="Raise {{ t.name }}">
+                    <i data-lucide="plus" class="size-4"></i>
+                </button>
+            </span>
+        </li>
+    {% endfor %}
+</ul>

@@ -265,6 +265,9 @@ def screen(request, key):
     # Filled in by the "Import flow screens" prototype.
     if variant == "L" and key == "imports":
         return redirect(f"{reverse('prototype-imports')}?variant=YZ")
+    # Filled in by the "Settings and first-run onboarding" prototype.
+    if variant == "L" and key == "settings":
+        return redirect(f"{reverse('prototype-settings')}?variant=AA")
     parent = _parent(key, variant)
     ctx = _nav_context(variant)
     ctx.update(

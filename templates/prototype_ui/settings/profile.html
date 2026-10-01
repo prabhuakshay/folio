@@ -1,0 +1,64 @@
+{% extends "prototype_ui/settings/shell.html" %}
+{# Shared · Profile and retirement. #}
+{% block content %}
+    <h1 class="display mt-2 text-[40px] leading-none">Profile and retirement</h1>
+    <div class="mt-6 space-y-3">
+        <label class="block">
+            <span class="text-[13px] text-(--ink-3)">Name</span><input class="field mt-1" value="{{ profile.name }}">
+        </label>
+        <label class="block">
+            <span class="text-[13px] text-(--ink-3)">Email · the Digest and sign-in alerts go here</span><input class="field mt-1"
+       value="{{ profile.email }}">
+        </label>
+        <label class="block">
+            <span class="text-[13px] text-(--ink-3)">Date of birth</span><input class="field mt-1"
+       value="{{ profile.dob }}">
+        </label>
+    </div>
+    <div class="mt-6 rounded-[20px] bg-(--well) p-5">
+        <div class="flex items-center gap-3">
+            <span class="min-w-0 flex-1">
+                <span class="block text-[15px] font-medium">Retirement age</span>
+                <span class="block text-[13px] text-(--ink-2)">Sets the Retirement Goal's date</span>
+            </span>
+            <span class="flex items-center rounded-full bg-white">
+                <button type="button"
+                        class="grid size-10 place-items-center"
+                        aria-label="Lower">
+                    <i data-lucide="minus" class="size-4"></i>
+                </button>
+                <span class="stat w-10 text-center text-[30px]">{{ profile.retirement_age }}</span>
+                <button type="button"
+                        class="grid size-10 place-items-center"
+                        aria-label="Raise">
+                    <i data-lucide="plus" class="size-4"></i>
+                </button>
+            </span>
+        </div>
+        <p class="mt-3 text-[13px] leading-5 text-(--ink-2)">Retirement starts {{ profile.retirement_date }}, in 23 years. Once that date passes, Folio judges you in drawdown.</p>
+    </div>
+    <label class="mt-6 block">
+        <span class="text-[13px] text-(--ink-3)">Budget month starts on</span>
+        <select class="field mt-1">
+            <option>The 1st</option>
+            <option>The 25th · around payday</option>
+        </select>
+    </label>
+    <section class="mt-8">
+        <h2 class="display text-[24px]">Your monthly figures</h2>
+        <p class="mt-1 text-[14px] leading-5 text-(--ink-2)">Until the ledger has 12 months of history, Folio judges Stages on what you declare here and marks them provisional.</p>
+        <div class="mt-3 grid grid-cols-2 gap-2">
+            <label class="block rounded-[16px] bg-(--well) px-4 py-3">
+                <span class="block text-[12px] text-(--ink-3)">You spend a month</span><input class="tnum w-full bg-transparent text-[20px] font-semibold outline-none"
+       value="{{ profile.declared_expense }}">
+            </label>
+            <label class="block rounded-[16px] bg-(--well) px-4 py-3">
+                <span class="block text-[12px] text-(--ink-3)">Take-home a month</span><input class="tnum w-full bg-transparent text-[20px] font-semibold outline-none"
+       value="{{ profile.declared_take_home }}">
+            </label>
+        </div>
+        <p class="mt-2 flex items-center gap-1.5 text-[13px] text-(--pos)"><i data-lucide="check" class="size-4"></i>Measured from your ledger since April. These are kept for reference only.</p>
+    </section>
+    <a href="{{ parent_url }}"
+       class="mt-8 flex h-12 items-center justify-center rounded-full bg-(--ink) text-[15px] font-medium text-white">Save</a>
+{% endblock %}

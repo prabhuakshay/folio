@@ -1,0 +1,46 @@
+{% extends "prototype_ui/settings/shell.html" %}
+{# AA · Index — grouped rows like Plan, each showing its current value, each opening its own screen. #}
+{% block header_title %}Settings{% endblock %}
+{% block content %}
+    <div class="mt-2 flex items-center gap-4">
+        <span class="grid size-14 place-items-center rounded-full bg-(--ink) text-[18px] font-semibold text-white">AP</span>
+        <span>
+            <span class="display block text-[32px] leading-none">{{ profile.name }}</span>
+            <span class="block text-[14px] text-(--ink-2)">{{ profile.email }}</span>
+        </span>
+    </div>
+    <section class="mt-8">
+        <h2 class="kicker">You</h2>
+        <ul class="divide-y divide-(--line)">
+            {% include "prototype_ui/settings/aa_row.html" with url=urls.profile icon="user-round" title="Profile and retirement" line="36 · retiring at 60, in March 2050" %}
+            {% include "prototype_ui/settings/aa_row.html" with url=urls.dependents icon="users-round" title="Dependents" line="Priya, Aarav, Amma · 2 rely on your income" %}
+        </ul>
+    </section>
+    <section class="mt-6">
+        <h2 class="kicker">Rules Folio holds you to</h2>
+        <ul class="divide-y divide-(--line)">
+            {% include "prototype_ui/settings/aa_row.html" with url=urls.rules icon="list-checks" title="Doctrine thresholds" line="2 changed · Life cover 12×, Safe Withdrawal Rate 2.5%" accent=1 %}
+            {% include "prototype_ui/settings/aa_row.html" with url=urls.returns icon="chart-pie" title="Target Allocation and returns" line="Equity 11% · Debt 7% · Gold 7% · Cash 3.5%" %}
+        </ul>
+    </section>
+    <section class="mt-6">
+        <h2 class="kicker">Your books</h2>
+        <ul class="divide-y divide-(--line)">
+            {% include "prototype_ui/settings/aa_row.html" with url=urls.chart icon="folder-tree" title="Chart of Accounts" line="41 Income and Expense Accounts · 10 roles" %}
+            {% include "prototype_ui/settings/aa_row.html" with url=urls.tags icon="tag" title="Tags" line="5 Tags · Goa trip the biggest" %}
+            {% include "prototype_ui/settings/aa_row.html" with url=urls.payees icon="store" title="Payees" line="212 Payees · 38 you added" %}
+        </ul>
+    </section>
+    <section class="mt-6">
+        <h2 class="kicker">Folio</h2>
+        <ul class="divide-y divide-(--line)">
+            {% include "prototype_ui/settings/aa_row.html" with url=urls.feeds icon="activity" title="Price feeds" line="Protean NPS failing since 28 Sep" warn=1 %}
+            {% include "prototype_ui/settings/aa_row.html" with url=urls.notifications icon="mail" title="Notifications" line="Daily Digest at 08:00 · 6 of 7 on" %}
+            {% include "prototype_ui/settings/aa_row.html" with url=urls.security icon="shield-check" title="Security and sign-in" line="2 passkeys · authenticator app · 8 recovery codes" %}
+            {% include "prototype_ui/settings/aa_row.html" with url=urls.export icon="package" title="Export everything" line="Last exported 14 Sep" %}
+        </ul>
+    </section>
+    <button type="button"
+            class="mt-8 h-12 w-full rounded-full bg-(--well) text-[15px] font-medium">Sign out</button>
+    <p class="mt-4 text-center text-[12px] text-(--ink-3)">Folio 1.0 · books open since {{ profile.started }}</p>
+{% endblock %}

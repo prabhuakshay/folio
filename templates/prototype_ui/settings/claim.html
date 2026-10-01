@@ -1,0 +1,63 @@
+{% extends "prototype_ui/settings/fullscreen.html" %}
+{# Shared · Claiming an empty install. A public URL can't hand the first visitor the keys, so it asks for a code from the server log. #}
+{% block top %}
+    <span class="wordmark text-[16px]">FOLIO</span>
+    <span class="ml-auto text-[13px] text-(--ink-3)">{{ step_n }} of {{ steps }}</span>
+{% endblock %}
+{% block main %}
+    {% if step == "code" %}
+        <h1 class="display mt-10 text-[52px] leading-[.92]">This Folio has no owner yet</h1>
+        <p class="mt-4 max-w-[34ch] text-[16px] leading-6 text-(--ink-2)">Enter the setup code printed when the server started. Only someone with access to the server can see it.</p>
+        <input class="field tnum mt-8 text-center text-[28px] font-semibold tracking-[.2em]"
+               value="482 915">
+        <p class="mt-3 text-[13px] text-(--ink-3)">On the server: <code class="rounded bg-(--well) px-1.5 py-0.5">docker compose logs web | grep "Setup code"</code></p>
+    {% elif step == "password" %}
+        <h1 class="display mt-10 text-[52px] leading-[.92]">Make it yours</h1>
+        <p class="mt-4 text-[16px] leading-6 text-(--ink-2)">The only login this Folio will ever have.</p>
+        <div class="mt-8 space-y-3">
+            <input class="field" value="Akshay Prabhu" aria-label="Name">
+            <input class="field" value="akshay@example.in" aria-label="Email">
+            <input class="field"
+                   type="password"
+                   value="correct horse battery"
+                   aria-label="Password">
+        </div>
+        <p class="mt-3 text-[13px] text-(--ink-3)">The email gets your daily Digest and an alert whenever someone signs in from a new device.</p>
+    {% elif step == "secure" %}
+        <h1 class="display mt-10 text-[52px] leading-[.92]">Add a second lock</h1>
+        <p class="mt-4 max-w-[34ch] text-[16px] leading-6 text-(--ink-2)">Folio is on the open internet and holds every rupee you have. A password alone isn't enough.</p>
+        <div class="mt-8 space-y-2" role="radiogroup">
+            <button type="button"
+                    class="choice flex w-full items-center gap-4 rounded-[20px] bg-(--well) p-5 text-left"
+                    aria-checked="true">
+                <i data-lucide="fingerprint" class="size-7"></i>
+                <span class="min-w-0 flex-1"><span class="block text-[16px] font-medium">Passkey on this phone</span><span class="block text-[13px] text-(--ink-2)">Sign in with your fingerprint. Recommended.</span></span>
+            </button>
+            <button type="button"
+                    class="choice flex w-full items-center gap-4 rounded-[20px] bg-(--well) p-5 text-left"
+                    aria-checked="false">
+                <i data-lucide="smartphone" class="size-7"></i>
+                <span class="min-w-0 flex-1"><span class="block text-[16px] font-medium">Authenticator app</span><span class="block text-[13px] text-(--ink-2)">A six-digit code with your password.</span></span>
+            </button>
+        </div>
+        <p class="mt-3 text-[13px] text-(--ink-3)">You can add the other one later in Settings.</p>
+    {% else %}
+        <h1 class="display mt-10 text-[52px] leading-[.92]">Keep these somewhere safe</h1>
+        <p class="mt-4 max-w-[34ch] text-[16px] leading-6 text-(--ink-2)">If you lose your phone, each code signs you in once. You'll only see them now.</p>
+        <ol class="tnum mt-8 grid grid-cols-2 gap-2 rounded-[20px] bg-(--well) p-5 font-mono text-[16px]">
+            {% for c in codes %}<li>{{ c }}</li>{% endfor %}
+        </ol>
+        <div class="mt-3 flex gap-2">
+            <button type="button"
+                    class="flex h-10 items-center gap-1.5 rounded-full bg-(--well) px-4 text-[13px] font-medium"><i data-lucide="copy" class="size-4"></i>Copy</button>
+            <button type="button"
+                    class="flex h-10 items-center gap-1.5 rounded-full bg-(--well) px-4 text-[13px] font-medium"><i data-lucide="download" class="size-4"></i>Download</button>
+        </div>
+    {% endif %}
+{% endblock %}
+{% block foot %}
+    <a href="{{ next_url }}"
+       class="flex h-14 items-center justify-center rounded-full bg-(--ink) text-[16px] font-medium text-white">
+        {% if step == "code" %}Continue{% elif step == "password" %}Create my login{% elif step == "secure" %}Add a passkey{% else %}I've saved them{% endif %}
+    </a>
+{% endblock %}

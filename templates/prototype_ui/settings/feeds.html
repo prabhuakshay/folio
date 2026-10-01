@@ -1,0 +1,47 @@
+{% extends "prototype_ui/settings/shell.html" %}
+{# Shared · Price feeds: per-Feed switch and upload, the run log, and what's priced by hand. #}
+{% block content %}
+    <h1 class="display mt-2 text-[40px] leading-none">Price feeds</h1>
+    <p class="mt-3 max-w-[36ch] text-[15px] leading-6 text-(--ink-2)">Folio fetches each day's published prices for the Instruments you hold. A Feed switched off still takes a file you upload.</p>
+    <ul class="mt-6 space-y-3">
+        {% for f in feeds %}
+            <li class="rounded-[20px] {% if f.state == 'fail' %}ring-1 ring-(--neg)/40{% endif %} bg-(--well) p-4">
+                <div class="flex items-center gap-3">
+                    <span class="min-w-0 flex-1"><span class="block text-[16px] font-medium">{{ f.name }}</span><span class="block text-[13px] text-(--ink-3)">{{ f.what }}</span></span>
+                    {% if f.state == "upload" %}
+                        <span class="pill">Upload only</span>
+                    {% else %}
+                        <button type="button"
+                                class="sw"
+                                role="switch"
+                                aria-checked="true"
+                                aria-label="Fetch {{ f.name }}"></button>
+                    {% endif %}
+                </div>
+                <p class="mt-2 text-[13px] {% if f.state == 'fail' %}font-medium text-(--neg){% else %}text-(--ink-2){% endif %}">{{ f.last }}</p>
+                <button type="button"
+                        class="mt-3 flex h-9 items-center gap-1.5 rounded-full bg-white px-3.5 text-[13px] font-medium"><i data-lucide="upload" class="size-4"></i>Upload a file</button>
+            </li>
+        {% endfor %}
+    </ul>
+    <section class="mt-8">
+        <h2 class="display text-[24px]">Priced by hand</h2>
+        <p class="mt-1 text-[14px] text-(--ink-2)">No free feed exists for these. Update them when you check.</p>
+        <ul class="mt-2 divide-y divide-(--line)">
+            {% for name, price, when in manual %}
+                <li class="flex items-center gap-3 py-3">
+                    <span class="min-w-0 flex-1"><span class="block text-[15px]">{{ name }}</span><span class="block text-[12px] text-(--ink-3)">{{ when }}</span></span>
+                    <span class="tnum text-[15px] font-semibold">{{ price }}</span>
+                </li>
+            {% endfor %}
+        </ul>
+    </section>
+    <section class="mt-8">
+        <h2 class="display text-[24px]">Run log</h2>
+        <ul class="mt-2 divide-y divide-(--line)">
+            {% for when, feed, what in feed_log %}
+                <li class="py-2.5 text-[13px]"><span class="text-(--ink-3)">{{ when }}</span> · <span class="font-medium">{{ feed }}</span> · {{ what }}</li>
+            {% endfor %}
+        </ul>
+    </section>
+{% endblock %}

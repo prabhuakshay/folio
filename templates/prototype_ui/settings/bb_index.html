@@ -1,0 +1,203 @@
+{% extends "prototype_ui/settings/shell.html" %}
+{# BB · One page — every setting edited in place; only the Chart of Accounts, Price feeds and Security open screens. #}
+{% block header_title %}Settings{% endblock %}
+{% block settings_style %}
+    html { scroll-padding-top: 7.5rem; }
+    .bb-sec { padding-top: 2.25rem; }
+    .bb-sec > h2 { font-weight: 700; font-variation-settings: "wdth" 62; font-size: 28px; line-height: 1; }
+{% endblock %}
+{% block content %}
+    <h1 class="display mt-2 text-[40px] leading-none">Settings</h1>
+    <nav class="hide-scrollbar sticky top-14 z-20 -mx-6 mt-4 flex gap-2 overflow-x-auto bg-white/90 px-6 py-2.5 backdrop-blur-xl">
+        {% for id, label in bb_jump %}
+            <a href="#{{ id }}"
+               class="shrink-0 rounded-full bg-(--well) px-3.5 py-1.5 text-[13px] font-medium">{{ label }}</a>
+        {% endfor %}
+    </nav>
+    {# ——— You ——— #}
+    <section id="you" class="bb-sec">
+        <h2>You</h2>
+        <div class="mt-4 space-y-3">
+            <label class="block">
+                <span class="text-[13px] text-(--ink-3)">Name</span>
+                <input class="field mt-1" value="{{ profile.name }}">
+            </label>
+            <label class="block">
+                <span class="text-[13px] text-(--ink-3)">Email, for the Digest and sign-in alerts</span>
+                <input class="field mt-1" value="{{ profile.email }}">
+            </label>
+            <div class="grid grid-cols-2 gap-3">
+                <label class="block">
+                    <span class="text-[13px] text-(--ink-3)">Date of birth</span>
+                    <input class="field mt-1" value="{{ profile.dob }}">
+                </label>
+                <label class="block">
+                    <span class="text-[13px] text-(--ink-3)">Budget month starts</span>
+                    <input class="field mt-1" value="On the {{ profile.month_start }}">
+                </label>
+            </div>
+            <div class="flex items-center gap-3 rounded-[20px] bg-(--well) p-4">
+                <span class="min-w-0 flex-1">
+                    <span class="block text-[15px] font-medium">Retirement age</span>
+                    <span class="block text-[13px] text-(--ink-2)">Retirement starts {{ profile.retirement_date }}</span>
+                </span>
+                <span class="flex items-center rounded-full bg-white">
+                    <button type="button"
+                            class="grid size-9 place-items-center"
+                            aria-label="Lower">
+                        <i data-lucide="minus" class="size-4"></i>
+                    </button>
+                    <span class="stat w-10 text-center text-[26px]">{{ profile.retirement_age }}</span>
+                    <button type="button"
+                            class="grid size-9 place-items-center"
+                            aria-label="Raise">
+                        <i data-lucide="plus" class="size-4"></i>
+                    </button>
+                </span>
+            </div>
+        </div>
+        <h3 class="mt-7 text-[15px] font-semibold">Dependents</h3>
+        <ul class="mt-1 divide-y divide-(--line)">
+            {% for d in dependents %}
+                <li class="flex items-center gap-3 py-3">
+                    <span class="min-w-0 flex-1">
+                        <span class="block text-[15px]">{{ d.name }}</span>
+                        <span class="block text-[12px] text-(--ink-3)">{{ d.rel }} · born {{ d.dob }}</span>
+                    </span>
+                    <span class="text-[12px] text-(--ink-2)">Relies on your income</span>
+                    <button type="button"
+                            class="sw"
+                            role="switch"
+                            aria-checked="{% if d.relies %}true{% else %}false{% endif %}"
+                            aria-label="{{ d.name }} relies on your income"></button>
+                </li>
+            {% endfor %}
+        </ul>
+        <button type="button"
+                class="mt-2 flex items-center gap-2 text-[14px] font-medium text-(--accent)"><i data-lucide="plus" class="size-4"></i>Add a Dependent</button>
+        <details class="mt-6 rounded-[20px] bg-(--well) p-4">
+            <summary class="flex items-center gap-2 text-[15px] font-medium"><i data-lucide="chevron-right"
+   class="chev size-4 transition-transform"></i>Declared monthly figures</summary>
+            <p class="mt-2 text-[13px] leading-5 text-(--ink-2)">Folio measures from your ledger now. These were used until it had 12 months of history.</p>
+            <dl class="tnum mt-3 grid grid-cols-2 gap-3 text-[13px]">
+                <div>
+                    <dt class="text-(--ink-3)">Spending</dt>
+                    <dd class="text-[15px] font-semibold">
+                        {{ profile.declared_expense }}
+                    </dd>
+                </div>
+                <div>
+                    <dt class="text-(--ink-3)">Take-home</dt>
+                    <dd class="text-[15px] font-semibold">
+                        {{ profile.declared_take_home }}
+                    </dd>
+                </div>
+            </dl>
+        </details>
+    </section>
+    {# ——— Rules ——— #}
+    <section id="rules" class="bb-sec">
+        <h2>Rules</h2>
+        <p class="mt-2 text-[14px] leading-5 text-(--ink-2)">Set any value. Folio warns when one sits outside its recommended band.</p>
+        <div class="mt-2">{% include "prototype_ui/settings/inline_rules.html" %}</div>
+        <h3 class="mt-7 text-[15px] font-semibold">Expected Return a year</h3>
+        <div class="mt-2 grid grid-cols-2 gap-2">
+            {% for r in returns %}
+                <label class="block rounded-[16px] bg-(--well) px-4 py-3">
+                    <span class="block text-[12px] text-(--ink-3)">{{ r.cls }} · {{ r.band }}</span>
+                    <input class="tnum w-full bg-transparent text-[20px] font-semibold outline-none"
+                           value="{{ r.value }}">
+                </label>
+            {% endfor %}
+        </div>
+        <a href="{{ urls.returns }}"
+           class="mt-3 inline-block text-[14px] font-medium text-(--ink-2) underline decoration-(--ink-3)/40 underline-offset-4">Glide Path and rebalancing bands</a>
+    </section>
+    {# ——— Books ——— #}
+    <section id="books" class="bb-sec">
+        <h2>Books</h2>
+        <a href="{{ urls.chart }}"
+           class="mt-4 flex items-center gap-3 rounded-[20px] bg-(--well) px-5 py-4">
+            <i data-lucide="folder-tree" class="size-5"></i>
+            <span class="min-w-0 flex-1"><span class="block text-[15px] font-medium">Chart of Accounts</span><span class="block text-[13px] text-(--ink-2)">41 Income and Expense Accounts · 10 roles</span></span>
+            <i data-lucide="chevron-right" class="size-5 text-(--ink-3)"></i>
+        </a>
+        <h3 class="mt-6 text-[15px] font-semibold">Tags</h3>
+        <div class="mt-2 flex flex-wrap gap-2">
+            {% for name, n, total, last in tags %}
+                <span class="rounded-full bg-(--well) px-3 py-1.5 text-[13px]">{{ name }} <span class="text-(--ink-3)">{{ n }}</span></span>
+            {% endfor %}
+            <a href="{{ urls.tags }}"
+               class="rounded-full px-3 py-1.5 text-[13px] font-medium text-(--accent)">Rename or merge</a>
+        </div>
+        <h3 class="mt-6 text-[15px] font-semibold">Payees</h3>
+        <ul class="mt-1 divide-y divide-(--line)">
+            {% for name, to, frm, aliases in payees|slice:":3" %}
+                <li class="py-2.5 text-[14px]"><span class="font-medium">{{ name }}</span> <span class="text-(--ink-3)">→ {{ to }} · from {{ frm }}</span></li>
+            {% endfor %}
+        </ul>
+        <a href="{{ urls.payees }}"
+           class="mt-1 inline-block text-[14px] font-medium text-(--accent)">All 212 Payees</a>
+    </section>
+    {# ——— Prices ——— #}
+    <section id="feeds" class="bb-sec">
+        <h2>Prices</h2>
+        <ul class="mt-3 divide-y divide-(--line)">
+            {% for f in feeds %}
+                <li class="flex items-center gap-3 py-3">
+                    <span class="min-w-0 flex-1">
+                        <span class="block text-[15px]">{{ f.name }}</span>
+                        <span class="block truncate text-[12px] {% if f.state == 'fail' %}font-medium text-(--neg){% else %}text-(--ink-3){% endif %}">{{ f.last }}</span>
+                    </span>
+                    {% if f.state == "upload" %}
+                        <span class="text-[12px] text-(--ink-3)">Upload only</span>
+                    {% else %}
+                        <button type="button"
+                                class="sw"
+                                role="switch"
+                                aria-checked="true"
+                                aria-label="Fetch {{ f.name }}"></button>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+        <a href="{{ urls.feeds }}"
+           class="mt-1 inline-block text-[14px] font-medium text-(--accent)">Run log, uploads and hand-entered prices</a>
+    </section>
+    {# ——— Reminders ——— #}
+    <section id="reminders" class="bb-sec">
+        <h2>Reminders</h2>
+        <p class="mt-2 text-[14px] leading-5 text-(--ink-2)">One Digest email at 08:00, only on days it has something to say.</p>
+        <ul class="mt-2 divide-y divide-(--line)">
+            {% for name, when, on in reminders %}
+                <li class="flex items-center gap-3 py-3">
+                    <span class="min-w-0 flex-1"><span class="block text-[15px]">{{ name }}</span><span class="block text-[12px] text-(--ink-3)">{{ when }}</span></span>
+                    <button type="button"
+                            class="sw"
+                            role="switch"
+                            aria-checked="{% if on %}true{% else %}false{% endif %}"
+                            aria-label="{{ name }}"></button>
+                </li>
+            {% endfor %}
+        </ul>
+    </section>
+    {# ——— Security ——— #}
+    <section id="security" class="bb-sec">
+        <h2>Security</h2>
+        <a href="{{ urls.security }}"
+           class="mt-4 flex items-center gap-3 rounded-[20px] bg-(--well) px-5 py-4">
+            <i data-lucide="shield-check" class="size-5"></i>
+            <span class="min-w-0 flex-1"><span class="block text-[15px] font-medium">Passkeys, authenticator and sessions</span><span class="block text-[13px] text-(--ink-2)">2 passkeys · 8 recovery codes left · 2 sessions</span></span>
+            <i data-lucide="chevron-right" class="size-5 text-(--ink-3)"></i>
+        </a>
+    </section>
+    {# ——— Export ——— #}
+    <section id="export" class="bb-sec">
+        <h2>Leave Folio</h2>
+        <p class="mt-2 text-[14px] leading-5 text-(--ink-2)">A zip of every record as documented JSON, plus Transactions and Holdings as CSV. Last exported 14 Sep.</p>
+        <a href="{{ urls.export }}"
+           class="mt-4 flex h-12 items-center justify-center gap-2 rounded-full bg-(--ink) text-[15px] font-medium text-white"><i data-lucide="download" class="size-4"></i>Export everything</a>
+        <button type="button"
+                class="mt-3 h-12 w-full rounded-full bg-(--well) text-[15px] font-medium">Sign out</button>
+    </section>
+{% endblock %}

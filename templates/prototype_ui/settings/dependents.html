@@ -1,0 +1,28 @@
+{% extends "prototype_ui/settings/shell.html" %}
+{# Shared · Dependents: people under your cover, some relying on your income. #}
+{% block content %}
+    <h1 class="display mt-2 text-[40px] leading-none">Dependents</h1>
+    <p class="mt-3 max-w-[36ch] text-[15px] leading-6 text-(--ink-2)">Everyone here needs health cover. Anyone who relies on your income also needs you to hold term life cover.</p>
+    <ul class="mt-6 space-y-3">
+        {% for d in dependents %}
+            <li class="rounded-[20px] bg-(--well) p-4">
+                <div class="flex items-baseline justify-between">
+                    <span class="text-[17px] font-medium">{{ d.name }}</span>
+                    <span class="text-[13px] text-(--ink-3)">{{ d.rel }} · {{ d.age }}</span>
+                </div>
+                <p class="text-[13px] text-(--ink-3)">Born {{ d.dob }}</p>
+                <div class="mt-3 flex items-center gap-3 border-t border-black/5 pt-3">
+                    <span class="flex-1 text-[14px]">Relies on your income</span>
+                    <button type="button"
+                            class="sw"
+                            role="switch"
+                            aria-checked="{% if d.relies %}true{% else %}false{% endif %}"
+                            aria-label="{{ d.name }} relies on your income"></button>
+                </div>
+            </li>
+        {% endfor %}
+    </ul>
+    <button type="button"
+            class="mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-(--ink) text-[15px] font-medium text-white"><i data-lucide="plus" class="size-4"></i>Add a Dependent</button>
+    <p class="mt-3 text-[13px] text-(--ink-3)">Dependents never sign in and own nothing in Folio.</p>
+{% endblock %}
