@@ -6,6 +6,7 @@ import pytest
 from django.urls import reverse
 
 import config.settings
+from signin.tests import add_authenticator, verify
 
 TAB_ROOTS = ["home", "activity", "accounts", "plan"]
 
@@ -39,6 +40,7 @@ def user(django_user_model):
 @pytest.fixture
 def signed_in(client, user):
     client.force_login(user)
+    verify(client, add_authenticator(user))
     return client
 
 

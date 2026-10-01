@@ -34,7 +34,10 @@ The app is on <http://localhost:8000> and the admin on
 
 A fresh install has no login. The server prints a setup code to its log at
 start (`Setup code: …`, or run `manage.py setup_code`); the first visit asks
-for it, then for the name, email and password of the install's only login.
+for it, then for the name, email and password of the install's only login,
+then a passkey or an authenticator app, and finally shows 10 recovery codes
+once. Passkeys work from the HTTPS URL in `CSRF_TRUSTED_ORIGINS` (or
+`http://localhost:8000`); see `WEBAUTHN_ORIGINS` in `.env.example`.
 
 ## Tests
 

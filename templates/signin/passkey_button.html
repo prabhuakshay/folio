@@ -1,0 +1,7 @@
+<button type="button"
+        {% include "signin/passkey_attrs.html" %}
+        class="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-ink text-[16px] font-medium text-white">
+    {% include "icons/fingerprint.svg" with class="size-5" %}
+    {{ label }}
+</button>
+{% include "signin/passkey_status.html" %}

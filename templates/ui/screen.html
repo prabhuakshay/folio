@@ -41,6 +41,7 @@
     <main class="mx-auto max-w-xl px-6 pb-40 lg:max-w-5xl lg:px-10 lg:pb-16">
         {% block content %}{% endblock %}
     </main>
+    {% include "ui/confirm.html" %}
     <nav class="fixed inset-x-0 bottom-0 z-40 border-t bg-white/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl lg:hidden"
          aria-label="Tabs">
         <div class="grid h-16 grid-cols-5 items-center px-2">

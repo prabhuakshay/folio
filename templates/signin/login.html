@@ -4,7 +4,9 @@
 {% endblock %}
 {% block main %}
     <h1 class="display mt-10 text-[52px] leading-[.92]">Sign in</h1>
-    <form method="post" class="mt-8 space-y-3">
+    <div class="mt-8">{% include "signin/passkey_button.html" with action="sign-in" label="Sign in with a passkey" %}</div>
+    {% include "signin/or.html" %}
+    <form method="post" class="space-y-3">
         {% csrf_token %}
         <input type="hidden" name="next" value="{{ next }}">
         {% if form.errors %}

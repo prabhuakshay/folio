@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlsplit
 
 import environ
 from django.utils.csp import CSP
@@ -76,6 +77,10 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "simple_history",
+    "django_otp",
+    "django_otp.plugins.otp_totp",
+    "django_otp.plugins.otp_static",
+    "django_otp_webauthn",
     "ui",
     "signin",
 ]
@@ -88,6 +93,8 @@ MIDDLEWARE = [
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.auth.middleware.LoginRequiredMiddleware",
+    "django_otp.middleware.OTPMiddleware",
+    "signin.middleware.SecondFactorRequiredMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django.middleware.csp.ContentSecurityPolicyMiddleware",
@@ -152,6 +159,11 @@ AUTH_PASSWORD_VALIDATORS = [
 # Authentication
 # https://docs.djangoproject.com/en/6.1/topics/auth/default/
 
+AUTHENTICATION_BACKENDS = [
+    "django.contrib.auth.backends.ModelBackend",
+    "django_otp_webauthn.backends.WebAuthnBackend",
+]
+
 LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "home"
 LOGOUT_REDIRECT_URL = "login"
@@ -159,6 +171,26 @@ LOGOUT_REDIRECT_URL = "login"
 # Sliding: every request pushes expiry another 30 days out.
 SESSION_COOKIE_AGE = 60 * 60 * 24 * 30
 SESSION_SAVE_EVERY_REQUEST = True
+
+
+# Two-factor sign-in
+# https://django-otp-official.readthedocs.io/
+# https://django-otp-webauthn.readthedocs.io/
+
+OTP_TOTP_ISSUER = "Folio"
+
+# Passkeys work only on HTTPS (or localhost), from the public URL CSRF already
+# trusts, so it needn't be configured twice.
+OTP_WEBAUTHN_ALLOWED_ORIGINS = env.list(
+    "WEBAUTHN_ORIGINS",
+    default=[o for o in CSRF_TRUSTED_ORIGINS if o.startswith("https://")]
+    or ["http://localhost:8000"],
+)
+# Passkeys are bound to this domain; changing it orphans every one registered.
+OTP_WEBAUTHN_RP_ID = env.str(
+    "WEBAUTHN_RP_ID", default=urlsplit(OTP_WEBAUTHN_ALLOWED_ORIGINS[0]).hostname
+)
+OTP_WEBAUTHN_RP_NAME = "Folio"
 
 
 # Security

@@ -1,0 +1,14 @@
+<h1 class="display {{ heading }}">Scan this code</h1>
+<p class="mt-4 max-w-[34ch] text-[16px] leading-6 text-ink-2">
+    In your authenticator app, add an account and scan this. Then type the six-digit code it shows.
+</p>
+<div class="mx-auto mt-8 size-52 [&>svg]:size-full"
+     aria-label="QR code"
+     role="img">{{ qr }}</div>
+<p class="mt-6 text-[13px] text-ink-3">Can't scan it? Type this key instead:</p>
+<p data-secret class="mt-1 font-mono text-[15px] select-all">{{ secret }}</p>
+<form method="post" class="mt-8">
+    {% csrf_token %}
+    {% include "signin/code_field.html" with label="Code from the app" digits_only=True %}
+    {% include "signin/submit.html" with label="Turn it on" %}
+</form>
