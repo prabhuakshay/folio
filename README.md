@@ -68,15 +68,17 @@ cp .env.example .env         # then set SECRET_KEY and DEBUG=True
 docker compose up --build
 ```
 
-Two long-running containers come up:
+Three long-running containers come up:
 
 - `web` runs `runserver` against a bind mount of this directory, so code
   changes reload without a rebuild. Migrations run on every start.
+- `postgres` holds the database, the same major version as prod, in the
+  `pgdata` volume (`docker compose down -v` starts it afresh).
 - `tailwind` watches the project and rebuilds `static/css/app.css` from
   `assets/css/app.css` whenever a template or source file changes.
 
-Both run as your uid (`DOCKER_UID`/`DOCKER_GID`, default 1000), so the SQLite
-file, new migrations and the stylesheet stay editable on the host. If yours
+`web` and `tailwind` run as your uid (`DOCKER_UID`/`DOCKER_GID`, default 1000),
+so new migrations and the stylesheet stay editable on the host. If yours
 differ (`id -u && id -g`), set them in `.env` and run `docker compose build`.
 Dependencies are baked into the image, so rebuild after `uv add`.
 
@@ -98,14 +100,18 @@ dropped. Migrations run on start (`RUN_MIGRATIONS`), then gunicorn takes over.
 
 - **Static files** are compiled, hashed and Brotli/gzip-compressed at build
   time and served by WhiteNoise with far-future cache headers.
-- **Database:** there is no database container, and SQLite can't work on the
-  read-only filesystem. Point `DATABASE_URL` at Postgres; a server on the host
-  is `host.docker.internal`.
-- **TLS:** the container publishes on `127.0.0.1` only, for a reverse proxy on
-  the host to forward to. Set `USE_X_FORWARDED_PROTO=True` if the proxy sets
-  `X-Forwarded-Proto` (and strips any copy a client sent), and
-  `USE_X_FORWARDED_FOR=True`: without it every visitor shares the proxy's
-  address, so one stranger's wrong passwords pause the owner's sign-in too.
+- **Database:** the stack runs its own Postgres (pinned major version, no
+  published port) with its data in the `pgdata` volume; back that up. Set
+  `POSTGRES_PASSWORD` in `.env`; `DATABASE_URL` there is ignored.
+- **TLS:** the container publishes on `127.0.0.1` only, for the host's reverse
+  proxy to forward to. The app trusts the proxy's `X-Forwarded-Proto` and
+  `X-Forwarded-For`, so the proxy must set both and strip any copy a client
+  sent.
+- **Headers:** HSTS for an hour (raise `SECURE_HSTS_SECONDS` to a year once
+  HTTPS is verified; never preloaded), `X-Frame-Options: DENY`,
+  `Referrer-Policy: same-origin`, and `X-Robots-Tag: noindex` on every
+  response, with a `robots.txt` that disallows everything.
+- **Files:** the app keeps nothing on disk; there is no media volume.
 - **Health:** `/healthz` checks the database and backs the container
   healthcheck, which sends `Host: localhost`, so keep `localhost` in
   `ALLOWED_HOSTS`.

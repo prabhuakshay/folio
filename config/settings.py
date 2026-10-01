@@ -88,6 +88,8 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    # Outermost, so even responses other middleware short-circuit carry it.
+    "config.crawlers.noindex_middleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -229,11 +231,18 @@ USE_X_FORWARDED_FOR = env.bool("USE_X_FORWARDED_FOR", default=False)
 SESSION_COOKIE_SECURE = env.bool("SESSION_COOKIE_SECURE", default=not DEBUG)
 CSRF_COOKIE_SECURE = env.bool("CSRF_COOKIE_SECURE", default=not DEBUG)
 
-SECURE_HSTS_SECONDS = env.int("SECURE_HSTS_SECONDS", default=0)
+# An hour while HTTPS is new, so a mistake can't lock browsers out for long;
+# raise to a year (31536000) once it's verified.
+SECURE_HSTS_SECONDS = env.int("SECURE_HSTS_SECONDS", default=3600)
 SECURE_HSTS_INCLUDE_SUBDOMAINS = env.bool(
     "SECURE_HSTS_INCLUDE_SUBDOMAINS", default=False
 )
-SECURE_HSTS_PRELOAD = env.bool("SECURE_HSTS_PRELOAD", default=False)
+# Never preloaded: leaving the browsers' list takes months.
+SECURE_HSTS_PRELOAD = False
+SILENCED_SYSTEM_CHECKS = ["security.W021"]
+
+X_FRAME_OPTIONS = "DENY"
+SECURE_REFERRER_POLICY = "same-origin"
 
 # https://docs.djangoproject.com/en/6.1/ref/csp/
 SECURE_CSP = {
@@ -259,18 +268,18 @@ USE_I18N = True
 USE_TZ = True
 
 
-# Static and media files
+# Static files and uploads
 # https://docs.djangoproject.com/en/6.1/howto/static-files/
 
 STATIC_URL = env.str("STATIC_URL", default="static/")
 STATIC_ROOT = env.path("STATIC_ROOT", default=BASE_DIR / "staticfiles")
 STATICFILES_DIRS = [BASE_DIR / "static"]
 
-MEDIA_URL = env.str("MEDIA_URL", default="media/")
-MEDIA_ROOT = env.path("MEDIA_ROOT", default=BASE_DIR / "media")
+# Nothing is kept on disk: statement files are read and dropped, never stored.
+FILE_UPLOAD_HANDLERS = ["django.core.files.uploadhandler.MemoryFileUploadHandler"]
 
 STORAGES = {
-    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "default": {"BACKEND": "django.core.files.storage.InMemoryStorage"},
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },

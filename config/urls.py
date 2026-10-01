@@ -7,6 +7,7 @@ from django.conf import settings
 from django.contrib import admin
 from django.urls import include, path
 
+from config.crawlers import robots_txt
 from config.health import healthz
 from signin.views import admin_login
 
@@ -16,6 +17,7 @@ urlpatterns = [
     path(settings.ADMIN_URL, admin.site.urls),
     # No trailing slash: probes hit the exact path by convention.
     path("healthz", healthz, name="healthz"),
+    path("robots.txt", robots_txt, name="robots_txt"),
     path("", include("signin.urls")),
     path("", include("ui.urls")),
 ]
