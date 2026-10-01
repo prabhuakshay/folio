@@ -86,6 +86,29 @@ def test_claim_with_an_authenticator_app_then_shows_recovery_codes_once(client):
 
 
 @pytest.mark.django_db
+def test_back_after_the_first_setup_goes_home_not_to_confirm(client):
+    claim(client)
+    set_up_authenticator(client)
+    client.get(reverse("recovery_codes"))
+
+    response = client.get(reverse("authenticator"))
+
+    assert response["Location"] == reverse("home")
+    assert TOTPDevice.objects.count() == 1
+
+
+@pytest.mark.django_db
+def test_back_to_a_setup_left_for_a_passkey_goes_home(client, django_user_model):
+    claim(client)
+    client.get(reverse("authenticator"))
+    add_passkey(django_user_model.objects.get())
+
+    response = client.get(reverse("authenticator"))
+
+    assert response["Location"] == reverse("home")
+
+
+@pytest.mark.django_db
 def test_authenticator_shows_a_qr_code_and_the_key_to_type(client):
     claim(client)
 

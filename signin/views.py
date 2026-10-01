@@ -106,13 +106,17 @@ def authenticator(request: HttpRequest) -> HttpResponse:
     Returns:
         The QR code and key, or a redirect once the app shows a right code: to
         the recovery codes if this is the first way to sign in, else back to
-        Security.
+        Security. Once protected, a redirect home outside sudo mode, and to
+        Security with no setup begun.
     """
     user = request.user
-    if not factors.may_change_factors(request):
-        target = "confirm" if user.is_verified() else "verify"
-        return auth_views.redirect_to_login(request.get_full_path(), target)
     first = not factors.ways_to_sign_in(user)
+    if not factors.may_change_factors(request):
+        return redirect("home")
+    # Once protected, a setup starts only by POST from Security, so Back here
+    # after one finishes can't start another.
+    if not first and AUTHENTICATOR_KEY not in request.session:
+        return redirect("security")
     key = request.session.setdefault(AUTHENTICATOR_KEY, default_key())
     device = factors.new_authenticator(user, key)
     if request.method == "POST" and factors.confirm_authenticator(
@@ -165,6 +169,7 @@ class LoginView(auth_views.LoginView):
 
     template_name = "signin/login.html"
     authentication_form = SignInForm
+    redirect_authenticated_user = True
 
     def get(
         self, request: HttpRequest, *args: object, **kwargs: object
@@ -246,9 +251,12 @@ def confirm(request: HttpRequest) -> HttpResponse:
         request: The incoming request.
 
     Returns:
-        The form, or a redirect on to `next` once confirmed.
+        The form, or a redirect on to `next` once confirmed or while still
+        confirmed.
     """
     user = request.user
+    if request.method == "GET" and factors.in_sudo(request):
+        return redirect(_next(request))
     if request.method == "POST" and (response := throttle.paused(request)):
         return response
     form = CodeForm(user, request.POST or None, recovery=False)

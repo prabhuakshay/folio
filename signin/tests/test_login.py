@@ -74,3 +74,23 @@ def test_sign_in_ignores_the_email_case(client, owner):
     )
 
     assert client.session["_auth_user_id"] == str(owner.pk)
+
+
+@pytest.mark.django_db
+def test_sign_in_sends_a_signed_in_session_home(client, owner):
+    sign_in(client)
+    verify(client, add_authenticator(owner))
+
+    response = client.get(reverse("login"))
+
+    assert response["Location"] == reverse("home")
+
+
+@pytest.mark.django_db
+def test_sign_in_sends_a_password_only_session_on_to_verify(client, owner):
+    add_authenticator(owner)
+    sign_in(client)
+
+    response = client.get(reverse("login"), follow=True)
+
+    assert response.redirect_chain[-1][0].startswith(reverse("verify"))
