@@ -1,0 +1,20 @@
+{% comment %}One Account in the tree; tapping it opens its sheet.{% endcomment %}
+<button type="button"
+        hx-get="{% url 'chart_account' row.account.pk %}"
+        hx-target="#account-sheet"
+        class="flex w-full items-center gap-3 py-3 text-left {% if row.depth > 1 %}pl-5{% endif %}">
+    <span class="min-w-0 flex-1">
+        <span class="block truncate text-[16px] {% if row.account.is_group %}font-semibold{% endif %}">{{ row.account.name }}</span>
+        {% with aliases=row.account.aliases.all %}
+            {% if aliases or row.account.role %}
+                <span class="block truncate text-[13px] text-ink-3">
+                    {% if row.account.role %}Role: {{ row.account.get_role_display }}{% endif %}
+                    {% if aliases and row.account.role %}·{% endif %}
+                    {{ aliases|join:", " }}
+                </span>
+            {% endif %}
+        {% endwith %}
+    </span>
+    <span class="sr-only">Edit</span>
+    {% include "icons/chevron-right.svg" with class="size-5 text-ink-3" %}
+</button>

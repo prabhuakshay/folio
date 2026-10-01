@@ -61,3 +61,9 @@ document.addEventListener("click", (event) => {
 // A sheet the server sent back with `data-open`, such as one whose form was
 // refused, opens as the page loads.
 document.querySelector("dialog.sheet[data-open]")?.showModal();
+
+// A sheet htmx fills (hx-target a dialog.sheet) opens once its content lands.
+document.addEventListener("htmx:afterSwap", (event) => {
+  const sheet = event.detail.target;
+  if (sheet.matches("dialog.sheet") && !sheet.open) sheet.showModal();
+});

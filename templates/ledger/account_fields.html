@@ -1,0 +1,50 @@
+{% comment %}Name, group, aliases and, under More, whether it is a group: shared by adding and editing.{% endcomment %}
+{% for error in form.non_field_errors %}<p class="text-[13px] font-medium text-negative">{{ error }}</p>{% endfor %}
+<label class="block">
+    <span class="text-[13px] font-medium text-ink-2">Name</span>
+    <input class="field mt-1"
+           name="name"
+           value="{{ form.name.value|default:'' }}"
+           maxlength="100"
+           placeholder="Pet care"
+           required>
+    {% include "signin/field_errors.html" with field=form.name %}
+</label>
+<label class="block">
+    <span class="text-[13px] font-medium text-ink-2">Group</span>
+    <select class="field mt-1" name="parent">
+        {% for group, path in form.groups %}
+            <option value="{{ group.pk }}"
+                    {% if group.pk|stringformat:"s" == form.parent.value|stringformat:"s" %}selected{% endif %}>
+                {{ path }}
+            </option>
+        {% endfor %}
+    </select>
+    {% include "signin/field_errors.html" with field=form.parent %}
+</label>
+<label class="block">
+    <span class="text-[13px] font-medium text-ink-2">Aliases <span class="font-normal text-ink-3">· words that also mean it in quick-add</span></span>
+    <input class="field mt-1"
+           name="aliases"
+           value="{{ form.aliases.value|default:'' }}"
+           autocapitalize="none"
+           placeholder="swiggy, eating out">
+    {% include "signin/field_errors.html" with field=form.aliases %}
+</label>
+<details class="group/more" {% if form.is_group.errors %}open{% endif %}>
+    <summary class="flex list-none items-center gap-1 py-1 text-[13px] font-medium text-ink-2">
+        More
+        {% include "icons/chevron-right.svg" with class="size-4 transition-transform group-open/more:rotate-90" %}
+    </summary>
+    <label class="mt-2 flex items-start gap-3">
+        <input type="checkbox"
+               name="is_group"
+               class="mt-1 size-5 shrink-0"
+               {% if form.is_group.value %}checked{% endif %}>
+        <span>
+            <span class="block text-[15px] font-medium">It's a group</span>
+            <span class="block text-[13px] leading-5 text-ink-3">Holds other Accounts and only adds them up.</span>
+        </span>
+    </label>
+    {% include "signin/field_errors.html" with field=form.is_group %}
+</details>

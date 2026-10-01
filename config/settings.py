@@ -87,6 +87,7 @@ INSTALLED_APPS = [
     "signin",
     "jobs",
     "doctrine",
+    "ledger",
 ]
 
 MIDDLEWARE = [
