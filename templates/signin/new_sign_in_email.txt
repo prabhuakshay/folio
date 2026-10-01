@@ -1,0 +1,12 @@
+{% load folio %}{% autoescape off %}Folio was just signed in to from a device or network it hasn't seen before.
+
+When: {{ event.at|indian_date }}, {{ event.at|time:"g:i a" }}
+Device: {{ event.device }}
+Address: {{ event.ip }}
+How: {{ event.detail }}
+
+If this was you, there's nothing to do.
+
+If it wasn't, someone else got in. Sign in, choose Sign out everywhere else, then change your password and the ways you sign in:
+{{ sessions_url }}
+{% endautoescape %}

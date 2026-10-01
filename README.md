@@ -39,6 +39,18 @@ then a passkey or an authenticator app, and finally shows 10 recovery codes
 once. Passkeys work from the HTTPS URL in `CSRF_TRUSTED_ORIGINS` (or
 `http://localhost:8000`); see `WEBAUTHN_ORIGINS` in `.env.example`.
 
+Five wrong passwords or codes from one address pause signing in from it for an
+hour; the login itself is never locked. Locked out with every passkey, the
+authenticator and the recovery codes lost? On the server, run:
+
+```bash
+uv run manage.py break_glass --two-factor    # sign in by password, then set up anew
+uv run manage.py break_glass --password      # prints a new password
+```
+
+Either signs out every device and lifts every pause. In Docker, run it with
+`docker compose -f compose.prod.yaml exec web python manage.py break_glass …`.
+
 ## Tests
 
 ```bash
@@ -91,7 +103,9 @@ dropped. Migrations run on start (`RUN_MIGRATIONS`), then gunicorn takes over.
   is `host.docker.internal`.
 - **TLS:** the container publishes on `127.0.0.1` only, for a reverse proxy on
   the host to forward to. Set `USE_X_FORWARDED_PROTO=True` if the proxy sets
-  `X-Forwarded-Proto` (and strips any copy a client sent).
+  `X-Forwarded-Proto` (and strips any copy a client sent), and
+  `USE_X_FORWARDED_FOR=True`: without it every visitor shares the proxy's
+  address, so one stranger's wrong passwords pause the owner's sign-in too.
 - **Health:** `/healthz` checks the database and backs the container
   healthcheck, which sends `Host: localhost`, so keep `localhost` in
   `ALLOWED_HOSTS`.

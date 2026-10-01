@@ -12,10 +12,11 @@ from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.safestring import mark_safe
 from django_otp import login as otp_login
+from django_otp.plugins.otp_static.models import StaticDevice
 from django_otp.plugins.otp_totp.models import default_key
 from qrcode.image.svg import SvgPathImage
 
-from signin import factors
+from signin import events, factors, throttle
 from signin.claim import is_claimed
 from signin.forms import WRONG_CODE, CodeForm, OwnerForm, SetupCodeForm, SignInForm
 from signin.middleware import second_factor_not_required
@@ -118,6 +119,7 @@ def authenticator(request: HttpRequest) -> HttpResponse:
         device, request.POST.get("code", "")
     ):
         del request.session[AUTHENTICATOR_KEY]
+        events.record(request, events.Kind.AUTHENTICATOR_SET_UP)
         # It replaces any old one, which may be what verified this session.
         otp_login(request, device)
         if first:
@@ -154,6 +156,7 @@ def recovery_codes(request: HttpRequest) -> HttpResponse:
     if factors.has_recovery_codes(request.user):
         return redirect("home")
     codes = factors.issue_recovery_codes(request.user)
+    events.record(request, events.Kind.RECOVERY_CODES_ISSUED)
     return render(request, "signin/recovery_codes.html", {"codes": codes, "step": 4})
 
 
@@ -175,6 +178,26 @@ class LoginView(auth_views.LoginView):
             return redirect("claim")
         return super().get(request, *args, **kwargs)
 
+    def form_valid(self, form: SignInForm) -> HttpResponse:
+        """Sign in, logging it if the password is all there is to sign in with.
+
+        Returns:
+            A redirect on, to set up a second step if there's none.
+        """
+        response = super().form_valid(form)
+        if not factors.ways_to_sign_in(form.get_user()):
+            events.signed_in(self.request, "Password")
+        return response
+
+    def form_invalid(self, form: SignInForm) -> HttpResponse:
+        """Log the wrong password.
+
+        Returns:
+            The form with its errors.
+        """
+        events.failed(self.request, events.Kind.WRONG_PASSWORD)
+        return super().form_invalid(form)
+
 
 @second_factor_not_required
 def verify(request: HttpRequest) -> HttpResponse:
@@ -195,11 +218,20 @@ def verify(request: HttpRequest) -> HttpResponse:
         return redirect(_next(request))
     if not factors.ways_to_sign_in(user):
         return redirect("protect")
+    if request.method == "POST" and (response := throttle.paused(request)):
+        return response
     form = CodeForm(user, request.POST or None, recovery=True)
     if form.is_valid():
         otp_login(request, form.device)
         factors.start_sudo(request)
+        recovery = isinstance(form.device, StaticDevice)
+        events.signed_in(
+            request,
+            f"Password and {'recovery' if recovery else 'authenticator'} code",
+        )
         return redirect(_next(request))
+    if form.is_bound:
+        throttle.wrong_code(request, user)
     return render(
         request,
         "signin/verify.html",
@@ -217,10 +249,14 @@ def confirm(request: HttpRequest) -> HttpResponse:
         The form, or a redirect on to `next` once confirmed.
     """
     user = request.user
+    if request.method == "POST" and (response := throttle.paused(request)):
+        return response
     form = CodeForm(user, request.POST or None, recovery=False)
     if form.is_valid():
         factors.start_sudo(request)
         return redirect(_next(request))
+    if form.is_bound:
+        throttle.wrong_code(request, user)
     return render(
         request,
         "signin/confirm.html",

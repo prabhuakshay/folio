@@ -75,6 +75,30 @@
                 {% include "icons/chevron-right.svg" with class="size-5 text-ink-3" %}
             </a>
         </li>
+        <li>
+            <a href="{% url 'sessions' %}" class="flex items-center gap-4 py-4">
+                <span class="grid size-10 shrink-0 place-items-center rounded-full bg-well">
+                    {% include "icons/monitor-smartphone.svg" with class="size-[18px]" %}
+                </span>
+                <span class="min-w-0 flex-1">
+                    <span class="block text-[16px] font-medium">Sessions</span>
+                    <span class="block truncate text-[13px] text-ink-2">{{ sessions }} signed in</span>
+                </span>
+                {% include "icons/chevron-right.svg" with class="size-5 text-ink-3" %}
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'security_log' %}" class="flex items-center gap-4 py-4">
+                <span class="grid size-10 shrink-0 place-items-center rounded-full bg-well">
+                    {% include "icons/scroll-text.svg" with class="size-[18px]" %}
+                </span>
+                <span class="min-w-0 flex-1">
+                    <span class="block text-[16px] font-medium">Security log</span>
+                    <span class="block truncate text-[13px] text-ink-2">Sign-ins and changes</span>
+                </span>
+                {% include "icons/chevron-right.svg" with class="size-5 text-ink-3" %}
+            </a>
+        </li>
     </ul>
     <dialog id="sheet-passkeys"
             class="sheet"

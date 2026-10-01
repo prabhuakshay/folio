@@ -1,0 +1,12 @@
+{% extends "signin/page.html" %}
+{% block title %}
+    Too many tries · Folio
+{% endblock %}
+{% block main %}
+    <h1 class="display mt-10 text-[52px] leading-[.92]">Too many tries</h1>
+    <p class="mt-4 text-[16px] leading-6 text-ink-2">
+        Signing in from here is paused for an hour after {{ failure_limit }} wrong passwords or codes. Try again later, or from another network.
+    </p>
+    <a href="{% url 'login' %}"
+       class="mt-8 flex h-12 w-full items-center justify-center rounded-full bg-ink text-[15px] font-medium text-white">Back to sign in</a>
+{% endblock %}

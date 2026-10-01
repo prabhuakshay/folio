@@ -13,7 +13,8 @@ from django.views.decorators.http import require_POST
 from django_otp import login as otp_login
 from django_otp_webauthn.models import WebAuthnCredential
 
-from signin import factors
+from signin import events, factors, sessions
+from signin.models import SecurityEvent
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -21,6 +22,7 @@ if TYPE_CHECKING:
     from django.http import HttpRequest, HttpResponse
     from django_otp.models import Device
 
+LOG_LENGTH = 100
 SCREEN = {"tab": "home", "back": "settings", "title": "Security and sign-in"}
 
 
@@ -46,7 +48,7 @@ def sudo_required(view: Callable[..., HttpResponse]) -> Callable[..., HttpRespon
 
 @sudo_required
 def security(request: HttpRequest) -> HttpResponse:
-    """Passkeys, password, authenticator app and recovery codes.
+    """Passkeys, password, authenticator app, recovery codes, sessions and the log.
 
     Args:
         request: The incoming request.
@@ -63,6 +65,7 @@ def security(request: HttpRequest) -> HttpResponse:
             "passkeys": factors.passkeys(user),
             "authenticator": factors.authenticator(user),
             "codes_left": factors.recovery_codes_left(user),
+            "sessions": len(sessions.active(request)),
         },
     )
 
@@ -80,6 +83,8 @@ def password(request: HttpRequest) -> HttpResponse:
     form = PasswordChangeForm(request.user, request.POST or None)
     if form.is_valid():
         update_session_auth_hash(request, form.save())
+        sessions.sign_out_others(request)
+        events.record(request, events.Kind.PASSWORD_CHANGED)
         messages.success(request, "Password changed.")
         return redirect("security")
     return render(
@@ -101,6 +106,7 @@ def regenerate_recovery_codes(request: HttpRequest) -> HttpResponse:
         The new codes.
     """
     codes = factors.issue_recovery_codes(request.user)
+    events.record(request, events.Kind.RECOVERY_CODES_ISSUED)
     return render(
         request,
         "signin/new_recovery_codes.html",
@@ -141,6 +147,7 @@ def remove_authenticator(request: HttpRequest) -> HttpResponse:
     """
     if _keep_one(request, "a passkey"):
         _remove(request, factors.authenticator(request.user))
+        events.record(request, events.Kind.AUTHENTICATOR_REMOVED)
         messages.success(request, "Authenticator app removed.")
     return redirect("security")
 
@@ -160,8 +167,70 @@ def remove_passkey(request: HttpRequest, pk: int) -> HttpResponse:
     passkey = get_object_or_404(WebAuthnCredential, pk=pk, user=request.user)
     if _keep_one(request, "another passkey or an authenticator app"):
         _remove(request, passkey)
+        events.record(request, events.Kind.PASSKEY_REMOVED)
         messages.success(request, "Passkey removed.")
     return redirect("security")
+
+
+@sudo_required
+def signed_in_sessions(request: HttpRequest) -> HttpResponse:
+    """Every device signed in, with Sign out everywhere else.
+
+    Args:
+        request: The incoming request.
+
+    Returns:
+        The screen.
+    """
+    return render(
+        request,
+        "signin/sessions.html",
+        {
+            **SCREEN,
+            "back": "security",
+            "title": "Sessions",
+            "sessions": sessions.active(request),
+        },
+    )
+
+
+@require_POST
+@sudo_required
+def sign_out_others(request: HttpRequest) -> HttpResponse:
+    """Sign out every device but this one.
+
+    Args:
+        request: The incoming request.
+
+    Returns:
+        A redirect to Sessions.
+    """
+    sessions.sign_out_others(request)
+    events.record(request, events.Kind.SIGNED_OUT_ELSEWHERE)
+    messages.success(request, "Signed out everywhere else.")
+    return redirect("sessions")
+
+
+@sudo_required
+def security_log(request: HttpRequest) -> HttpResponse:
+    """The latest entries in the security log, newest first.
+
+    Args:
+        request: The incoming request.
+
+    Returns:
+        The screen.
+    """
+    return render(
+        request,
+        "signin/security_log.html",
+        {
+            **SCREEN,
+            "back": "security",
+            "title": "Security log",
+            "events": SecurityEvent.objects.all()[:LOG_LENGTH],
+        },
+    )
 
 
 urlpatterns = [
@@ -178,4 +247,7 @@ urlpatterns = [
         name="authenticator_remove",
     ),
     path("passkeys/<int:pk>/remove/", remove_passkey, name="passkey_remove"),
+    path("sessions/", signed_in_sessions, name="sessions"),
+    path("sessions/sign-out-others/", sign_out_others, name="sign_out_others"),
+    path("log/", security_log, name="security_log"),
 ]

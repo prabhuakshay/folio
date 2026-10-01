@@ -10,7 +10,8 @@
 # Nothing here terminates TLS. The port is published on loopback only, for a
 # reverse proxy on the host (Caddy, nginx) to forward to. That proxy must set
 # X-Forwarded-Proto and strip any copy a client sent, since the app trusts it
-# when USE_X_FORWARDED_PROTO=True.
+# when USE_X_FORWARDED_PROTO=True. Set USE_X_FORWARDED_FOR=True too, so sign-in
+# pauses go by each visitor's address rather than the proxy's.
 #
 # Every Django setting comes from .env. The only values set here are about
 # running the container: the image tag, the published port and resource caps,
