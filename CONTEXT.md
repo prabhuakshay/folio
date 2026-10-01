@@ -8,10 +8,10 @@ A single-person finance ledger for Indian markets: what I own, what I owe, what 
 The ordered ladder of financial-health Stages Folio holds you to. Folio records everything but endorses only what follows the Doctrine: it flags actions that skip a Stage rather than refusing them. Every threshold has a default and a recommended band; you may set any value, and Folio warns when it sits outside the band.
 
 **Stage**:
-One rung of the Doctrine, met or not met, in fixed order: no revolving credit → starter emergency fund → protection (health and term life cover) → high-interest debt cleared → full Emergency Fund → Goals and Retirement. The **current Stage** is the lowest one not met; surplus advice always points there. Protection is met by buying cover, not by money, so while it is current the advice is to buy the missing cover with surplus paying its first premiums, and the rest goes to the next Stage money can fill. A Stage judged on declared rather than measured figures is **provisional**.
+One rung of the Doctrine, met or not met, in fixed order: no revolving credit → starter emergency fund → protection (health and term life cover) → high-interest debt cleared → full Emergency Fund → Goals and Retirement. The **current Stage** is the lowest one not met; surplus advice always points there. Protection is met by buying cover, not by money, so while it is current the advice is to buy the missing cover with surplus paying its first premiums, and the rest goes to the next Stage money can fill. Stage 6 is met when every Goal, Retirement included, is on track; Drift never unmeets it (in drawdown, see Retirement). A Stage judged on declared rather than measured figures is **provisional**.
 
 **Emergency Fund**:
-A system Goal, fixed at 100% cash and liquid debt, that must cover the trailing 6 months of outflow: Expense Postings (less tax and employee EPF) plus loan principal repaid. Counts only what is Earmarked to it, and only Emergency-Fund-eligible Accounts and Instruments can be. Cannot be deleted.
+A system Goal, fixed at 100% cash and liquid debt, that must cover the trailing 6 months of **outflow**: Expense Postings less Taxes, plus loan principal repaid. Counts only what is Earmarked to it, and only Emergency-Fund-eligible Accounts and Instruments can be. Cannot be deleted.
 _Avoid_: rainy-day fund, buffer
 
 **Take-home**:
@@ -76,7 +76,7 @@ The sum of bank, cash and wallet Account balances — money spendable today with
 _Avoid_: liquidity, liquid assets
 
 **Loan**:
-A Liability Account with an interest rate and optionally EMI terms (EMI amount and EMI day) — a bank loan, a purchase converted to EMI on a Card, money borrowed from family. Each EMI is split into principal (to the Loan) and interest; its end date follows from balance, rate and EMI. An EMI is **overdue** once its EMI day plus a grace period passes with no payment into the Loan since the previous EMI day. A joint Loan is recorded at your share only. A Loan closes itself when its balance reaches zero and reopens on its next Posting.
+A Liability Account with an interest rate and optionally EMI terms (EMI amount and EMI day) — a bank loan, a purchase converted to EMI on a Card, money borrowed from family. Each EMI is split into principal (to the Loan) and interest; its end date follows from balance, rate and EMI. An EMI is **overdue** once its EMI day plus the grace period (a Doctrine threshold) passes with no payment into the Loan since the previous EMI day. A joint Loan is recorded at your share only. A Loan closes itself when its balance reaches zero and reopens on its next Posting.
 _Avoid_: debt (means all Liabilities)
 
 **Card**:
@@ -99,7 +99,7 @@ A rule that expects a Transaction to repeat — a template Transaction plus a re
 _Avoid_: recurring payment, standing instruction, mandate
 
 **Occurrence**:
-One dated instance a Schedule, Loan, Card, Term Deposit or Provident Account expects. It is **due** until **fulfilled** — by confirming it (with the date and amount edited if needed) or by linking a Transaction already recorded — or **skipped**; past its date it is **overdue**, and it never expires on its own. It returns to due if its Transaction is unlinked, deleted or undone with its Import; only deleting an auto-posted one skips it. Auto-post holds back, leaving it due, when a Match already exists.
+One dated instance a Schedule, Loan, Card, Term Deposit, Provident Account or coupon-bearing Holding expects. It is **due** until **fulfilled** — by confirming it (with the date and amount edited if needed) or by linking a Transaction already recorded — or **skipped**; past its date it is **overdue**, and it never expires on its own. It returns to due if its Transaction is unlinked, deleted or undone with its Import; only deleting an auto-posted one skips it. Auto-post holds back, leaving it due, when a Match already exists.
 
 **Reminder**:
 A line in the **Digest**, the one email Folio sends each day at a set time when it has something to say, for events where money or cover is at risk by a date and only acting outside Folio prevents it: a Card bill not paid in full, a Loan EMI ahead, a Policy's cover until nearing with nothing renewing it, a Term Deposit maturing, PPF short of its yearly minimum, an Occurrence just gone overdue, a scheduled job failing three days running, and any Schedule set to remind ahead. Each fires once, on the first Digest on or after its date, and only while its event is still live; overdue Occurrences ride along in later Digests, and alone are sent on Mondays. It names what and when, never amounts. What the app already shows — drift, stale Prices, Import mismatches — is never a Reminder.
@@ -175,7 +175,7 @@ _Avoid_: sync, upload (as the term)
 The Account a unit source's cash comes from and returns to when the statement doesn't say — the bank Account behind an MF folio. A line dated before the funding Account's start date is funded from Opening Balances instead, since that money predates Folio.
 
 **Match**:
-A Transaction Folio proposes as the same money as an import line or a due Occurrence: it hits the other record's **anchor Account** on the same side (the Loan or Card paid into; a Schedule's Expense, Income, Holding or other non-cash Account; an import source's mapped Account), within ±5 days (at most half the recurrence period), at the exact amount — any amount for estimated Schedules and Card bills; amount or units for unit lines. A unique best Match is pre-selected; none is ever accepted without a tap. Each Transaction answers at most one line and fulfils at most one Occurrence.
+A Transaction Folio proposes as the same money as an import line or a due Occurrence: it hits the other record's **anchor Account** on the same side (the Loan or Card paid into; a Schedule's Expense, Income, Holding or other non-cash Account; an import source's mapped Account; for an interest credit, the Account it lands in — the deposit, the Provident Account, or the payout Account), within ±5 days (at most half the recurrence period), at the exact amount — any amount for estimated Schedules, Card bills and Provident Account interest; amount or units for unit lines. A unique best Match is pre-selected; none is ever accepted without a tap. Each Transaction answers at most one line and fulfils at most one Occurrence.
 _Avoid_: reconcile, dedupe (as terms)
 
 **Export**:
@@ -200,7 +200,7 @@ The share of the Retirement corpus you can draw in the first year of retirement,
 _Avoid_: SWR (in the UI), 4% rule
 
 **Surplus**:
-Trailing monthly Take-home less trailing monthly outflow — the money Doctrine advice directs, to the current Stage and then down the Goal rank. In drawdown it is Earned income plus Planned withdrawal less outflow; below zero the Budget month is **over plan**.
+Trailing monthly Take-home less trailing monthly outflow, less the month's scheduled savings Occurrences — the money not already committed, which Doctrine advice directs to the current Stage and then down the Goal rank as extra SIPs. In drawdown it is Earned income plus Planned withdrawal less outflow, less scheduled savings; below zero the Budget month is **over plan**.
 
 **Drift**:
 How far a Goal's actual mix sits from its Target Allocation, per Asset Class in percentage points. Past the inner band Folio nudges you to rebalance — first by re-earmarking between Goals or from Unallocated, then by steering new money; past the outer band, or at a Glide Path step, it suggests switching or selling. Nudges judge only the part movable money can fix — Drift against the target clamped to the Goal's **reachable range** (its mix with all movable money moved to one side); the rest is **held by Locked money**, shown quietly and answered only by steering new money. Judged per Goal; Unallocated has no target and never drifts.
