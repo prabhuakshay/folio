@@ -24,3 +24,36 @@ document.addEventListener("click", (event) => {
     history.back();
   }
 });
+
+// A form with `data-confirm` asks first in the confirmation sheet
+// (templates/ui/confirm.html): removing a way to sign in can't be undone.
+const sheet = document.getElementById("confirm");
+
+document.addEventListener("submit", (event) => {
+  const form = event.target;
+  if (!sheet || !form.dataset.confirm) return;
+  event.preventDefault();
+  sheet.querySelector("#confirm-question").textContent = form.dataset.confirm;
+  sheet.querySelector("[data-confirm-detail]").textContent =
+    form.dataset.confirmDetail ?? "";
+  sheet.querySelector("[data-confirm-action]").textContent =
+    form.dataset.confirmAction ?? "Continue";
+  sheet.returnValue = "";
+  sheet.addEventListener(
+    "close",
+    () => {
+      // submit() skips the submit event, so this doesn't ask again.
+      if (sheet.returnValue === "confirm") form.submit();
+    },
+    { once: true },
+  );
+  sheet.showModal();
+});
+
+// A `data-sheet` button opens the sheet it names. A tap on the dimmed page
+// around any sheet closes it.
+document.addEventListener("click", (event) => {
+  const opener = event.target.closest("[data-sheet]");
+  if (opener) document.getElementById(opener.dataset.sheet).showModal();
+  if (event.target.matches("dialog.sheet")) event.target.close();
+});

@@ -29,9 +29,9 @@ def test_claim_creates_the_login_and_signs_in(client):
     response = claim(client)
 
     assert response.status_code == 302
-    assert response["Location"] == reverse("home")
-    assert client.get(reverse("home")).status_code == 200
+    assert response["Location"] == reverse("protect")
     (owner,) = get_user_model().objects.all()
+    assert client.session["_auth_user_id"] == str(owner.pk)
     assert owner.get_full_name() == "Akshay Prabhu"
     assert owner.email == "akshay@example.in"
 
@@ -111,7 +111,7 @@ def test_owner_signs_in_with_their_email_whatever_its_case(client):
         {"username": "akshay@example.in", "password": DETAILS["password"]},
     )
 
-    assert client.get(reverse("home")).status_code == 200
+    assert "_auth_user_id" in client.session
 
 
 @pytest.mark.django_db

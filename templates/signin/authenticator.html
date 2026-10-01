@@ -1,0 +1,13 @@
+{% extends base %}
+{% comment %}
+    Setting up an authenticator app: step 3 of claiming, or from Security.
+{% endcomment %}
+{% block title %}
+    Authenticator app · Folio
+{% endblock %}
+{% block main %}
+    {% include "signin/authenticator_form.html" with heading="mt-10 text-[52px] leading-[.92]" %}
+{% endblock %}
+{% block content %}
+    {% include "signin/authenticator_form.html" with heading="mt-2 text-[40px] leading-none" %}
+{% endblock %}

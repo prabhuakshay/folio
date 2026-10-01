@@ -161,6 +161,54 @@
     }
   }
 
+  /* A secondary action: a flat well, never an outline. */
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 36px;
+    border-radius: 9999px;
+    background: var(--color-well);
+    padding-inline: 14px;
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+    &:active {
+      background: var(--color-hairline);
+    }
+  }
+
+  /* A modal <dialog>: a sheet up from the bottom on phones, a card centred on
+     wider screens. */
+  .sheet {
+    margin: auto 0 0;
+    width: 100%;
+    max-width: 100%;
+    border-radius: 28px 28px 0 0;
+    background: var(--color-white);
+    padding: 28px 24px calc(24px + env(safe-area-inset-bottom));
+    &[open] {
+      animation: sheet-in 200ms ease-out;
+    }
+    &::backdrop {
+      background: rgb(0 0 0 / 0.35);
+    }
+    @media (width >= 40rem) {
+      margin: auto;
+      max-width: 400px;
+      border-radius: 28px;
+      padding-bottom: 24px;
+    }
+  }
+
+  @keyframes sheet-in {
+    from {
+      translate: 0 24px;
+      opacity: 0;
+    }
+  }
+
   /* Replaces htmx's own indicator styles, turned off in base.html. */
   .htmx-indicator {
     opacity: 0;

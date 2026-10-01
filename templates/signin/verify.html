@@ -1,0 +1,24 @@
+{% extends "signin/page.html" %}
+{% block title %}
+    Sign in · Folio
+{% endblock %}
+{% block main %}
+    <h1 class="display mt-10 text-[52px] leading-[.92]">One more step</h1>
+    <p class="mt-4 text-[16px] leading-6 text-ink-2">Prove it's you with your second lock.</p>
+    <div class="mt-8">
+        {% if passkeys %}
+            {% include "signin/passkey_button.html" with action="sign-in" label="Use a passkey" %}
+            {% include "signin/or.html" %}
+        {% endif %}
+        <form method="post">
+            {% csrf_token %}
+            {% include "signin/code_field.html" with label="Code from your authenticator app" error=form.code.errors.0 autofocus=True %}
+            <p class="mt-3 text-[13px] text-ink-3">Lost your phone? A recovery code works here too.</p>
+            {% include "signin/submit.html" with label="Continue" %}
+        </form>
+    </div>
+    <form method="post" action="{% url 'logout' %}" class="mt-6 text-center">
+        {% csrf_token %}
+        <button type="submit" class="text-[14px] font-medium text-ink-2">Sign out</button>
+    </form>
+{% endblock %}

@@ -1,0 +1,13 @@
+{% extends "signin/page.html" %}
+{% block title %}
+    Recovery codes · Folio
+{% endblock %}
+{% block main %}
+    <h1 class="display mt-10 text-[52px] leading-[.92]">Keep these somewhere safe</h1>
+    <p class="mt-4 max-w-[34ch] text-[16px] leading-6 text-ink-2">
+        If you lose your phone, each code signs you in once. You'll only see them now.
+    </p>
+    {% include "signin/codes.html" %}
+    <a href="{% url 'home' %}"
+       class="mt-8 flex h-14 w-full items-center justify-center rounded-full bg-ink text-[16px] font-medium text-white">I've saved them</a>
+{% endblock %}

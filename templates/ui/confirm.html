@@ -1,0 +1,18 @@
+{% comment %}
+    The one confirmation sheet, opened by static/js/app.js for any form with
+    `data-confirm` (the question), `data-confirm-detail` and
+    `data-confirm-action` (the button's label).
+{% endcomment %}
+<dialog id="confirm" class="sheet" aria-labelledby="confirm-question">
+    <form method="dialog">
+        <h2 id="confirm-question" class="display text-[28px] leading-[1.05]"></h2>
+        <p data-confirm-detail class="mt-2 text-[15px] leading-6 text-ink-2"></p>
+        <div class="mt-8 grid grid-cols-2 gap-2">
+            <button type="submit" value="cancel" class="pill h-12 text-[15px]">Cancel</button>
+            <button type="submit"
+                    value="confirm"
+                    data-confirm-action
+                    class="h-12 rounded-full bg-negative text-[15px] font-medium text-white"></button>
+        </div>
+    </form>
+</dialog>

@@ -1,4 +1,4 @@
-"""Forms for claiming the install and signing in."""
+"""Forms for claiming the install, signing in and confirming it's you."""
 
 from typing import TYPE_CHECKING
 
@@ -7,9 +7,12 @@ from django.contrib.auth import get_user_model, password_validation
 from django.contrib.auth.forms import AuthenticationForm
 
 from signin.claim import is_setup_code
+from signin.factors import matching_device
 
 if TYPE_CHECKING:
     from django.contrib.auth.base_user import AbstractBaseUser
+
+WRONG_CODE = "That code doesn't match. Try the one showing now."
 
 
 class SetupCodeForm(forms.Form):
@@ -87,3 +90,36 @@ class SignInForm(AuthenticationForm):
             The email, lower case.
         """
         return self.cleaned_data["username"].lower()
+
+
+class CodeForm(forms.Form):
+    """A code from the authenticator app or, where allowed, a recovery code.
+
+    Args:
+        user: Whose codes to check.
+        recovery: Whether a recovery code is accepted.
+    """
+
+    code = forms.CharField(max_length=32)
+
+    def __init__(
+        self, user: AbstractBaseUser, *args: object, recovery: bool, **kwargs: object
+    ) -> None:
+        super().__init__(*args, **kwargs)
+        self.user = user
+        self.recovery = recovery
+
+    def clean_code(self) -> str:
+        """Match the code, keeping the device it matched.
+
+        Returns:
+            The code as entered.
+
+        Raises:
+            ValidationError: It matches nothing.
+        """
+        code = self.cleaned_data["code"]
+        self.device = matching_device(self.user, code, recovery=self.recovery)
+        if self.device is None:
+            raise forms.ValidationError(WRONG_CODE)
+        return code
