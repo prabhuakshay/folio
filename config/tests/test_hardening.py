@@ -1,5 +1,3 @@
-import time
-
 import pytest
 from django.apps import apps
 from django.core.files.base import ContentFile
@@ -9,8 +7,7 @@ from django.db import models
 from django.urls import reverse
 from django.utils.module_loading import import_string
 
-from signin.factors import SUDO_UNTIL
-from signin.tests import add_authenticator, verify
+from signin.tests import add_authenticator, start_sudo, verify
 
 
 def test_robots_txt_disallows_everything(client):
@@ -42,9 +39,7 @@ def test_signed_in_screens_are_never_kept_by_the_browser(
     owner = django_user_model.objects.create_superuser("a@example.in", "a@example.in")
     client.force_login(owner)
     verify(client, add_authenticator(owner))
-    session = client.session
-    session[SUDO_UNTIL] = time.time() + 60
-    session.save()
+    start_sudo(client)
 
     response = client.get(reverse(name))
 

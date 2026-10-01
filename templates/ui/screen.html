@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% load folio %}
 {% comment %}
-    Every signed-in screen. A tab root (no `back`) shows the wordmark and the
-    avatar; a stacked screen shows a back arrow and its `title`. Phones get the
-    tab bar, lg and up get the tabs as header links.
+    Every signed-in screen. A tab root (no `back`) shows the wordmark; a
+    stacked screen shows a back arrow and its `title`. Both end in the avatar.
+    Phones get the tab bar, lg and up get the tabs as header links.
 {% endcomment %}
 {% block title %}
     {% if title %}{{ title }} · {% endif %}Folio
@@ -31,11 +31,11 @@
                     {% include "icons/plus.svg" with class="size-4" %}
                 New</a>
             </nav>
-            {% if not back %}
-                <a href="{% url 'settings' %}"
-                   class="ml-auto grid size-9 place-items-center rounded-full bg-ink text-[12px] font-semibold text-white lg:ml-4"
-                   aria-label="Settings">{{ user|initials }}</a>
-            {% endif %}
+            {% url 'settings' as settings %}
+            <a href="{{ settings }}"
+               class="ml-auto grid size-9 shrink-0 place-items-center rounded-full bg-ink text-[12px] font-semibold text-white lg:ml-4"
+               aria-label="Settings"
+               {% if request.path == settings %}aria-current="page"{% endif %}>{{ user|initials }}</a>
         </div>
     </header>
     <main class="mx-auto max-w-xl px-6 pb-40 lg:max-w-5xl lg:px-10 lg:pb-16">

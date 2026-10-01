@@ -6,6 +6,7 @@ from ledger import chart
 from ledger.chart import SEP
 from ledger.models import Account
 from signin.tests import add_authenticator, verify
+from ui.tests import closes_from_its_header
 
 Role = Account.Role
 
@@ -90,6 +91,22 @@ def test_the_roles_tab_explains_every_role(signed_in):
 
     for role in Role:
         assert text.count(escape(chart.ROLE_ABOUT[role])) == 2  # row and sheet
+
+
+@pytest.mark.django_db
+def test_every_role_sheet_closes_from_its_header(signed_in):
+    text = tab(signed_in, "roles")
+
+    for role in Role:
+        assert closes_from_its_header(text, f"sheet-{role}")
+
+
+@pytest.mark.django_db
+def test_the_account_sheet_closes_from_its_header(signed_in):
+    url = reverse("chart_account", args=[named("Groceries").pk])
+    text = signed_in.get(url).text
+
+    assert closes_from_its_header(text)
 
 
 @pytest.mark.django_db

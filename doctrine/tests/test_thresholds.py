@@ -7,6 +7,7 @@ from django.utils.html import escape
 from doctrine.models import Threshold
 from doctrine.thresholds import SPECS, Key, threshold
 from signin.tests import add_authenticator, verify
+from ui.tests import closes_from_its_header
 
 
 @pytest.fixture
@@ -180,3 +181,12 @@ def test_changes_are_audited(signed_in):
         ("-", Decimal(11)),
     ]
     assert all(h.history_user is not None for h in history)
+
+
+@pytest.mark.django_db
+def test_every_sheet_closes_from_its_header(signed_in):
+    edit(signed_in, Key.EMERGENCY_FUND, "9")
+    page = signed_in.get(reverse("thresholds")).text
+
+    for spec in SPECS:
+        assert closes_from_its_header(page, f"sheet-{spec.key}")

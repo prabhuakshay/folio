@@ -1,0 +1,19 @@
+{% comment %}
+    A sheet's grab handle, then its `title` and a × that closes it without
+    submitting. The title takes the sheet's opening focus, so a phone's
+    keyboard waits for a tap on a field.
+{% endcomment %}
+<div class="-mt-3 mb-4 flex justify-center">
+    <span class="h-1 w-10 rounded-full bg-hairline"></span>
+</div>
+<div class="flex items-start gap-4">
+    <h2 {% if id %}id="{{ id }}"{% endif %}
+        tabindex="-1"
+        autofocus
+        class="display min-w-0 flex-1 text-[26px] leading-none outline-none">{{ title }}</h2>
+    <form method="dialog">
+        <button type="submit"
+                class="-mt-1 grid size-9 place-items-center rounded-full bg-well text-ink-2"
+                aria-label="Close">{% include "icons/x.svg" with class="size-[18px]" %}</button>
+    </form>
+</div>
