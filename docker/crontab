@@ -1,0 +1,6 @@
+# The scheduled commands the cron service runs. Each works out what is due
+# since its last success, so a run missed while the stack was down needs no
+# replay. Times are Indian, like the app's.
+CRON_TZ=Asia/Kolkata
+
+30 3 * * * python manage.py prune_run_log

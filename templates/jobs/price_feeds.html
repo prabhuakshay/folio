@@ -1,0 +1,28 @@
+{% extends "ui/screen.html" %}
+{% load folio %}
+{% block content %}
+    <h2 class="mt-6 text-[13px] font-medium text-ink-3">Run log</h2>
+    <p class="mt-1 text-[15px] text-ink-2">The latest runs of every scheduled job, newest first.</p>
+    <ul class="mt-2 divide-y">
+        {% for run in runs %}
+            <li class="py-4">
+                <span class="block text-[16px] font-medium {% if run.outcome == 'failed' %}text-negative{% endif %}">
+                    {{ run.label }}
+                </span>
+                <span class="block text-[13px] text-ink-2">
+                    {{ run.started_at|indian_date }}, {{ run.started_at|time:"g:i a" }}
+                    · {{ run.get_outcome_display }}
+                    {% if run.summary %}· {{ run.summary }}{% endif %}
+                </span>
+                {% if run.error %}
+                    <details class="mt-2">
+                        <summary class="cursor-pointer text-[13px] text-ink-2">Error</summary>
+                        <pre class="mt-2 overflow-x-auto rounded-xl bg-well p-3 text-[12px]">{{ run.error }}</pre>
+                    </details>
+                {% endif %}
+            </li>
+        {% empty %}
+            <li class="py-4 text-[15px] text-ink-2">Nothing has run yet.</li>
+        {% endfor %}
+    </ul>
+{% endblock %}

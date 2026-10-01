@@ -1,5 +1,6 @@
-# Production stack: gunicorn built from the Dockerfile's prod target, and the
-# Postgres it keeps its data in.
+# Production stack: gunicorn built from the Dockerfile's prod target, the
+# Postgres it keeps its data in, and a cron service running the scheduled
+# commands in docker/crontab.
 #
 #   docker compose -f compose.prod.yaml up -d --build
 #
@@ -21,10 +22,10 @@ name: folio
 
 services:
   web:
-    build:
+    build: &prod-build
       context: .
       target: prod
-    image: ${FOLIO_IMAGE:-folio}:${FOLIO_TAG:-latest}
+    image: &prod-image ${FOLIO_IMAGE:-folio}:${FOLIO_TAG:-latest}
     restart: unless-stopped
     env_file: .env
     environment:
@@ -65,6 +66,49 @@ services:
           memory: ${WEB_MEMORY_RESERVATION:-256M}
 
     # Docker's default json-file log grows without bound.
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  # The same image as web, running supercronic instead of gunicorn. It serves
+  # nothing, so the image's healthcheck is off, and it leaves migrations to web,
+  # starting only once web is healthy and so migrated.
+  cron:
+    build: *prod-build
+    image: *prod-image
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgres://folio:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@postgres:5432/folio
+      RUN_MIGRATIONS: "0"
+    command: ["supercronic", "/app/docker/crontab"]
+    healthcheck:
+      disable: true
+    depends_on:
+      web:
+        condition: service_healthy
+
+    # Hardened as web is.
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+    # supercronic lets a running command finish before it stops.
+    stop_grace_period: 60s
+
+    # Idle it is just supercronic; Django loads only while a command runs.
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 384M
+
     logging:
       driver: json-file
       options:
