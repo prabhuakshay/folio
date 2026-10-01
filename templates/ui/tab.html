@@ -1,0 +1,11 @@
+{% url key as href %}
+<a href="{{ href }}"
+   data-tab-link
+   class="relative flex flex-col items-center gap-1 text-[11px] font-medium {% if tab == key %}text-ink{% else %}text-ink-3{% endif %}"
+   {% if tab == key %}aria-current="page"{% endif %}>
+    {% if tab == key %}<span class="absolute -top-2 size-1 rounded-full bg-cobalt"></span>{% endif %}
+    {% with "icons/"|add:icon|add:".svg" as svg %}
+        {% include svg with class="size-[22px]" %}
+    {% endwith %}
+    {{ label }}
+</a>

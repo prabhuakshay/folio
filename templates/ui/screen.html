@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% load folio %}
+{% comment %}
+    Every signed-in screen. A tab root (no `back`) shows the wordmark and the
+    avatar; a stacked screen shows a back arrow and its `title`. Phones get the
+    tab bar, lg and up get the tabs as header links.
+{% endcomment %}
+{% block title %}
+    {% if title %}{{ title }} · {% endif %}Folio
+{% endblock %}
+{% block body %}
+    <header class="sticky top-0 z-30 bg-white/90 pt-[env(safe-area-inset-top)] backdrop-blur-xl">
+        <div class="mx-auto flex h-14 max-w-5xl items-center gap-2 px-4 lg:px-10">
+            {% if back %}
+                <a href="{% url back %}"
+                   data-back
+                   class="-ml-2 grid size-10 place-items-center rounded-full"
+                   aria-label="Back">{% include "icons/chevron-left.svg" with class="size-6" %}</a>
+                <h1 class="min-w-0 truncate text-[15px] font-semibold">{{ title }}</h1>
+            {% else %}
+                <span class="wordmark px-2 text-[16px]">FOLIO</span>
+            {% endif %}
+            <nav class="ml-auto hidden items-center gap-7 text-[14px] font-medium lg:flex"
+                 aria-label="Tabs">
+                {% include "ui/header_link.html" with key="home" label="Home" %}
+                {% include "ui/header_link.html" with key="activity" label="Activity" %}
+                {% include "ui/header_link.html" with key="accounts" label="Accounts" %}
+                {% include "ui/header_link.html" with key="plan" label="Plan" %}
+                <a href="{% url 'new' %}"
+                   class="inline-flex h-9 items-center gap-1.5 rounded-full bg-cobalt pr-4 pl-3 text-white">
+                    {% include "icons/plus.svg" with class="size-4" %}
+                New</a>
+            </nav>
+            {% if not back %}
+                <a href="{% url 'settings' %}"
+                   class="ml-auto grid size-9 place-items-center rounded-full bg-ink text-[12px] font-semibold text-white lg:ml-4"
+                   aria-label="Settings">{{ user|initials }}</a>
+            {% endif %}
+        </div>
+    </header>
+    <main class="mx-auto max-w-xl px-6 pb-40 lg:max-w-5xl lg:px-10 lg:pb-16">
+        {% block content %}{% endblock %}
+    </main>
+    <nav class="fixed inset-x-0 bottom-0 z-40 border-t bg-white/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl lg:hidden"
+         aria-label="Tabs">
+        <div class="grid h-16 grid-cols-5 items-center px-2">
+            {% include "ui/tab.html" with key="home" label="Home" icon="house" %}
+            {% include "ui/tab.html" with key="activity" label="Activity" icon="list" %}
+            <div class="flex justify-center">
+                <a href="{% url 'new' %}"
+                   class="grid size-[54px] place-items-center rounded-full bg-cobalt text-white shadow-[0_10px_24px_-10px_rgb(47_91_255/.9)] transition-transform active:scale-95"
+                   aria-label="New transaction">{% include "icons/plus.svg" with class="size-6" %}</a>
+            </div>
+            {% include "ui/tab.html" with key="accounts" label="Accounts" icon="wallet" %}
+            {% include "ui/tab.html" with key="plan" label="Plan" icon="compass" %}
+        </div>
+    </nav>
+{% endblock %}
