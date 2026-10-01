@@ -1,0 +1,26 @@
+{% extends "signin/page.html" %}
+{% block title %}
+    Claim · Folio
+{% endblock %}
+{% block main %}
+    <h1 class="display mt-10 text-[52px] leading-[.92]">This Folio has no owner yet</h1>
+    <p class="mt-4 max-w-[34ch] text-[16px] leading-6 text-ink-2">
+        Enter the setup code printed when the server started. Only someone with access to the server can see it.
+    </p>
+    <form method="post" class="mt-8">
+        {% csrf_token %}
+        <input class="field text-center text-[24px] font-semibold tracking-[.15em] tabular-nums"
+               name="code"
+               value="{{ form.code.value|default:'' }}"
+               inputmode="numeric"
+               autocomplete="one-time-code"
+               aria-label="Setup code"
+               required
+               autofocus>
+        {% include "signin/field_errors.html" with field=form.code %}
+        <p class="mt-3 text-[13px] text-ink-3">
+            On the server: <code class="rounded bg-well px-1.5 py-0.5">docker compose logs web | grep "Setup code"</code>
+        </p>
+        {% include "signin/submit.html" with label="Continue" %}
+    </form>
+{% endblock %}

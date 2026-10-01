@@ -1,0 +1,33 @@
+{% extends "signin/page.html" %}
+{% block title %}
+    Sign in · Folio
+{% endblock %}
+{% block main %}
+    <h1 class="display mt-10 text-[52px] leading-[.92]">Sign in</h1>
+    <form method="post" class="mt-8 space-y-3">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ next }}">
+        {% if form.errors %}
+            <p class="text-[14px] font-medium text-negative">That email and password don't match.</p>
+        {% endif %}
+        <label class="block">
+            <span class="text-[13px] font-medium text-ink-2">Email</span>
+            <input class="field mt-1"
+                   type="email"
+                   name="username"
+                   value="{{ form.username.value|default:'' }}"
+                   autocomplete="username"
+                   required
+                   autofocus>
+        </label>
+        <label class="block">
+            <span class="text-[13px] font-medium text-ink-2">Password</span>
+            <input class="field mt-1"
+                   type="password"
+                   name="password"
+                   autocomplete="current-password"
+                   required>
+        </label>
+        {% include "signin/submit.html" with label="Sign in" %}
+    </form>
+{% endblock %}
