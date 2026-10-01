@@ -203,8 +203,11 @@ _Avoid_: SWR (in the UI), 4% rule
 Trailing monthly Take-home less trailing monthly outflow — the money Doctrine advice directs, to the current Stage and then down the Goal rank. In drawdown it is Earned income plus Planned withdrawal less outflow; below zero the Budget month is **over plan**.
 
 **Drift**:
-How far a Goal's actual mix sits from its Target Allocation, per Asset Class in percentage points. Past the inner band Folio nudges you to rebalance — first by re-earmarking between Goals or from Unallocated, then by steering new money; past the outer band, or at a Glide Path step, it suggests switching or selling. Judged per Goal; Unallocated has no target and never drifts.
+How far a Goal's actual mix sits from its Target Allocation, per Asset Class in percentage points. Past the inner band Folio nudges you to rebalance — first by re-earmarking between Goals or from Unallocated, then by steering new money; past the outer band, or at a Glide Path step, it suggests switching or selling. Nudges judge only the part movable money can fix — Drift against the target clamped to the Goal's **reachable range** (its mix with all movable money moved to one side); the rest is **held by Locked money**, shown quietly and answered only by steering new money. Judged per Goal; Unallocated has no target and never drifts.
 _Avoid_: imbalance, deviation
+
+**Locked**:
+Money whose Asset Class you can't change before a date: a Provident Account, a Term Deposit that isn't Emergency-Fund eligible (until maturity), and units of an Instrument with a **lock-in period** (ELSS) within that period from their lot date. NPS and ULIP Holdings are not Locked — their mix changes by an in-wrapper switch. Each carries an **unlock date** — maturity, the lot's lock-in end, or for EPF the Retirement date. Locked money counts in its Goal's mix and Drift like any other; Earmarking it to a Goal dated before it unlocks is warned, and re-earmark advice never suggests it.
 
 **Preferred Instrument**:
 The Instrument a Goal names for one Asset Class, so advice can say where new money goes. Advice only; never a target.
