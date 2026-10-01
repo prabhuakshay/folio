@@ -85,6 +85,7 @@ INSTALLED_APPS = [
     "axes",
     "ui",
     "signin",
+    "jobs",
 ]
 
 MIDDLEWARE = [

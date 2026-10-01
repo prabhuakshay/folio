@@ -2,6 +2,7 @@
 #
 #   web          autoreloading runserver with the working tree bind-mounted
 #   postgres     the database, as in prod, its data in the pgdata volume
+#   cron         supercronic running the scheduled commands in docker/crontab
 #   tailwind     Tailwind CLI in watch mode, rebuilding static/css/app.css
 #   mountpoints  one-shot ahead of tailwind that keeps root out of your tree
 #
@@ -17,7 +18,7 @@ name: folio
 
 services:
   web:
-    build:
+    build: &dev-build
       context: .
       target: dev
     env_file: .env
@@ -45,6 +46,23 @@ services:
       # On a fresh clone the first npm install takes long enough that Django
       # would otherwise serve the first pages unstyled.
       tailwind:
+        condition: service_healthy
+
+  cron:
+    build: *dev-build
+    env_file: .env
+    environment:
+      DATABASE_URL: postgres://folio:${POSTGRES_PASSWORD:-folio}@postgres:5432/folio
+      # As in prod; web runs the migrations.
+      RUN_MIGRATIONS: "0"
+    user: "${DOCKER_UID:-1000}:${DOCKER_GID:-1000}"
+    command: supercronic /app/docker/crontab
+    volumes:
+      - .:/app
+    healthcheck:
+      disable: true
+    depends_on:
+      postgres:
         condition: service_healthy
 
   postgres:

@@ -12,6 +12,19 @@ ARG NODE_VERSION=25
 
 FROM ghcr.io/astral-sh/uv:0.12.19 AS uv
 
+# ────────────────────────── supercronic ──────────────────────────
+# The cron service's scheduler: one static binary per architecture, each pinned
+# by checksum. Only the target architecture's stage is built.
+FROM scratch AS supercronic-amd64
+ADD --checksum=sha256:a53ae236602c7338aba3fbaff40bda6300eae3b9fedb8261eb06cfe3724430c1 --chmod=755 \
+    https://github.com/aptible/supercronic/releases/download/v0.2.49/supercronic-linux-amd64 /supercronic
+
+FROM scratch AS supercronic-arm64
+ADD --checksum=sha256:02aa0cb229ba09050cba6638059dadb9eedc2276632ea43d6a57a2f8c1629dd5 --chmod=755 \
+    https://github.com/aptible/supercronic/releases/download/v0.2.49/supercronic-linux-arm64 /supercronic
+
+FROM supercronic-${TARGETARCH} AS supercronic
+
 # ───────────────────────────── base ──────────────────────────────
 # Shared by every Python stage, including prod, so it holds only what the
 # runtime needs: no uv, no compilers.
@@ -28,6 +41,8 @@ WORKDIR /app
 
 RUN groupadd --system --gid 1001 folio \
  && useradd --system --uid 1001 --gid folio --home-dir /app folio
+
+COPY --from=supercronic /supercronic /usr/local/bin/supercronic
 
 # ─────────────────────────── tailwind ────────────────────────────
 # The dev watcher and nothing else. package.json arrives over compose's bind

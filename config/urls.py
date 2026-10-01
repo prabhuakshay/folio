@@ -20,4 +20,5 @@ urlpatterns = [
     path("robots.txt", robots_txt, name="robots_txt"),
     path("", include("signin.urls")),
     path("", include("ui.urls")),
+    path("", include("jobs.urls")),
 ]

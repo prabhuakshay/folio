@@ -68,7 +68,7 @@ cp .env.example .env         # then set SECRET_KEY and DEBUG=True
 docker compose up --build
 ```
 
-Three long-running containers come up:
+Four long-running containers come up:
 
 - `web` runs `runserver` against a bind mount of this directory, so code
   changes reload without a rebuild. Migrations run on every start.
@@ -76,6 +76,7 @@ Three long-running containers come up:
   `pgdata` volume (`docker compose down -v` starts it afresh).
 - `tailwind` watches the project and rebuilds `static/css/app.css` from
   `assets/css/app.css` whenever a template or source file changes.
+- `cron` runs the scheduled commands in `docker/crontab`, as in prod.
 
 `web` and `tailwind` run as your uid (`DOCKER_UID`/`DOCKER_GID`, default 1000),
 so new migrations and the stylesheet stay editable on the host. If yours
@@ -115,6 +116,12 @@ dropped. Migrations run on start (`RUN_MIGRATIONS`), then gunicorn takes over.
 - **Health:** `/healthz` checks the database and backs the container
   healthcheck, which sends `Host: localhost`, so keep `localhost` in
   `ALLOWED_HOSTS`.
+- **Scheduled work:** a `cron` service runs the same image under
+  [supercronic](https://github.com/aptible/supercronic), calling the
+  management commands in `docker/crontab` (Indian times). Each command logs
+  its runs to the run log in Settings › Price feeds and works out what is due
+  since its last success, so it catches up after downtime. Its output is in
+  `docker compose -f compose.prod.yaml logs cron`.
 - **Tuning** (`WEB_CONCURRENCY`, `GUNICORN_*`, resource limits) is all in
   `.env`; changing it is a restart, not a rebuild.
 
