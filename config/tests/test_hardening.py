@@ -1,3 +1,5 @@
+import time
+
 import pytest
 from django.apps import apps
 from django.core.files.base import ContentFile
@@ -6,6 +8,9 @@ from django.core.files.uploadhandler import TemporaryFileUploadHandler
 from django.db import models
 from django.urls import reverse
 from django.utils.module_loading import import_string
+
+from signin.factors import SUDO_UNTIL
+from signin.tests import add_authenticator, verify
 
 
 def test_robots_txt_disallows_everything(client):
@@ -20,6 +25,41 @@ def test_robots_txt_disallows_everything(client):
 @pytest.mark.parametrize("path", ["/robots.txt", "/healthz", "/", "/nowhere"])
 def test_every_response_asks_not_to_be_indexed(client, path):
     assert client.get(path)["X-Robots-Tag"] == "noindex"
+
+
+@pytest.mark.django_db
+def test_sign_in_is_never_kept_by_the_browser(client):
+    response = client.get(reverse("login"))
+
+    assert "no-store" in response["Cache-Control"]
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("name", ["security", "home", "settings"])
+def test_signed_in_screens_are_never_kept_by_the_browser(
+    client, django_user_model, name
+):
+    owner = django_user_model.objects.create_superuser("a@example.in", "a@example.in")
+    client.force_login(owner)
+    verify(client, add_authenticator(owner))
+    session = client.session
+    session[SUDO_UNTIL] = time.time() + 60
+    session.save()
+
+    response = client.get(reverse(name))
+
+    assert response.status_code == 200
+    assert "no-store" in response["Cache-Control"]
+
+
+def test_static_files_may_be_kept_by_the_browser(client, settings):
+    settings.WHITENOISE_AUTOREFRESH = True
+    settings.WHITENOISE_USE_FINDERS = True
+
+    response = client.get(f"{settings.STATIC_URL}css/app.css")
+
+    assert response.status_code == 200
+    assert "no-store" not in response.get("Cache-Control", "")
 
 
 @pytest.mark.django_db

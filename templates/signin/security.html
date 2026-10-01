@@ -154,14 +154,17 @@
             {% endif %}
         </p>
         <div class="mt-6 grid gap-2">
-            <a href="{% url 'authenticator' %}"
-               class="flex h-12 items-center justify-center gap-2 rounded-full bg-ink text-[15px] font-medium text-white">
-                {% if authenticator %}
-                    {% include "icons/refresh.svg" with class="size-4" %}Replace with a new one
-                {% else %}
-                    {% include "icons/plus.svg" with class="size-4" %}Set up
-                {% endif %}
-            </a>
+            <form method="post" action="{% url 'authenticator_start' %}">
+                {% csrf_token %}
+                <button type="submit"
+                        class="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-ink text-[15px] font-medium text-white">
+                    {% if authenticator %}
+                        {% include "icons/refresh.svg" with class="size-4" %}Replace with a new one
+                    {% else %}
+                        {% include "icons/plus.svg" with class="size-4" %}Set up
+                    {% endif %}
+                </button>
+            </form>
             {% if authenticator %}
                 <form method="post"
                       action="{% url 'authenticator_remove' %}"

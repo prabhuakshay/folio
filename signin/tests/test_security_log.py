@@ -137,6 +137,7 @@ def test_failures_and_the_pause_are_logged(client, owner, authenticator):
     sign_in(client, "not it")
     sign_in(client)
     client.post(reverse("verify"), {"code": "000000"})
+    client.logout()
     for _ in range(3):
         sign_in(client, "not it")
 
@@ -189,7 +190,7 @@ def test_changing_second_factors_is_logged(in_sudo, owner, passkey_accepts):
 
 @pytest.mark.django_db
 def test_setting_up_an_authenticator_is_logged(in_sudo):
-    in_sudo.get(reverse("authenticator"))
+    in_sudo.post(reverse("authenticator_start"))
     key = in_sudo.session["signin.authenticator_key"]
 
     in_sudo.post(reverse("authenticator"), {"code": code_for_key(key, 1)})
