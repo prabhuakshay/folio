@@ -86,6 +86,7 @@ INSTALLED_APPS = [
     "ui",
     "signin",
     "jobs",
+    "doctrine",
 ]
 
 MIDDLEWARE = [
