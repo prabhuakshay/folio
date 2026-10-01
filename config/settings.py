@@ -7,6 +7,7 @@ https://docs.djangoproject.com/en/6.1/topics/settings/
 https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
+from datetime import timedelta
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
@@ -81,6 +82,7 @@ INSTALLED_APPS = [
     "django_otp.plugins.otp_totp",
     "django_otp.plugins.otp_static",
     "django_otp_webauthn",
+    "axes",
     "ui",
     "signin",
 ]
@@ -99,6 +101,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django.middleware.csp.ContentSecurityPolicyMiddleware",
     "simple_history.middleware.HistoryRequestMiddleware",
+    "axes.middleware.AxesMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -160,6 +163,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # https://docs.djangoproject.com/en/6.1/topics/auth/default/
 
 AUTHENTICATION_BACKENDS = [
+    "axes.backends.AxesStandaloneBackend",
     "django.contrib.auth.backends.ModelBackend",
     "django_otp_webauthn.backends.WebAuthnBackend",
 ]
@@ -193,6 +197,23 @@ OTP_WEBAUTHN_RP_ID = env.str(
 OTP_WEBAUTHN_RP_NAME = "Folio"
 
 
+# Sign-in throttling
+# https://django-axes.readthedocs.io/
+
+# By address only, so a stranger guessing can never lock the owner out.
+AXES_LOCKOUT_PARAMETERS = ["ip_address"]
+AXES_FAILURE_LIMIT = 5
+AXES_COOLOFF_TIME = timedelta(hours=1)
+# Off, or the right password would wipe the count of wrong authenticator codes.
+AXES_RESET_ON_SUCCESS = False
+# Tries during the pause are refused without restarting its hour.
+AXES_RESET_COOL_OFF_ON_FAILURE_DURING_LOCKOUT = False
+AXES_CLIENT_IP_CALLABLE = "signin.client.ip_address"
+AXES_LOCKOUT_TEMPLATE = "signin/locked_out.html"
+# The security log records sign-ins already.
+AXES_DISABLE_ACCESS_LOG = True
+
+
 # Security
 # https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
@@ -201,6 +222,9 @@ SECURE_SSL_REDIRECT = env.bool("SECURE_SSL_REDIRECT", default=False)
 SECURE_REDIRECT_EXEMPT = [r"^healthz$"]
 if env.bool("USE_X_FORWARDED_PROTO", default=False):
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+# Behind the host's proxy every request comes from the proxy, so the client's
+# address is the one it adds to X-Forwarded-For.
+USE_X_FORWARDED_FOR = env.bool("USE_X_FORWARDED_FOR", default=False)
 
 SESSION_COOKIE_SECURE = env.bool("SESSION_COOKIE_SECURE", default=not DEBUG)
 CSRF_COOKIE_SECURE = env.bool("CSRF_COOKIE_SECURE", default=not DEBUG)

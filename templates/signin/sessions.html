@@ -1,0 +1,38 @@
+{% extends "ui/screen.html" %}
+{% load folio %}
+{% block content %}
+    <p class="mt-3 text-[16px] text-ink-2">Every device signed in to Folio. Each stays signed in for 30 days after its last visit.</p>
+    {% for message in messages %}
+        <p class="mt-4 text-[14px] font-medium text-positive">{{ message }}</p>
+    {% endfor %}
+    <ul class="mt-6 divide-y">
+        {% for session in sessions %}
+            <li class="py-4">
+                <span class="block text-[16px] font-medium">
+                    {{ session.device }}
+                    {% if session.current %}<span class="ml-1 text-[13px] font-medium text-positive">This device</span>{% endif %}
+                    {% if not session.verified %}<span class="ml-1 text-[13px] font-medium text-negative">Password only</span>{% endif %}
+                </span>
+                <span class="block text-[13px] text-ink-2">
+                    {% if session.ip %}{{ session.ip }} ·{% endif %}
+                    {% if session.since %}Signed in {{ session.since|indian_date }} ·{% endif %}
+                    Active {{ session.last_active|indian_date }}, {{ session.last_active|time:"g:i a" }}
+                </span>
+            </li>
+        {% endfor %}
+    </ul>
+    {% if sessions|length > 1 %}
+        <form method="post"
+              action="{% url 'sign_out_others' %}"
+              class="mt-6"
+              data-confirm="Sign out everywhere else?"
+              data-confirm-detail="Every other device will need to sign in again."
+              data-confirm-action="Sign out">
+            {% csrf_token %}
+            <button type="submit" class="pill h-12 w-full text-[15px] text-negative">
+                {% include "icons/log-out.svg" with class="size-[18px]" %}
+                Sign out everywhere else
+            </button>
+        </form>
+    {% endif %}
+{% endblock %}
