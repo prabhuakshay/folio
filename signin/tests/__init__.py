@@ -8,6 +8,8 @@ from django_otp.plugins.otp_static.models import StaticDevice
 from django_otp.plugins.otp_totp.models import TOTPDevice
 from django_otp_webauthn.models import WebAuthnCredential
 
+from signin.factors import SUDO_UNTIL
+
 
 def add_authenticator(user):
     return TOTPDevice.objects.create(user=user, name="Authenticator app")
@@ -48,4 +50,11 @@ def verify(client, device):
     """Mark the client's signed-in session as having passed its second factor."""
     session = client.session
     session[DEVICE_ID_SESSION_KEY] = device.persistent_id
+    session.save()
+
+
+def start_sudo(client):
+    """Put a signed-in test client in sudo mode, without confirming a code."""
+    session = client.session
+    session[SUDO_UNTIL] = time.time() + 60
     session.save()

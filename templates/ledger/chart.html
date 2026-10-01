@@ -38,18 +38,7 @@
                             class="sheet max-h-[72dvh]"
                             aria-labelledby="sheet-{{ row.role }}-title"
                             {% if open == row.role %}data-open{% endif %}>
-                        <div class="-mt-3 mb-4 flex justify-center">
-                            <span class="h-1 w-10 rounded-full bg-hairline"></span>
-                        </div>
-                        <div class="flex items-start gap-4">
-                            <h2 id="sheet-{{ row.role }}-title"
-                                tabindex="-1"
-                                autofocus
-                                class="display min-w-0 flex-1 text-[26px] leading-none outline-none">
-                                {{ row.role.label }}
-                            </h2>
-                            {% include "ledger/close_sheet.html" %}
-                        </div>
+                        {% include "ui/sheet_header.html" with id="sheet-"|add:row.role|add:"-title" title=row.role.label %}
                         <p class="mt-3 text-[14px] leading-6 text-ink-2">{{ row.about }}</p>
                         <p class="mt-1 text-[13px] leading-5 text-ink-3">
                             The Account doing it now keeps its name and history; it just stops being used for this.

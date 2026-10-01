@@ -103,7 +103,7 @@
     <dialog id="sheet-passkeys"
             class="sheet"
             aria-labelledby="sheet-passkeys-title">
-        <h2 id="sheet-passkeys-title" class="display text-[28px] leading-none">Passkeys</h2>
+        {% include "ui/sheet_header.html" with id="sheet-passkeys-title" title="Passkeys" %}
         <p class="mt-2 text-[15px] text-ink-2">Sign in with your fingerprint or face, no password.</p>
         <ul class="mt-4 divide-y">
             {% for passkey in passkeys %}
@@ -137,15 +137,11 @@
             {% include "icons/plus.svg" with class="size-4" %}Add a passkey on this device
         </button>
         {% include "signin/passkey_status.html" %}
-        <form method="dialog">
-            <button type="submit" class="pill mt-2 h-12 w-full text-[15px]">Done</button>
-        </form>
     </dialog>
     <dialog id="sheet-authenticator"
             class="sheet"
             aria-labelledby="sheet-authenticator-title">
-        <h2 id="sheet-authenticator-title"
-            class="display text-[28px] leading-none">Authenticator app</h2>
+        {% include "ui/sheet_header.html" with id="sheet-authenticator-title" title="Authenticator app" %}
         <p class="mt-2 text-[15px] text-ink-2">
             {% if authenticator %}
                 On. A six-digit code from it, with your password, signs you in when no passkey is to hand.
@@ -177,13 +173,10 @@
                     </button>
                 </form>
             {% endif %}
-            <form method="dialog">
-                <button type="submit" class="pill h-12 w-full text-[15px]">Done</button>
-            </form>
         </div>
     </dialog>
     <dialog id="sheet-codes" class="sheet" aria-labelledby="sheet-codes-title">
-        <h2 id="sheet-codes-title" class="display text-[28px] leading-none">Recovery codes</h2>
+        {% include "ui/sheet_header.html" with id="sheet-codes-title" title="Recovery codes" %}
         <p class="mt-2 text-[15px] text-ink-2">{{ codes_left }} of 10 left. Each signs you in once if your phone is lost.</p>
         <div class="mt-6 grid gap-2">
             <form method="post"
@@ -196,9 +189,6 @@
                         class="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-ink text-[15px] font-medium text-white">
                     {% include "icons/refresh.svg" with class="size-4" %}Make new codes
                 </button>
-            </form>
-            <form method="dialog">
-                <button type="submit" class="pill h-12 w-full text-[15px]">Done</button>
             </form>
         </div>
     </dialog>

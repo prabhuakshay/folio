@@ -36,11 +36,7 @@
                                 class="sheet"
                                 aria-labelledby="sheet-{{ row.spec.key }}-title"
                                 {% if open == row.spec.key %}data-open{% endif %}>
-                            {# Takes the dialog's opening focus, so a phone's keyboard waits for a tap on the field. #}
-                            <h2 id="sheet-{{ row.spec.key }}-title"
-                                tabindex="-1"
-                                autofocus
-                                class="display text-[28px] leading-none outline-none">{{ row.spec.label }}</h2>
+                            {% include "ui/sheet_header.html" with id="sheet-"|add:row.spec.key|add:"-title" title=row.spec.label %}
                             <p class="mt-3 text-[15px] leading-6">{{ row.spec.about }}</p>
                             <p class="mt-2 text-[13px] text-ink-2">Default {{ row.default }} · recommended {{ row.spec.band }}</p>
                             <form method="post"
@@ -62,19 +58,16 @@
                                     Save
                                 </button>
                             </form>
-                            <div class="mt-2 grid gap-2">
-                                {% if row.changed %}
-                                    <form method="post" action="{% url 'threshold_reset' row.spec.key %}">
-                                        {% csrf_token %}
-                                        <button type="submit" class="pill h-12 w-full text-[15px]">
-                                            {% include "icons/refresh.svg" with class="size-4" %}Reset to {{ row.default }}
-                                        </button>
-                                    </form>
-                                {% endif %}
-                                <form method="dialog">
-                                    <button type="submit" class="pill h-12 w-full text-[15px]">Cancel</button>
+                            {% if row.changed %}
+                                <form method="post"
+                                      action="{% url 'threshold_reset' row.spec.key %}"
+                                      class="mt-2">
+                                    {% csrf_token %}
+                                    <button type="submit" class="pill h-12 w-full text-[15px]">
+                                        {% include "icons/refresh.svg" with class="size-4" %}Reset to {{ row.default }}
+                                    </button>
                                 </form>
-                            </div>
+                            {% endif %}
                         </dialog>
                     </li>
                 {% endfor %}

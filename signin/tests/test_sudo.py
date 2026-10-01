@@ -14,6 +14,7 @@ from signin.tests import (
     code_for_key,
     verify,
 )
+from ui.tests import closes_from_its_header
 
 EMAIL = "akshay@example.in"
 PASSWORD = "a long harbour lantern"  # noqa: S105
@@ -119,6 +120,19 @@ def test_security_lists_what_protects_the_login(signed_in, owner, authenticator)
     assert "Passkey" in response.text
     assert "Authenticator app" in response.text
     assert "2 of 10 left" in response.text
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("sheet", ["passkeys", "authenticator", "codes"])
+def test_every_security_sheet_closes_from_its_header(
+    signed_in, owner, authenticator, sheet
+):
+    add_passkey(owner)
+    confirm(signed_in, authenticator)
+
+    page = signed_in.get(SECURITY).text
+
+    assert closes_from_its_header(page, f"sheet-{sheet}")
 
 
 @pytest.mark.django_db

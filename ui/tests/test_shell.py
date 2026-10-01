@@ -6,9 +6,20 @@ import pytest
 from django.urls import reverse
 
 import config.settings
-from signin.tests import add_authenticator, verify
+from signin.tests import add_authenticator, start_sudo, verify
 
 TAB_ROOTS = ["home", "activity", "accounts", "plan"]
+STACKED = [
+    "settings",
+    "security",
+    "password",
+    "sessions",
+    "security_log",
+    "thresholds",
+    "chart",
+    "price_feeds",
+    "new",
+]
 
 
 class _Tags(HTMLParser):
@@ -75,13 +86,34 @@ def test_tab_bar_reaches_every_tab_without_adding_history(signed_in, tab):
 
 
 @pytest.mark.django_db
-def test_stacked_screen_has_a_back_arrow_and_no_avatar(signed_in):
+def test_stacked_screen_has_a_back_arrow(signed_in):
     response = signed_in.get(reverse("settings"))
 
     assert response.status_code == 200
     (back,) = tags(response, "a", **{"data-back": None})
     assert back["href"] == reverse("home")
-    assert not tags(response, "a", href=reverse("settings"))
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("name", STACKED)
+def test_stacked_screen_header_has_the_avatar(signed_in, name):
+    start_sudo(signed_in)
+
+    response = signed_in.get(reverse(name))
+
+    assert response.status_code == 200
+    (avatar,) = tags(response, "a", **{"aria-label": "Settings"})
+    assert avatar["href"] == reverse("settings")
+    assert ">AP</a>" in response.text
+    assert ("aria-current" in avatar) == (name == "settings")
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("tab", TAB_ROOTS)
+def test_avatar_is_not_current_on_a_tab_root(signed_in, tab):
+    (avatar,) = tags(signed_in.get(reverse(tab)), "a", **{"aria-label": "Settings"})
+
+    assert "aria-current" not in avatar
 
 
 @pytest.mark.django_db
